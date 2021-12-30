@@ -1,0 +1,13 @@
+autopep8
+click
+dataclasses
+numpy
+Pillow
+pip-tools
+pycodestyle
+six
+toml
+torch
+torchaudio
+torchvision
+typing-extensions
