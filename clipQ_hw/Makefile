@@ -58,7 +58,7 @@ superlint:
 # Run RTL simulation
 rtl0: $(BUILD) cp_tb_src
 	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).v $(SRC) \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv $(SRC) \
 	+incdir+$(SRC_DIR) \
 	+nc64bit \
 	+access+r \
@@ -80,7 +80,7 @@ autosyn: $(BUILD) syn_init
 syn0: $(BUILD) cp_tb_src syn_init
 	cd $(BUILD_DIR); \
 	cp $(SYN_DIR)/$(TOP)_syn.sdf $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).v $(SYN_DIR)/$(TOP)_syn.v \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv $(SYN_DIR)/$(TOP)_syn.v \
 	-v $(CBDK_DIR)/$(CORE_CELL) \
 	+nc64bit \
 	+access+r \

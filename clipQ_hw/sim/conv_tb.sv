@@ -9,7 +9,7 @@
 `timescale 1ns/10ps
 
 `else
-`include "../src/conv.v"
+`include "../src/conv.sv"
 `include "./bram_sim.v"
 `include "./dual_bram.v"
 `endif
