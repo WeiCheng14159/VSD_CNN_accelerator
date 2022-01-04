@@ -4,7 +4,7 @@ BUILD_DIR          =$(ROOT_DIR)/$(BUILD)
 SRC_DIR            =$(ROOT_DIR)/src
 SIM_DIR            =$(ROOT_DIR)/sim
 SYN_DIR            =$(ROOT_DIR)/syn
-APR_DIR            =$(ROOT_DIR)/icc
+APR_DIR            =$(ROOT_DIR)/pr
 SCRIPT_DIR         =$(ROOT_DIR)/script
 REPORT_DIR         =$(ROOT_DIR)/report
 SV_DIR             =$(ROOT_DIR)/conf/simvision_conf
@@ -16,11 +16,6 @@ TOP                =conv
 SRC=$(shell ls $(SRC_DIR)/*.v)
 
 TB_SRC=$(shell ls $(ROOT_DIR)/data/*.hex)
-
-# U18
-CBDK_DIR         =/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/CIC/Verilog
-CORE_CELL        =fsa0m_a_generic_core_21.lib.src
-IO_CELL          =fsa0m_a_t33_generic_io_21.lib.src
 
 .PHONY: default init check rtl nw sv syn syn_chip syn_init icc_init autosyn pre pre_chip pre_sv clean
 
@@ -47,6 +42,10 @@ init: clean
 syn_init:
 	mkdir -p $(SYN_DIR);
 
+# APR directory init
+pr_init:
+	mkdir -p $(APR_DIR);
+
 cp_tb_src:
 	cd $(BUILD_DIR); \
 	cp $(TB_SRC) .;
@@ -62,6 +61,7 @@ rtl0: $(BUILD) cp_tb_src
 	+incdir+$(SRC_DIR) \
 	+nc64bit \
 	+access+r \
+	+define+FSDB \
 	+define+FSDB_FILE=\"$(TOP).fsdb\" \
 
 # Run synthesize with Design Compiler
@@ -81,12 +81,10 @@ syn0: $(BUILD) cp_tb_src syn_init
 	cd $(BUILD_DIR); \
 	cp $(SYN_DIR)/$(TOP)_syn.sdf $(BUILD_DIR); \
 	ncverilog $(SIM_DIR)/$(TB_TOP).sv $(SYN_DIR)/$(TOP)_syn.v \
-	-v $(CBDK_DIR)/$(CORE_CELL) \
 	+nc64bit \
 	+access+r \
+	+define+FSDB \
 	+define+FSDB_FILE=\"$(TOP).fsdb\" \
-	+define+SDF \
-	+define+SDFFILE=\"$(SYN_DIR)/$(TOP)_syn.sdf\"
 
 # Remove all files
 clean:
