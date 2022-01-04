@@ -4,7 +4,7 @@
 
 `ifdef SYN
 `include "../dc/conv_syn.v"
-`include "./bram_sim.v"
+`include "./bram_sim.sv"
 `include "./dual_bram.sv"
 `timescale 1ns / 10ps
 
