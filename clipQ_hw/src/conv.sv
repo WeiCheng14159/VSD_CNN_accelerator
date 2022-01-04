@@ -1,5 +1,5 @@
-`ifndef CONV_V
-`define CONV_V
+`ifndef CONV_SV
+`define CONV_SV
 
 `include "../src/ctrl.v"
 `include "../src/data_in.v"

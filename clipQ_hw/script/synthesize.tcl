@@ -3,7 +3,7 @@ set_host_options -max_cores 16
 
 set topp "conv"
 
-analyze -format sverilog  "../src/conv.v"
+analyze -format sverilog  "../src/conv.sv"
 
 elaborate conv
 
