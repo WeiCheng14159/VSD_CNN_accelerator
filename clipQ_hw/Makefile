@@ -13,24 +13,27 @@ NC_DIR             =$(ROOT_DIR)/conf/nWave_conf
 TB_TOP             =conv_tb
 TOP                =conv
 
-SRC=$(shell ls $(SRC_DIR)/*.v)
-
 TB_SRC=$(shell ls $(ROOT_DIR)/data/*.hex)
 
-.PHONY: default init check rtl nw sv syn syn_chip syn_init icc_init autosyn pre pre_chip pre_sv clean
+FSDB_DEF :=
+ifeq ($(FSDB),1)
+FSDB_DEF := +FSDB
+else ifeq ($(FSDB),2)
+FSDB_DEF := +FSDB_ALL
+endif
+
+.PHONY: default init rtl0 nw sv syn0 synthesize syn_init pr_init clean
 
 # Show available all command
 default:
-	@echo "clean   => Clean previous build"
-	@echo "init    => Create necessary directory"
-	@echo "rtl     => Run RTL simulation"
-	@echo "nw      => Run nWave"
-	@echo "sv      => Run Simvision"
-	@echo "syn     => Run synthesize in interactive mode"
-	@echo "autosyn => Run synthesize in background"
-	@echo "pre    => Run gate-level simulation"
-	@echo "pre_sv => Run Simvision with pre sim"
-
+	@echo "clean      => Clean previous build"
+	@echo "init       => Create necessary directory"
+	@echo "rtl0       => Run RTL simulation"
+	@echo "nw         => Run nWave"
+	@echo "sv         => Run Simvision"
+	@echo "synthesize => Run synthesize in interactive mode"
+	@echo "syn0       => Run gate-level simulation"
+	
 $(BUILD):
 	mkdir -p $(BUILD)
 
@@ -46,45 +49,35 @@ syn_init:
 pr_init:
 	mkdir -p $(APR_DIR);
 
-cp_tb_src:
-	cd $(BUILD_DIR); \
-	cp $(TB_SRC) .;
-
 # Check HDL syntax
 superlint:
 	jg -superlint $(SCRIPT_DIR)/superlint.tcl &
 
 # Run RTL simulation
-rtl0: $(BUILD) cp_tb_src
+rtl0: $(BUILD)
 	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv $(SRC) \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
 	+incdir+$(SRC_DIR) \
 	+nc64bit \
 	+access+r \
-	+define+FSDB \
-	+define+FSDB_FILE=\"$(TOP).fsdb\" \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
 
 # Run synthesize with Design Compiler
-syn: $(BUILD) syn_init
+synthesize: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
 	cp $(SCRIPT_DIR)/synopsys_dc.setup $(BUILD_DIR)/.synopsys_dc.setup; \
 	dcnxt_shell -f $(SCRIPT_DIR)/synthesize.tcl;
 
-# Auto run synthesize with Design Compiler
-autosyn: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	cp $(SCRIPT_DIR)/synopsys_dc.setup $(BUILD_DIR)/.synopsys_dc.setup; \
-	nohup dcnxt_shell -f $(SCRIPT_DIR)/synthesize.tcl &> $(ROOT_DIR)/nohup.log &
-
 # Run gate-level simulation (nWave)
-syn0: $(BUILD) cp_tb_src syn_init
+syn0: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
-	cp $(SYN_DIR)/$(TOP)_syn.sdf $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv $(SYN_DIR)/$(TOP)_syn.v \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+	+incdir+$(SRC_DIR)+$(SYN_DIR) \
+	+define+SYN \
 	+nc64bit \
 	+access+r \
-	+define+FSDB \
-	+define+FSDB_FILE=\"$(TOP).fsdb\" \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
 
 # Remove all files
 clean:
