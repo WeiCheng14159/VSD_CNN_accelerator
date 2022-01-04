@@ -3,11 +3,17 @@
 `define MAX 3000000 // Max cycle number
 
 `ifdef SYN
-`include "../dc/conv_syn.v"
+`include "conv_syn.v"
 `include "./bram_sim.sv"
 `include "./dual_bram.sv"
 `timescale 1ns / 10ps
-
+`include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
+`elsif PR
+`include "conv_pr.v"
+`include "./bram_sim.sv"
+`include "./dual_bram.sv"
+`timescale 1ns / 10ps
+`include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
 `include "../src/conv.sv"
 `include "./bram_sim.sv"
@@ -197,26 +203,18 @@ module top_tb;
   end
 
 `ifdef SYN
-  initial $sdf_annotate("../dc/conv_syn.sdf", TOP);
+  initial $sdf_annotate("conv_syn.sdf", TOP);
 `elsif PR
-  initial $sdf_annotate("top_pr.sdf", TOP);
+  initial $sdf_annotate("conv_pr.sdf", TOP);
 `endif
 
   initial begin
 
 `ifdef FSDB
-`ifdef SYN
-    $fsdbDumpfile("top_syn1.fsdb");
-`else
-    $fsdbDumpfile("top1.fsdb");
-`endif
-    $fsdbDumpvars(0, TOP);
+    $fsdbDumpfile(`FSDB_FILE);
+    $fsdbDumpvars();
 `elsif FSDB_ALL
-`ifdef SYN
-    $fsdbDumpfile("top_syn1.fsdb");
-`else
-    $fsdbDumpfile("top1.fsdb");
-`endif
+    $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
 `endif
     #(`CYCLE * `MAX)
