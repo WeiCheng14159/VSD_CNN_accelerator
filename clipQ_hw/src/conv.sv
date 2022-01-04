@@ -6,6 +6,7 @@
 `include "../src/conv_4U.v"
 `include "../src/accum.v"
 `include "../src/out_comb.v"
+`include "bram_intf.sv"
 
 module conv (
     input logic rst,
