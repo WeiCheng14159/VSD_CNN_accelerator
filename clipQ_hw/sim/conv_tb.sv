@@ -22,7 +22,7 @@
 
 `include "bram_intf.sv"
 `timescale 1ns / 10ps
-`define FSDB_ALL
+
 module top_tb;
 
   reg clk;
@@ -282,6 +282,8 @@ module top_tb;
 `elsif FSDB_ALL
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
+`else
+
 `endif
     #(`CYCLE * `MAX)
       for (i = 0; i < 100; i = i + 1) begin
