@@ -11,21 +11,86 @@
 module conv (
     input logic rst,
     input logic clk,
+
+    output logic Mp_en,
+    output logic [31:0] Mp_addr,
+    input logic [31:0] Mp_R_data,
+    output logic [3:0] Mp_W_req,
+    output logic [31:0] Mp_W_data,
+
+    output logic Min_en,
+    output logic [31:0] Min_addr,
+    input logic [31:0] Min_R_data,
+    output logic [3:0] Min_W_req,
+    output logic [31:0] Min_W_data,
+
+    output logic Mout_en,
+    output logic [31:0] Mout_addr,
+    input logic [31:0] Mout_R_data,
+    output logic [3:0] Mout_W_req,
+    output logic [31:0] Mout_W_data,
+
+    output logic Mw_en,
+    output logic [31:0] Mw_addr,
+    input logic [31:0] Mw_R_data,
+    output logic [3:0] Mw_W_req,
+    output logic [31:0] Mw_W_data,
+
+    output logic Mb_en,
+    output logic [31:0] Mb_addr,
+    input logic [31:0] Mb_R_data,
+    output logic [3:0] Mb_W_req,
+    output logic [31:0] Mb_W_data,
+
+    output logic Mk0_p0_en,
+    output logic [31:0] Mk0_p0_addr,
+    input logic [31:0] Mk0_p0_R_data,
+    output logic [3:0] Mk0_p0_W_req,
+    output logic [31:0] Mk0_p0_W_data,
+
+    output logic Mk0_p1_en,
+    output logic [31:0] Mk0_p1_addr,
+    input logic [31:0] Mk0_p1_R_data,
+    output logic [3:0] Mk0_p1_W_req,
+    output logic [31:0] Mk0_p1_W_data,
+
+    output logic Mk1_p0_en,
+    output logic [31:0] Mk1_p0_addr,
+    input logic [31:0] Mk1_p0_R_data,
+    output logic [3:0] Mk1_p0_W_req,
+    output logic [31:0] Mk1_p0_W_data,
+
+    output logic Mk1_p1_en,
+    output logic [31:0] Mk1_p1_addr,
+    input logic [31:0] Mk1_p1_R_data,
+    output logic [3:0] Mk1_p1_W_req,
+    output logic [31:0] Mk1_p1_W_data,
+
+    output logic Mk2_p0_en,
+    output logic [31:0] Mk2_p0_addr,
+    input logic [31:0] Mk2_p0_R_data,
+    output logic [3:0] Mk2_p0_W_req,
+    output logic [31:0] Mk2_p0_W_data,
+
+    output logic Mk2_p1_en,
+    output logic [31:0] Mk2_p1_addr,
+    input logic [31:0] Mk2_p1_R_data,
+    output logic [3:0] Mk2_p1_W_req,
+    output logic [31:0] Mk2_p1_W_data,
+
+    output logic Mk3_p0_en,
+    output logic [31:0] Mk3_p0_addr,
+    input logic [31:0] Mk3_p0_R_data,
+    output logic [3:0] Mk3_p0_W_req,
+    output logic [31:0] Mk3_p0_W_data,
+
+    output logic Mk3_p1_en,
+    output logic [31:0] Mk3_p1_addr,
+    input logic [31:0] Mk3_p1_R_data,
+    output logic [3:0] Mk3_p1_W_req,
+    output logic [31:0] Mk3_p1_W_data,
     input logic start,
-    input logic finish,
-    bram_intf.compute param_intf,
-    bram_intf.compute input_intf,
-    bram_intf.compute output_intf,
-    bram_intf.compute weight_intf,
-    bram_intf.compute bias_intf,
-    bram_intf.compute k0_p0_intf,
-    bram_intf.compute k0_p1_intf,
-    bram_intf.compute k1_p0_intf,
-    bram_intf.compute k1_p1_intf,
-    bram_intf.compute k2_p0_intf,
-    bram_intf.compute k2_p1_intf,
-    bram_intf.compute k3_p0_intf,
-    bram_intf.compute k3_p1_intf
+    output logic finish
 );
 
   reg  [15:0] cnt;
@@ -33,7 +98,6 @@ module conv (
   wire [ 7:0] k_size;
   wire [ 3:0] u_en;
   wire        z_en;
-
 
   wire [ 7:0] pos_w;
   wire [ 7:0] neg_w1;
@@ -78,49 +142,45 @@ module conv (
 
   wire        w_en;
 
-  assign input_intf.addr = {MinW_addr[29:0], 2'b00};
+  assign Min_addr = {MinW_addr[29:0], 2'b00};
   assign out_addr = {MoutW_addr[29:0], 2'b00};
 
-  assign param_intf.en = 1'b1;
-  assign input_intf.en = 1'b1;
-  assign weight_intf.en = 1'b1;
-  assign bias_intf.en = 1'b1;
-  assign output_intf.en = 1'b1;
-  assign bias_intf.W_req = 4'b0;
+  assign Mp_en = 1'b1;
+  assign Min_en = 1'b1;
+  assign Mw_en = 1'b1;
+  assign Mb_en = 1'b1;
+  assign Mb_W_req = 4'b0;
+  assign Mout_en = 1'b1;
 
-  assign k0_p0_intf.en = 1'b1;
-  assign k0_p1_intf.en = 1'b1;
-  assign k0_p0_intf.W_req = 4'b0;
+  assign Mk0_p0_en = 1'b1;
+  assign Mk0_p1_en = 1'b1;
+  assign Mk0_p0_W_req = 4'b0;
 
-  assign k1_p0_intf.en = 1'b1;
-  assign k1_p1_intf.en = 1'b1;
-  assign k1_p0_intf.W_req = 4'b0;
+  assign Mk1_p0_en = 1'b1;
+  assign Mk1_p1_en = 1'b1;
+  assign Mk1_p0_W_req = 4'b0;
 
-  assign k2_p0_intf.en = 1'b1;
-  assign k2_p1_intf.en = 1'b1;
-  assign k2_p0_intf.W_req = 4'b0;
+  assign Mk2_p0_en = 1'b1;
+  assign Mk2_p1_en = 1'b1;
+  assign Mk2_p0_W_req = 4'b0;
 
-  assign k3_p0_intf.en = 1'b1;
-  assign k3_p1_intf.en = 1'b1;
-  assign k3_p0_intf.W_req = 4'b0;
+  assign Mk3_p0_en = 1'b1;
+  assign Mk3_p1_en = 1'b1;
+  assign Mk3_p0_W_req = 4'b0;
 
   ctrl ctrl0 (
       .clk(clk),
       .rst(rst),
       .start(start),
       .finish(finish),
-      // Param
-      .Mp_addr(param_intf.addr),
-      .Mp_R_data(param_intf.R_data),
-      // Input
+      .Mp_addr(Mp_addr),
+      .Mp_R_data(Mp_R_data),
       .Min_addr(MinW_addr),
-      // Output
       .Mout_addr(MoutW_addr),
       .Mout_W_req(out_wen),
-      // Weight
-      .Mw_addr(weight_intf.addr),
-      .Mw_R_data(weight_intf.R_data),
-      .mb_addr(bias_intf.addr),
+      .Mw_addr(Mw_addr),
+      .Mw_R_data(Mw_R_data),
+      .mb_addr(Mb_addr),
       .mb_en(mb_push),
       .padding_type(padding_type),
       .k_size(k_size),
@@ -137,12 +197,13 @@ module conv (
       .in_ch_cnt(in_ch_cnt),
       .out_ch_cnt(out_ch_cnt),
       .out_ch_c(out_ch_c)
+
   );
 
   data_in data_in0 (
       .clk(clk),
       .rst(rst),
-      .Min_R_data(input_intf.R_data),
+      .Min_R_data(Min_R_data),
       .padding_type(padding_type),
       .cal_data_in(cal_data_in)
   );
@@ -154,7 +215,7 @@ module conv (
       .dout_32(result[0]),
       .unit_en(u_en[0]),
       .k_size(k_size),
-      .w_2b_4(weight_intf.R_data[31:24]),
+      .w_2b_4(Mw_R_data[31:24]),
       .w_en(w_en),
       .z_en(z_en),
       .pos_w(pos_w),
@@ -169,7 +230,7 @@ module conv (
       .dout_32(result[1]),
       .unit_en(u_en[1]),
       .k_size(k_size),
-      .w_2b_4(weight_intf.R_data[23:16]),
+      .w_2b_4(Mw_R_data[23:16]),
       .w_en(w_en),
       .z_en(z_en),
       .pos_w(pos_w),
@@ -184,7 +245,7 @@ module conv (
       .dout_32(result[2]),
       .unit_en(u_en[2]),
       .k_size(k_size),
-      .w_2b_4(weight_intf.R_data[15:8]),
+      .w_2b_4(Mw_R_data[15:8]),
       .w_en(w_en),
       .z_en(z_en),
       .pos_w(pos_w),
@@ -199,7 +260,7 @@ module conv (
       .dout_32(result[3]),
       .unit_en(u_en[3]),
       .k_size(k_size),
-      .w_2b_4(weight_intf.R_data[7:0]),
+      .w_2b_4(Mw_R_data[7:0]),
       .w_en(w_en),
       .z_en(z_en),
       .pos_w(pos_w),
@@ -213,11 +274,11 @@ module conv (
       .result(result[0]),
       .out_state(out_state),
       .out_en(out_en),
-      .mk_p0_addr(k0_p0_intf.addr),
-      .mk_p0_data(k0_p0_intf.R_data),
-      .mk_p1_w(k0_p1_intf.W_req),
-      .mk_p1_addr(k0_p1_intf.addr),
-      .mk_p1_data(k0_p1_intf.W_data),
+      .mk_p0_addr(Mk0_p0_addr),
+      .mk_p0_data(Mk0_p0_R_data),
+      .mk_p1_w(Mk0_p1_W_req),
+      .mk_p1_addr(Mk0_p1_addr),
+      .mk_p1_data(Mk0_p1_W_data),
       .mb_push(mb_push),
       .mb_in(bias[2]),
       .bias(bias[3]),
@@ -229,18 +290,17 @@ module conv (
       .Mout_data(out_data[0])
   );
 
-
   accum accum1 (
       .clk(clk),
       .rst(rst),
       .result(result[1]),
       .out_state(out_state),
       .out_en(out_en),
-      .mk_p0_addr(k1_p0_intf.addr),
-      .mk_p0_data(k1_p0_intf.R_data),
-      .mk_p1_w(k1_p1_intf.W_req),
-      .mk_p1_addr(k1_p1_intf.addr),
-      .mk_p1_data(k1_p1_intf.W_data),
+      .mk_p0_addr(Mk1_p0_addr),
+      .mk_p0_data(Mk1_p0_R_data),
+      .mk_p1_w(Mk1_p1_W_req),
+      .mk_p1_addr(Mk1_p1_addr),
+      .mk_p1_data(Mk1_p1_W_data),
       .mb_push(mb_push),
       .mb_in(bias[1]),
       .bias(bias[2]),
@@ -252,18 +312,17 @@ module conv (
       .Mout_data(out_data[1])
   );
 
-
   accum accum2 (
       .clk(clk),
       .rst(rst),
       .result(result[2]),
       .out_state(out_state),
       .out_en(out_en),
-      .mk_p0_addr(k2_p0_intf.addr),
-      .mk_p0_data(k2_p0_intf.R_data),
-      .mk_p1_w(k2_p1_intf.W_req),
-      .mk_p1_addr(k2_p1_intf.addr),
-      .mk_p1_data(k2_p1_intf.W_data),
+      .mk_p0_addr(Mk2_p0_addr),
+      .mk_p0_data(Mk2_p0_R_data),
+      .mk_p1_w(Mk2_p1_W_req),
+      .mk_p1_addr(Mk2_p1_addr),
+      .mk_p1_data(Mk2_p1_W_data),
       .mb_push(mb_push),
       .mb_in(bias[0]),
       .bias(bias[1]),
@@ -275,20 +334,19 @@ module conv (
       .Mout_data(out_data[2])
   );
 
-
   accum accum3 (
       .clk(clk),
       .rst(rst),
       .result(result[3]),
       .out_state(out_state),
       .out_en(out_en),
-      .mk_p0_addr(k3_p0_intf.addr),
-      .mk_p0_data(k3_p0_intf.R_data),
-      .mk_p1_w(k3_p1_intf.W_req),
-      .mk_p1_addr(k3_p1_intf.addr),
-      .mk_p1_data(k3_p1_intf.W_data),
+      .mk_p0_addr(Mk3_p0_addr),
+      .mk_p0_data(Mk3_p0_R_data),
+      .mk_p1_w(Mk3_p1_W_req),
+      .mk_p1_addr(Mk3_p1_addr),
+      .mk_p1_data(Mk3_p1_W_data),
       .mb_push(mb_push),
-      .mb_in(bias_intf.R_data),
+      .mb_in(Mb_R_data),
       .bias(bias[0]),
       .first(first),
       .last(last),
@@ -308,13 +366,13 @@ module conv (
 
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
-      output_intf.addr   <= 0;
-      output_intf.W_req  <= 0;
-      output_intf.W_data <= 0;
+      Mout_addr   <= 0;
+      Mout_W_req  <= 0;
+      Mout_W_data <= 0;
     end else begin
-      output_intf.addr   <= out_addr;
-      output_intf.W_req  <= out_wen;
-      output_intf.W_data <= out_d;
+      Mout_addr   <= out_addr;
+      Mout_W_req  <= out_wen;
+      Mout_W_data <= out_d;
     end
   end
 
