@@ -1,156 +1,103 @@
-`ifndef CTRL_V
-`define CTRL_V
+`ifndef CTRL_SV
+`define CTRL_SV
 module ctrl (
-    clk,
-    rst,
-
-    start,
-    finish,
-
-    Mp_addr,
-    Mp_R_data,
-
-    Min_addr,
-    Mout_addr,
-    Mout_W_req,
-    Mw_addr,
-    Mw_R_data,
-
-    mb_en,
-    mb_addr,
-
-
-    k_size,
-    u_en,
-    w_en,
-    z_en,
-
-    pos_w,
-    neg_w1,
-    neg_w2,
-
-    padding_type,
-
-    first,
-    last,
-    out_state,
-    out_en,
-
-    in_ch_cnt,
-    out_ch_cnt,
-    out_ch_c
+    input  logic        clk,
+    input  logic        rst,
+    // control signal
+    input  logic        start,
+    output logic        finish,
+    //mem ctrl
+    output logic [31:0] Mp_addr,
+    input  logic [31:0] Mp_R_data,
+    output logic [31:0] Min_addr,
+    output logic [31:0] Mout_addr,
+    output logic [ 3:0] Mout_W_req,
+    output logic [31:0] Mw_addr,
+    input  logic [31:0] Mw_R_data,
+    output logic        mb_en,
+    output logic [31:0] mb_addr,
+    //kernal_size & unit_ctrl
+    output logic [ 7:0] k_size,
+    output logic [ 3:0] u_en,
+    output logic        w_en,
+    output logic        z_en,
+    //clipq 4 num
+    output logic [ 7:0] pos_w,
+    output logic [ 7:0] neg_w1,
+    output logic [ 7:0] neg_w2,
+    //padding
+    output logic [ 1:0] padding_type,
+    output logic        first,
+    output logic        last,
+    output logic        out_state,
+    output logic        out_en,
+    //in out channel(s5)
+    output logic [15:0] in_ch_cnt,
+    output logic [15:0] out_ch_cnt,
+    output logic        out_ch_c
 );
 
-  // port
-
-  input clk, rst;
-
-  //cpu signal
-  input start;
-  output reg finish;
-
-  //mem ctrl
-  output  reg [31:0] Mp_addr;
-  input [31:0] Mp_R_data;
-
-  output  reg [31:0] Min_addr;
-  output  reg [31:0] Mout_addr;
-  output  reg [3:0] Mout_W_req;
-  output  reg [31:0] Mw_addr;
-  input [31:0] Mw_R_data;
-
-  output reg mb_en;
-  output reg [31:0] mb_addr;
-
-
-  //padding
-  output  reg [1:0] padding_type;
-
-  //kernal_size & unit_ctrl
-  output reg [7:0] k_size;
-  output [3:0] u_en;
-  output reg w_en;
-
-  output reg z_en;
-
-  //clipq 4 num
-  output reg [7:0] pos_w;
-  output reg [7:0] neg_w1;
-  output reg [7:0] neg_w2;
-
-
-  //output
-  output reg first;
-  output reg last;
-  output reg out_state;
-  output reg out_en;
-
-  //in out channel(s5)
-  output reg [15:0] in_ch_cnt;
-  output reg [15:0] out_ch_cnt;
-  output reg out_ch_c;
-
-  integer            i;
+  integer             i;
   //state
-  reg         [ 2:0] CS;
-  reg         [ 2:0] NS;
+  logic        [ 2:0] CS;
+  logic        [ 2:0] NS;
 
   //fin signal
-  reg                s1_fin;
-  reg                s2_fin;
-  reg                s3_fin;
-  reg                s4_fin;
-  reg                s5_fin;
-  reg                s6_back;
-  reg                s6_fin;
+  logic               s1_fin;
+  logic               s2_fin;
+  logic               s3_fin;
+  logic               s4_fin;
+  logic               s5_fin;
+  logic               s6_back;
+  logic               s6_fin;
   //all_cnt
-  reg         [15:0] all_cnt;
+  logic        [15:0] all_cnt;
 
   //read_param(s1)
-  reg         [15:0] param_reg    [0:3];
-  wire        [15:0] row_col;
-  wire        [15:0] in_ch;
-  wire        [15:0] out_ch;
+  logic        [15:0] param_reg    [0:3];
+  logic        [15:0] row_col;
+  logic        [15:0] in_ch;
+  logic        [15:0] out_ch;
 
   //read_w8(s2)
 
-  wire        [ 7:0] k_row;
-  wire        [ 2:0] padding;
+  logic        [ 7:0] k_row;
+  logic        [ 2:0] padding;
 
   //read_w2(s3)
-  reg         [31:0] w_cnt;
+  logic        [31:0] w_cnt;
 
 
   //read_input(s4)
-  reg         [ 9:0] addr_cnt;
-  reg signed  [ 5:0] ba_r_cnt;
-  reg signed  [ 5:0] ba_c_cnt;
-  wire signed [ 5:0] ba_r_add;
+  logic        [ 9:0] addr_cnt;
+  logic signed [ 5:0] ba_r_cnt;
+  logic signed [ 5:0] ba_c_cnt;
+  logic signed [ 5:0] ba_r_add;
 
-  reg         [ 5:0] inr_cnt;
-  reg         [ 5:0] inc_cnt;
-  reg         [ 4:0] r_cnt;
-  reg         [ 7:0] posi;
-  reg         [15:0] po_ch;
-  reg         [ 9:0] in_add_ch;
-  reg         [15:0] po_mul;
-  reg         [15:0] pro_mul;
-  reg         [ 1:0] pad;
+  logic        [ 5:0] inr_cnt;
+  logic        [ 5:0] inc_cnt;
+  logic        [ 4:0] r_cnt;
+  logic        [ 7:0] posi;
+  logic        [15:0] po_ch;
+  logic        [ 9:0] in_add_ch;
+  logic        [15:0] po_mul;
+  logic        [15:0] pro_mul;
+  logic        [ 1:0] pad;
 
-  wire        [15:0] mul_ch;
-  wire        [15:0] all_mul_ch;
-  reg         [ 7:0] out_r;
-  reg         [ 7:0] out_c;
-  reg         [15:0] out_addr_cnt;
-  reg                o_en_reg;
-  reg                beg;
+  logic        [15:0] mul_ch;
+  logic        [15:0] all_mul_ch;
+  logic        [ 7:0] out_r;
+  logic        [ 7:0] out_c;
+  logic        [15:0] out_addr_cnt;
+  logic               o_en_reg;
+  logic               beg;
 
-  reg         [15:0] out_ccnt;
+  logic        [15:0] out_ccnt;
 
   //in out channel(s6)
-  reg         [15:0] out_d4_ch;
-  reg                out_start;
-  reg         [ 2:0] out_k_cnt;
+  logic        [15:0] out_d4_ch;
+  logic               out_start;
+  logic        [ 2:0] out_k_cnt;
 
   // FSM
 
@@ -541,7 +488,7 @@ module ctrl (
   end
 
   //out_start
-  reg [31:0] out_k_cnt_r;
+  logic [31:0] out_k_cnt_r;
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
       out_k_cnt_r <= 0;

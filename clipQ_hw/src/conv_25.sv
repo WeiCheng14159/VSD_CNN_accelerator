@@ -1,30 +1,20 @@
-`ifndef CONV_25_V
-`define CONV_25_V
-`include "../src/c_unit.v"
+`ifndef CONV_25_SV
+`define CONV_25_SV
+`include "c_unit.sv"
 
 module conv_25 (
-    clk,
-    rst,
-    d_in,
-    w_in,
-    w_en,
-    z_en,
-    ans_out
-
+    input  logic        clk,
+    input  logic        rst,
+    input  logic [ 7:0] d_in,
+    input  logic [ 7:0] w_in,
+    input  logic        w_en,
+    input  logic        z_en,
+    output logic [31:0] ans_out
 );
 
-  input clk, rst;
-  input [7:0] d_in;
-
-  input [7:0] w_in;
-  input w_en;
-
-  input z_en;
-  output [31:0] ans_out;
-
-  wire signed [31:0] d_out[0:24];
-  wire signed [ 7:0] w_out[0:24];
-  wire signed [24:0] en;
+  logic signed [31:0] d_out[0:24];
+  logic signed [ 7:0] w_out[0:24];
+  logic signed [24:0] en;
 
   genvar i;
 

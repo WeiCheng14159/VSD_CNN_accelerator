@@ -1,39 +1,23 @@
-`ifndef C_UNIT_V
-`define C_UNIT_V
+`ifndef C_UNIT_SV
+`define C_UNIT_SV
 module c_unit (
-    clk,
-    rst,
-    l_in,
-    d_in,
-    en_pu,
-    en_in,
-    en,
-    zero_en,
-    w_en,
-    w_in,
-    d_out,
-    w_out
-
+    input  logic               clk,
+    input  logic               rst,
+    input  logic signed [31:0] l_in,
+    input  logic        [ 7:0] d_in,
+    input  logic               en_pu,
+    input  logic               en_in,
+    output logic               en,
+    input  logic               zero_en,
+    input  logic               w_en,
+    input  logic        [ 7:0] w_in,
+    output logic signed [31:0] d_out,
+    output logic signed [ 7:0] w_out
 );
 
-  input clk, rst;
-  input [7:0] d_in;
-  input signed [31:0] l_in;
+  logic signed [ 7:0] in;
+  logic signed [15:0] mul_r;
 
-  input en_pu;
-  input en_in;
-  output reg en;
-  input zero_en;
-
-  input [7:0] w_in;
-  input w_en;
-
-  output reg signed [31:0] d_out;
-  output reg signed [7:0] w_out;
-
-  wire signed [ 7:0] in;
-
-  wire signed [15:0] mul_r;
   //w_out
   always @(posedge clk or negedge rst) begin
     if (!rst) begin

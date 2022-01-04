@@ -2,18 +2,18 @@
 `define DUAL_BRAM_SV
 
 module dual_bram (
-    input logic clk,
-    input logic rst,
-    bram_intf.memory p0_intf,
-    bram_intf.memory p1_intf
+    input logic            clk,
+    input logic            rst,
+          bram_intf.memory p0_intf,
+          bram_intf.memory p1_intf
 );
 
-  reg  [31:0] content  [60000:0];
-  wire [31:0] p0_addrW;
-  wire [31:0] p1_addrW;
+  logic [31:0] content  [60000:0];
+  logic [31:0] p0_addrW;
+  logic [31:0] p1_addrW;
 
   assign p0_addrW = p0_intf.addr >> 2;
-  assign p0_addrW = p1_intf.addr >> 2;
+  assign p1_addrW = p1_intf.addr >> 2;
 
   always @(posedge clk or negedge rst) begin
     if (p0_intf.en && p0_intf.W_req == 4'b1111)

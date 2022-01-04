@@ -4,20 +4,20 @@
 
 `ifdef SYN
 `include "conv_syn.v"
-`include "./bram_sim.sv"
-`include "./dual_bram.sv"
+`include "bram_sim.sv"
+`include "dual_bram.sv"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
 `include "conv_pr.v"
-`include "./bram_sim.sv"
-`include "./dual_bram.sv"
+`include "bram_sim.sv"
+`include "dual_bram.sv"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
-`include "../src/conv.sv"
-`include "./bram_sim.sv"
-`include "./dual_bram.sv"
+`include "conv.sv"
+`include "bram_sim.sv"
+`include "dual_bram.sv"
 `endif
 
 `include "bram_intf.sv"

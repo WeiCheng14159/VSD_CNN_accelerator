@@ -1,67 +1,32 @@
-`ifndef ACCUM_V
-`define ACCUM_V
+`ifndef ACCUM_SV
+`define ACCUM_SV
+
 module accum (
-    clk,
-    rst,
-
-    result,
-    out_en,
-    out_state,
-
-    mk_p0_addr,
-    mk_p0_data,
-
-    mk_p1_w,
-    mk_p1_addr,
-    mk_p1_data,
-
-    mb_push,
-    mb_in,
-    bias,
-
-    first,
-    last,
-
-    in_ch_cnt,
-    out_ch_cnt,
-
-    out_ch_c,
-
-    Mout_data
+    input  logic        clk,
+    input  logic        rst,
+    input  logic [31:0] result,
+    input  logic        out_en,
+    input  logic        out_state,
+    output logic [31:0] mk_p0_addr,
+    input  logic [31:0] mk_p0_data,
+    output logic [ 3:0] mk_p1_w,
+    output logic [31:0] mk_p1_addr,
+    output logic [31:0] mk_p1_data,
+    input  logic        mb_push,
+    input  logic [31:0] mb_in,
+    output logic [31:0] bias,
+    input  logic        first,
+    input  logic        last,
+    input  logic [15:0] in_ch_cnt,
+    input  logic [15:0] out_ch_cnt,
+    input  logic        out_ch_c,
+    output logic [31:0] Mout_data
 );
 
-  input clk, rst;
-  input [31:0] result;
-  input out_state;
-  input out_en;
-
-  output reg [31:0] mk_p0_addr;
-  input [31:0] mk_p0_data;
-
-  output reg [3:0] mk_p1_w;
-  output reg [31:0] mk_p1_addr;
-  output reg [31:0] mk_p1_data;
-
-  input mb_push;
-  input [31:0] mb_in;
-  output reg [31:0] bias;
-
-  input first;
-  input last;
-
-  input [15:0] in_ch_cnt;
-  input [15:0] out_ch_cnt;
-
-  input out_ch_c;
-
-  output reg [31:0] Mout_data;
-
-  wire signed [31:0] add_ans;
-
-  reg signed  [31:0] r_reg;
-  reg                en_reg;
-
-  reg         [15:0] in_ch_reg;
+  logic signed [31:0] add_ans;
+  logic signed [31:0] r_reg;
+  logic               en_reg;
+  logic        [15:0] in_ch_reg;
 
   assign add_ans = first ? r_reg : (mk_p0_data + r_reg);
 

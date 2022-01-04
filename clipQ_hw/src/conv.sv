@@ -1,146 +1,146 @@
 `ifndef CONV_SV
 `define CONV_SV
 
-`include "../src/ctrl.v"
-`include "../src/data_in.v"
-`include "../src/conv_4U.v"
-`include "../src/accum.v"
-`include "../src/out_comb.v"
+`include "ctrl.sv"
+`include "data_in.sv"
+`include "conv_4U.sv"
+`include "accum.sv"
+`include "out_comb.sv"
 `include "bram_intf.sv"
 
 module conv (
     input logic rst,
     input logic clk,
 
-    output logic Mp_en,
+    output logic        Mp_en,
     output logic [31:0] Mp_addr,
-    input logic [31:0] Mp_R_data,
-    output logic [3:0] Mp_W_req,
+    input  logic [31:0] Mp_R_data,
+    output logic [ 3:0] Mp_W_req,
     output logic [31:0] Mp_W_data,
 
-    output logic Min_en,
+    output logic        Min_en,
     output logic [31:0] Min_addr,
-    input logic [31:0] Min_R_data,
-    output logic [3:0] Min_W_req,
+    input  logic [31:0] Min_R_data,
+    output logic [ 3:0] Min_W_req,
     output logic [31:0] Min_W_data,
 
-    output logic Mout_en,
+    output logic        Mout_en,
     output logic [31:0] Mout_addr,
-    input logic [31:0] Mout_R_data,
-    output logic [3:0] Mout_W_req,
+    input  logic [31:0] Mout_R_data,
+    output logic [ 3:0] Mout_W_req,
     output logic [31:0] Mout_W_data,
 
-    output logic Mw_en,
+    output logic        Mw_en,
     output logic [31:0] Mw_addr,
-    input logic [31:0] Mw_R_data,
-    output logic [3:0] Mw_W_req,
+    input  logic [31:0] Mw_R_data,
+    output logic [ 3:0] Mw_W_req,
     output logic [31:0] Mw_W_data,
 
-    output logic Mb_en,
+    output logic        Mb_en,
     output logic [31:0] Mb_addr,
-    input logic [31:0] Mb_R_data,
-    output logic [3:0] Mb_W_req,
+    input  logic [31:0] Mb_R_data,
+    output logic [ 3:0] Mb_W_req,
     output logic [31:0] Mb_W_data,
 
-    output logic Mk0_p0_en,
+    output logic        Mk0_p0_en,
     output logic [31:0] Mk0_p0_addr,
-    input logic [31:0] Mk0_p0_R_data,
-    output logic [3:0] Mk0_p0_W_req,
+    input  logic [31:0] Mk0_p0_R_data,
+    output logic [ 3:0] Mk0_p0_W_req,
     output logic [31:0] Mk0_p0_W_data,
 
-    output logic Mk0_p1_en,
+    output logic        Mk0_p1_en,
     output logic [31:0] Mk0_p1_addr,
-    input logic [31:0] Mk0_p1_R_data,
-    output logic [3:0] Mk0_p1_W_req,
+    input  logic [31:0] Mk0_p1_R_data,
+    output logic [ 3:0] Mk0_p1_W_req,
     output logic [31:0] Mk0_p1_W_data,
 
-    output logic Mk1_p0_en,
+    output logic        Mk1_p0_en,
     output logic [31:0] Mk1_p0_addr,
-    input logic [31:0] Mk1_p0_R_data,
-    output logic [3:0] Mk1_p0_W_req,
+    input  logic [31:0] Mk1_p0_R_data,
+    output logic [ 3:0] Mk1_p0_W_req,
     output logic [31:0] Mk1_p0_W_data,
 
-    output logic Mk1_p1_en,
+    output logic        Mk1_p1_en,
     output logic [31:0] Mk1_p1_addr,
-    input logic [31:0] Mk1_p1_R_data,
-    output logic [3:0] Mk1_p1_W_req,
+    input  logic [31:0] Mk1_p1_R_data,
+    output logic [ 3:0] Mk1_p1_W_req,
     output logic [31:0] Mk1_p1_W_data,
 
-    output logic Mk2_p0_en,
+    output logic        Mk2_p0_en,
     output logic [31:0] Mk2_p0_addr,
-    input logic [31:0] Mk2_p0_R_data,
-    output logic [3:0] Mk2_p0_W_req,
+    input  logic [31:0] Mk2_p0_R_data,
+    output logic [ 3:0] Mk2_p0_W_req,
     output logic [31:0] Mk2_p0_W_data,
 
-    output logic Mk2_p1_en,
+    output logic        Mk2_p1_en,
     output logic [31:0] Mk2_p1_addr,
-    input logic [31:0] Mk2_p1_R_data,
-    output logic [3:0] Mk2_p1_W_req,
+    input  logic [31:0] Mk2_p1_R_data,
+    output logic [ 3:0] Mk2_p1_W_req,
     output logic [31:0] Mk2_p1_W_data,
 
-    output logic Mk3_p0_en,
+    output logic        Mk3_p0_en,
     output logic [31:0] Mk3_p0_addr,
-    input logic [31:0] Mk3_p0_R_data,
-    output logic [3:0] Mk3_p0_W_req,
+    input  logic [31:0] Mk3_p0_R_data,
+    output logic [ 3:0] Mk3_p0_W_req,
     output logic [31:0] Mk3_p0_W_data,
 
-    output logic Mk3_p1_en,
+    output logic        Mk3_p1_en,
     output logic [31:0] Mk3_p1_addr,
-    input logic [31:0] Mk3_p1_R_data,
-    output logic [3:0] Mk3_p1_W_req,
+    input  logic [31:0] Mk3_p1_R_data,
+    output logic [ 3:0] Mk3_p1_W_req,
     output logic [31:0] Mk3_p1_W_data,
-    input logic start,
-    output logic finish
+    input  logic        start,
+    output logic        finish
 );
 
-  reg  [15:0] cnt;
+  logic [15:0] cnt;
 
-  wire [ 7:0] k_size;
-  wire [ 3:0] u_en;
-  wire        z_en;
+  logic [ 7:0] k_size;
+  logic [ 3:0] u_en;
+  logic        z_en;
 
-  wire [ 7:0] pos_w;
-  wire [ 7:0] neg_w1;
-  wire [ 7:0] neg_w2;
+  logic [ 7:0] pos_w;
+  logic [ 7:0] neg_w1;
+  logic [ 7:0] neg_w2;
 
-  wire        in_en;
-  wire [ 1:0] in_state;
-  wire [ 1:0] padding_type;
-  wire        group;
-  wire        w8_chain;
-  wire        wp_8;
-  wire        wp_2;
-  wire        bias_en;
-  wire        three;
-  wire        first;
-  wire        last;
-  wire        out_state;
-  wire        out_en;
+  logic        in_en;
+  logic [ 1:0] in_state;
+  logic [ 1:0] padding_type;
+  logic        group;
+  logic        w8_chain;
+  logic        wp_8;
+  logic        wp_2;
+  logic        bias_en;
+  logic        three;
+  logic        first;
+  logic        last;
+  logic        out_state;
+  logic        out_en;
 
-  wire [31:0] cal_data_in;
-  wire [31:0] cal_bias;
+  logic [31:0] cal_data_in;
+  logic [31:0] cal_bias;
 
-  wire [31:0] result       [0:3];
+  logic [31:0] result       [0:3];
 
   //in out channel(s5)
-  wire [15:0] in_ch_cnt;
-  wire [15:0] out_ch_cnt;
-  wire        out_ch_c;
+  logic [15:0] in_ch_cnt;
+  logic [15:0] out_ch_cnt;
+  logic        out_ch_c;
 
-  wire [31:0] out_data     [0:3];
+  logic [31:0] out_data     [0:3];
 
 
-  wire [31:0] MinW_addr;
-  wire        mb_push;
-  wire [31:0] MoutW_addr;
+  logic [31:0] MinW_addr;
+  logic        mb_push;
+  logic [31:0] MoutW_addr;
 
-  wire [31:0] bias         [0:3];
+  logic [31:0] bias         [0:3];
 
-  wire [31:0] out_d;
-  wire [ 3:0] out_wen;
-  wire [31:0] out_addr;
+  logic [31:0] out_d;
+  logic [ 3:0] out_wen;
+  logic [31:0] out_addr;
 
-  wire        w_en;
+  logic        w_en;
 
   assign Min_addr = {MinW_addr[29:0], 2'b00};
   assign out_addr = {MoutW_addr[29:0], 2'b00};

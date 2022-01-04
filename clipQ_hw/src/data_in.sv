@@ -1,31 +1,24 @@
-`ifndef DATA_IN_V
-`define DATA_IN_V
+`ifndef DATA_IN_SV
+`define DATA_IN_SV
+
 module data_in (
-    clk,
-    rst,
-    Min_R_data,
-    padding_type,
-    cal_data_in
+    input  logic        clk,
+    input  logic        rst,
+    input  logic [31:0] Min_R_data,
+    input  logic [ 1:0] padding_type,
+    output logic [31:0] cal_data_in
 );
 
-  input clk, rst;
-
-  input [31:0] Min_R_data;
-
-  input [1:0] padding_type;
-
-  output reg [31:0] cal_data_in;
-
   //in_reg
-  reg [31:0] in_reg;
-  reg [7:0] in_reg2;
+  logic [31:0] in_reg;
+  logic [7:0] in_reg2;
 
   //2bit w
-  reg [32*9-1:0] chain;
-  reg [7:0] weight;
+  logic [32*9-1:0] chain;
+  logic [7:0] weight;
 
   //pt_reg
-  reg [1:0] pt_reg;
+  logic [1:0] pt_reg;
 
   //cal_data_in
   always @(posedge clk or negedge rst) begin

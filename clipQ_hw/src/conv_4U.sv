@@ -1,40 +1,25 @@
-`ifndef CONV_4U_V
-`define CONV_4U_V
-`include "../src/conv_25.v"
+`ifndef CONV_4U_SV
+`define CONV_4U_SV
+`include "conv_25.sv"
 
 module conv_4U (
-    rst,
-    clk,
-    din_32,
-    dout_32,
-    unit_en,
-    k_size,
-    w_2b_4,
-    w_en,
-    z_en,
-    pos_w,
-    neg_w1,
-    neg_w2
+    input  logic        rst,
+    input  logic        clk,
+    input  logic [31:0] din_32,
+    output logic [31:0] dout_32,
+    input  logic        unit_en,
+    input  logic [ 7:0] k_size,
+    input  logic [ 7:0] w_2b_4,
+    input  logic        w_en,
+    input  logic        z_en,
+    input  logic [ 7:0] pos_w,
+    input  logic [ 7:0] neg_w1,
+    input  logic [ 7:0] neg_w2
 );
 
-  input rst;
-  input clk;
-
-  input [31:0] din_32;
-  output reg [31:0] dout_32;
-
-  input unit_en;
-  input [7:0] k_size;
-  input [7:0] w_2b_4;
-  input w_en;
-  input z_en;
-  input [7:0] pos_w;
-  input [7:0] neg_w1;
-  input [7:0] neg_w2;
-
-  reg [7:0] w_in[0:3];
-  wire [31:0] ans_out[0:3];
-  wire [31:0] in_32;
+  logic [7:0] w_in[0:3];
+  logic [31:0] ans_out[0:3];
+  logic [31:0] in_32;
 
   assign in_32 = unit_en ? din_32 : 32'b0;
 
