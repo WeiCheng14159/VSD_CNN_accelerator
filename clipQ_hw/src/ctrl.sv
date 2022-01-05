@@ -1,40 +1,43 @@
 `ifndef CTRL_SV
 `define CTRL_SV
+
+`include "conv_acc.svh"
+
 module ctrl (
-    input  logic        clk,
-    input  logic        rst,
+    input  logic                           clk,
+    input  logic                           rst,
     // Control signal
-    input  logic        start,
-    output logic        finish,
+    input  logic                           start,
+    output logic                           finish,
     // Mem ctrl
-    output logic [31:0] Mp_addr,
-    input  logic [31:0] Mp_R_data,
-    output logic [31:0] Min_addr,
-    output logic [31:0] Mout_addr,
-    output logic [ 3:0] Mout_W_req,
-    output logic [31:0] Mw_addr,
-    input  logic [31:0] Mw_R_data,
-    output logic        mb_en,
-    output logic [31:0] mb_addr,
+    output logic [    `ADDR_BUS_WIDTH-1:0] Mp_addr,
+    input  logic [    `DATA_BUS_WIDTH-1:0] Mp_R_data,
+    output logic [    `ADDR_BUS_WIDTH-1:0] Min_addr,
+    output logic [    `ADDR_BUS_WIDTH-1:0] Mout_addr,
+    output logic [       `W_REQ_WIDTH-1:0] Mout_W_req,
+    output logic [    `ADDR_BUS_WIDTH-1:0] Mw_addr,
+    input  logic [    `DATA_BUS_WIDTH-1:0] Mw_R_data,
+    output logic                           mb_en,
+    output logic [    `ADDR_BUS_WIDTH-1:0] mb_addr,
     // kernal_size & unit_ctrl
-    output logic [ 7:0] k_size,
-    output logic [ 3:0] u_en,
-    output logic        w_en,
-    output logic        z_en,
+    output logic [                    7:0] k_size,
+    output logic [                    3:0] u_en,
+    output logic                           w_en,
+    output logic                           z_en,
     //clipq 4 num
-    output logic [ 7:0] pos_w,
-    output logic [ 7:0] neg_w1,
-    output logic [ 7:0] neg_w2,
+    output logic [                    7:0] pos_w,
+    output logic [                    7:0] neg_w1,
+    output logic [                    7:0] neg_w2,
     // padding
-    output logic [ 1:0] padding_type,
-    output logic        first,
-    output logic        last,
-    output logic        out_state,
-    output logic        out_en,
+    output logic [`PADDING_TYPE_WIDTH-1:0] padding_type,
+    output logic                           first,
+    output logic                           last,
+    output logic                           out_state,
+    output logic                           out_en,
     // in out channel(s5)
-    output logic [15:0] in_ch_cnt,
-    output logic [15:0] out_ch_cnt,
-    output logic        out_ch_c
+    output logic [       `PARAM_WIDTH-1:0] in_ch_cnt,
+    output logic [       `PARAM_WIDTH-1:0] out_ch_cnt,
+    output logic                           out_ch_c
 );
 
   localparam S_IDLE_BIT = 0, S_READ_PARAM_BIT = 1, S_READ_W8_BIT = 2, S_READ_W2_BIT = 3, 
@@ -55,60 +58,60 @@ module ctrl (
   fsm_state_t curr_state, next_state;
 
   // done signal
-  logic               read_param_done;
-  logic               read_w8_done;
-  logic               read_w2_done;
-  logic               read_input_done;
-  logic               s5_fin;
-  logic               in_out_ch_back;
-  logic               in_out_ch_done;
+  logic                           read_param_done;
+  logic                           read_w8_done;
+  logic                           read_w2_done;
+  logic                           read_input_done;
+  logic                           s5_fin;
+  logic                           in_out_ch_back;
+  logic                           in_out_ch_done;
   // all_cnt
-  logic        [15:0] all_cnt;
+  logic        [            15:0] all_cnt;
 
   // read_param(s1)
-  logic        [15:0] param_reg       [0:3];
-  logic        [15:0] row_col;
-  logic        [15:0] in_ch;
-  logic        [15:0] out_ch;
+  logic        [`PARAM_WIDTH-1:0] param_r         [0:3];
+  logic        [`PARAM_WIDTH-1:0] row_col;
+  logic        [`PARAM_WIDTH-1:0] in_ch;
+  logic        [`PARAM_WIDTH-1:0] out_ch;
 
   // read_w8(s2)
 
-  logic        [ 7:0] k_row;
-  logic        [ 2:0] padding;
+  logic        [             7:0] k_row;
+  logic        [             2:0] padding;
 
   // read_w2(s3)
-  logic        [31:0] w_cnt;
+  logic        [            31:0] w_cnt;
 
   // read_input(s4)
-  logic        [ 9:0] addr_cnt;
-  logic signed [ 5:0] ba_r_cnt;
-  logic signed [ 5:0] ba_c_cnt;
-  logic signed [ 5:0] ba_r_add;
+  logic        [             9:0] addr_cnt;
+  logic signed [             5:0] ba_r_cnt;
+  logic signed [             5:0] ba_c_cnt;
+  logic signed [             5:0] ba_r_add;
 
-  logic        [ 5:0] inr_cnt;
-  logic        [ 5:0] inc_cnt;
-  logic        [ 4:0] r_cnt;
-  logic        [ 7:0] posi;
-  logic        [15:0] po_ch;
-  logic        [ 9:0] in_add_ch;
-  logic        [15:0] po_mul;
-  logic        [15:0] pro_mul;
-  logic        [ 1:0] pad;
+  logic        [             5:0] inr_cnt;
+  logic        [             5:0] inc_cnt;
+  logic        [             4:0] r_cnt;
+  logic        [             7:0] posi;
+  logic        [            15:0] po_ch;
+  logic        [             9:0] in_add_ch;
+  logic        [            15:0] po_mul;
+  logic        [            15:0] pro_mul;
+  logic        [             1:0] pad;
 
-  logic        [15:0] mul_ch;
-  logic        [15:0] all_mul_ch;
-  logic        [ 7:0] out_r;
-  logic        [ 7:0] out_c;
-  logic        [15:0] out_addr_cnt;
-  logic               o_en_reg;
-  logic               beg;
+  logic        [            15:0] mul_ch;
+  logic        [            15:0] all_mul_ch;
+  logic        [             7:0] out_r;
+  logic        [             7:0] out_c;
+  logic        [            15:0] out_addr_cnt;
+  logic                           o_en_reg;
+  logic                           beg;
 
-  logic        [15:0] out_ccnt;
+  logic        [            15:0] out_ccnt;
 
   // in out channel(s6)
-  logic        [15:0] out_d4_ch;
-  logic               out_start;
-  logic        [ 2:0] out_k_cnt;
+  logic        [            15:0] out_d4_ch;
+  logic                           out_start;
+  logic        [             2:0] out_k_cnt;
 
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
@@ -181,39 +184,39 @@ module ctrl (
     end
   end
 
-  // param_reg
+  // param_r
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
       for (i = 0; i < 4; i = i + 1) begin
-        param_reg[i] <= 0;
+        param_r[i] <= {`PARAM_WIDTH{1'b0}};
       end
     end else begin
       if (curr_state == S_READ_PARAM) begin
         for (i = 1; i < 4; i = i + 1) begin
-          param_reg[i] <= param_reg[i-1];
+          param_r[i] <= param_r[i-1];
         end
-        param_reg[0] <= Mp_R_data[15:0];
+        param_r[0] <= Mp_R_data[`PARAM_WIDTH-1:0];
       end
     end
   end
 
   // parameter
-  assign row_col = param_reg[3];
-  assign in_ch   = param_reg[2];
-  assign out_ch  = param_reg[1];
+  assign row_col = param_r[3];
+  assign in_ch   = param_r[2];
+  assign out_ch  = param_r[1];
 
   // k_size
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
       k_size <= 0;
     end else begin
-      if (curr_state == S_READ_W8) k_size <= param_reg[0] * param_reg[0];
+      if (curr_state == S_READ_W8) k_size <= param_r[0] * param_r[0];
     end
   end
 
   // u_en
   assign u_en  = 4'b1111;
-  assign k_row = param_reg[0][7:0];
+  assign k_row = param_r[0][7:0];
 
   /* Read W8 (S2) */
 
@@ -251,17 +254,17 @@ module ctrl (
   // Mw_addr
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
-      Mw_addr <= 0;
+      Mw_addr <= `EMPTY_ADDR;
     end else begin
       case (curr_state)
         S_READ_PARAM: begin
-          Mw_addr <= 0;
+          Mw_addr <= `EMPTY_ADDR;
         end
         S_READ_W8: begin
-          if (all_cnt == 1) Mw_addr <= Mw_addr + 4;
+          if (all_cnt == 1) Mw_addr <= Mw_addr + `ADDR_BUS_WIDTH'h4;
         end
         S_READ_W2: begin
-          if (all_cnt < k_size) Mw_addr <= Mw_addr + 4;
+          if (all_cnt < k_size) Mw_addr <= Mw_addr + `ADDR_BUS_WIDTH'h4;
         end
       endcase
     end
@@ -287,11 +290,11 @@ module ctrl (
   // mb_addr
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
-      mb_addr <= 0;
+      mb_addr <= `EMPTY_ADDR;
     end else begin
       if (curr_state == S_READ_W2 && all_cnt >= 0 && all_cnt < 4 && last)
-        mb_addr <= mb_addr + 4;
-      else if (curr_state == S_FINISH) mb_addr <= 0;
+        mb_addr <= mb_addr + `ADDR_BUS_WIDTH'h4;
+      else if (curr_state == S_FINISH) mb_addr <= `EMPTY_ADDR;
     end
   end
 
@@ -589,9 +592,9 @@ module ctrl (
   // Mout_addr
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
-      Mout_addr <= 0;
+      Mout_addr <= `EMPTY_ADDR;
     end else begin
-      if (curr_state == S_FINISH) Mout_addr <= 0;
+      if (curr_state == S_FINISH) Mout_addr <= `EMPTY_ADDR;
       else if (curr_state == S_READ_W2) Mout_addr <= out_ch_cnt;
       else if (Mout_W_req) begin
         if (out_c == 0) Mout_addr <= out_r * out_d4_ch + out_ch_cnt;
@@ -603,10 +606,11 @@ module ctrl (
   // Mout_W_req
   always @(posedge clk or negedge rst) begin
     if (!rst) begin
-      Mout_W_req <= 4'b0;
+      Mout_W_req <= {`W_REQ_WIDTH{`WRITE_DIS}};
     end else begin
-      if (last && out_en && curr_state > S_READ_W2) Mout_W_req <= 4'b1111;
-      else Mout_W_req <= 4'b0;
+      if (last && out_en && curr_state > S_READ_W2)
+        Mout_W_req <= {`W_REQ_WIDTH{`WRITE_ENB}};
+      else Mout_W_req <= {`W_REQ_WIDTH{`WRITE_DIS}};
     end
   end
 

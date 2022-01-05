@@ -12,161 +12,161 @@ module conv (
     input logic rst,
     input logic clk,
 
-    output logic        Mp_en,
-    output logic [31:0] Mp_addr,
-    input  logic [31:0] Mp_R_data,
-    output logic [ 3:0] Mp_W_req,
-    output logic [31:0] Mp_W_data,
+    output logic                       Mp_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mp_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mp_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mp_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mp_W_data,
 
-    output logic        Min_en,
-    output logic [31:0] Min_addr,
-    input  logic [31:0] Min_R_data,
-    output logic [ 3:0] Min_W_req,
-    output logic [31:0] Min_W_data,
+    output logic                       Min_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Min_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Min_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Min_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Min_W_data,
 
-    output logic        Mout_en,
-    output logic [31:0] Mout_addr,
-    input  logic [31:0] Mout_R_data,
-    output logic [ 3:0] Mout_W_req,
-    output logic [31:0] Mout_W_data,
+    output logic                       Mout_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mout_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mout_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mout_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mout_W_data,
 
-    output logic        Mw_en,
-    output logic [31:0] Mw_addr,
-    input  logic [31:0] Mw_R_data,
-    output logic [ 3:0] Mw_W_req,
-    output logic [31:0] Mw_W_data,
+    output logic                       Mw_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mw_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mw_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mw_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mw_W_data,
 
-    output logic        Mb_en,
-    output logic [31:0] Mb_addr,
-    input  logic [31:0] Mb_R_data,
-    output logic [ 3:0] Mb_W_req,
-    output logic [31:0] Mb_W_data,
+    output logic                       Mb_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mb_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mb_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mb_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mb_W_data,
 
-    output logic        Mk0_p0_en,
-    output logic [31:0] Mk0_p0_addr,
-    input  logic [31:0] Mk0_p0_R_data,
-    output logic [ 3:0] Mk0_p0_W_req,
-    output logic [31:0] Mk0_p0_W_data,
+    output logic                       Mk0_p0_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk0_p0_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk0_p0_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk0_p0_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk0_p0_W_data,
 
-    output logic        Mk0_p1_en,
-    output logic [31:0] Mk0_p1_addr,
-    input  logic [31:0] Mk0_p1_R_data,
-    output logic [ 3:0] Mk0_p1_W_req,
-    output logic [31:0] Mk0_p1_W_data,
+    output logic                       Mk0_p1_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk0_p1_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk0_p1_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk0_p1_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk0_p1_W_data,
 
-    output logic        Mk1_p0_en,
-    output logic [31:0] Mk1_p0_addr,
-    input  logic [31:0] Mk1_p0_R_data,
-    output logic [ 3:0] Mk1_p0_W_req,
-    output logic [31:0] Mk1_p0_W_data,
+    output logic                       Mk1_p0_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk1_p0_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk1_p0_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk1_p0_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk1_p0_W_data,
 
-    output logic        Mk1_p1_en,
-    output logic [31:0] Mk1_p1_addr,
-    input  logic [31:0] Mk1_p1_R_data,
-    output logic [ 3:0] Mk1_p1_W_req,
-    output logic [31:0] Mk1_p1_W_data,
+    output logic                       Mk1_p1_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk1_p1_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk1_p1_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk1_p1_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk1_p1_W_data,
 
-    output logic        Mk2_p0_en,
-    output logic [31:0] Mk2_p0_addr,
-    input  logic [31:0] Mk2_p0_R_data,
-    output logic [ 3:0] Mk2_p0_W_req,
-    output logic [31:0] Mk2_p0_W_data,
+    output logic                       Mk2_p0_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk2_p0_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk2_p0_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk2_p0_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk2_p0_W_data,
 
-    output logic        Mk2_p1_en,
-    output logic [31:0] Mk2_p1_addr,
-    input  logic [31:0] Mk2_p1_R_data,
-    output logic [ 3:0] Mk2_p1_W_req,
-    output logic [31:0] Mk2_p1_W_data,
+    output logic                       Mk2_p1_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk2_p1_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk2_p1_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk2_p1_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk2_p1_W_data,
 
-    output logic        Mk3_p0_en,
-    output logic [31:0] Mk3_p0_addr,
-    input  logic [31:0] Mk3_p0_R_data,
-    output logic [ 3:0] Mk3_p0_W_req,
-    output logic [31:0] Mk3_p0_W_data,
+    output logic                       Mk3_p0_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk3_p0_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk3_p0_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk3_p0_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk3_p0_W_data,
 
-    output logic        Mk3_p1_en,
-    output logic [31:0] Mk3_p1_addr,
-    input  logic [31:0] Mk3_p1_R_data,
-    output logic [ 3:0] Mk3_p1_W_req,
-    output logic [31:0] Mk3_p1_W_data,
-    input  logic        start,
-    output logic        finish
+    output logic                       Mk3_p1_en,
+    output logic [`ADDR_BUS_WIDTH-1:0] Mk3_p1_addr,
+    input  logic [`DATA_BUS_WIDTH-1:0] Mk3_p1_R_data,
+    output logic [   `W_REQ_WIDTH-1:0] Mk3_p1_W_req,
+    output logic [`DATA_BUS_WIDTH-1:0] Mk3_p1_W_data,
+    input  logic                       start,
+    output logic                       finish
 );
 
-  logic [15:0] cnt;
+  logic [               15:0] cnt;
 
-  logic [ 7:0] k_size;
-  logic [ 3:0] u_en;
-  logic        z_en;
+  logic [                7:0] k_size;
+  logic [   `W_REQ_WIDTH-1:0] u_en;
+  logic                       z_en;
 
-  logic [ 7:0] pos_w;
-  logic [ 7:0] neg_w1;
-  logic [ 7:0] neg_w2;
+  logic [                7:0] pos_w;
+  logic [                7:0] neg_w1;
+  logic [                7:0] neg_w2;
 
-  logic        in_en;
-  logic [ 1:0] in_state;
-  logic [ 1:0] padding_type;
-  logic        group;
-  logic        w8_chain;
-  logic        wp_8;
-  logic        wp_2;
-  logic        bias_en;
-  logic        three;
-  logic        first;
-  logic        last;
-  logic        out_state;
-  logic        out_en;
+  logic                       in_en;
+  logic [                1:0] in_state;
+  logic [                1:0] padding_type;
+  logic                       group;
+  logic                       w8_chain;
+  logic                       wp_8;
+  logic                       wp_2;
+  logic                       bias_en;
+  logic                       three;
+  logic                       first;
+  logic                       last;
+  logic                       out_state;
+  logic                       out_en;
 
-  logic [31:0] cal_data_in;
-  logic [31:0] cal_bias;
+  logic [`DATA_BUS_WIDTH-1:0] cal_data_in;
+  logic [`DATA_BUS_WIDTH-1:0] cal_bias;
 
-  logic [31:0] result       [0:3];
+  logic [`DATA_BUS_WIDTH-1:0] result       [0:3];
 
   //in out channel(s5)
-  logic [15:0] in_ch_cnt;
-  logic [15:0] out_ch_cnt;
-  logic        out_ch_c;
+  logic [               15:0] in_ch_cnt;
+  logic [               15:0] out_ch_cnt;
+  logic                       out_ch_c;
 
-  logic [31:0] out_data     [0:3];
+  logic [`DATA_BUS_WIDTH-1:0] out_data     [0:3];
 
 
-  logic [31:0] MinW_addr;
-  logic        mb_push;
-  logic [31:0] MoutW_addr;
+  logic [`ADDR_BUS_WIDTH-1:0] MinW_addr;
+  logic                       mb_push;
+  logic [`ADDR_BUS_WIDTH-1:0] MoutW_addr;
 
-  logic [31:0] bias         [0:3];
+  logic [`DATA_BUS_WIDTH-1:0] bias         [0:3];
 
-  logic [31:0] out_d;
-  logic [ 3:0] out_wen;
-  logic [31:0] out_addr;
+  logic [`DATA_BUS_WIDTH-1:0] out_d;
+  logic [   `W_REQ_WIDTH-1:0] out_wen;
+  logic [`DATA_BUS_WIDTH-1:0] out_addr;
 
-  logic        w_en;
+  logic                       w_en;
 
-  assign Min_addr = {MinW_addr[29:0], 2'b00};
-  assign out_addr = {MoutW_addr[29:0], 2'b00};
+  assign Min_addr     = {MinW_addr[29:0], 2'b00};
+  assign out_addr     = {MoutW_addr[29:0], 2'b00};
 
-  assign Mp_en = 1'b1;
-  assign Min_en = 1'b1;
-  assign Mw_en = 1'b1;
-  assign Mb_en = 1'b1;
-  assign Mb_W_req = 4'b0;
-  assign Mout_en = 1'b1;
+  assign Mp_en        = `READ_ENB;
+  assign Min_en       = `READ_ENB;
+  assign Mw_en        = `READ_ENB;
+  assign Mb_en        = `READ_ENB;
+  assign Mb_W_req     = {`W_REQ_WIDTH{`WRITE_DIS}};
+  assign Mout_en      = `READ_ENB;
 
-  assign Mk0_p0_en = 1'b1;
-  assign Mk0_p1_en = 1'b1;
-  assign Mk0_p0_W_req = 4'b0;
+  assign Mk0_p0_en    = `READ_ENB;
+  assign Mk0_p1_en    = `READ_ENB;
+  assign Mk0_p0_W_req = {`W_REQ_WIDTH{`WRITE_DIS}};
 
-  assign Mk1_p0_en = 1'b1;
-  assign Mk1_p1_en = 1'b1;
-  assign Mk1_p0_W_req = 4'b0;
+  assign Mk1_p0_en    = `READ_ENB;
+  assign Mk1_p1_en    = `READ_ENB;
+  assign Mk1_p0_W_req = {`W_REQ_WIDTH{`WRITE_DIS}};
 
-  assign Mk2_p0_en = 1'b1;
-  assign Mk2_p1_en = 1'b1;
-  assign Mk2_p0_W_req = 4'b0;
+  assign Mk2_p0_en    = `READ_ENB;
+  assign Mk2_p1_en    = `READ_ENB;
+  assign Mk2_p0_W_req = {`W_REQ_WIDTH{`WRITE_DIS}};
 
-  assign Mk3_p0_en = 1'b1;
-  assign Mk3_p1_en = 1'b1;
-  assign Mk3_p0_W_req = 4'b0;
+  assign Mk3_p0_en    = `READ_ENB;
+  assign Mk3_p1_en    = `READ_ENB;
+  assign Mk3_p0_W_req = {`W_REQ_WIDTH{`WRITE_DIS}};
 
   ctrl ctrl0 (
       .clk(clk),
