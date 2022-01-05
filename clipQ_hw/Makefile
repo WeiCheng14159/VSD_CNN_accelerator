@@ -5,6 +5,7 @@ SRC_DIR            =$(ROOT_DIR)/src
 SIM_DIR            =$(ROOT_DIR)/sim
 SYN_DIR            =$(ROOT_DIR)/syn
 APR_DIR            =$(ROOT_DIR)/pr
+INC_DIR            =$(ROOT_DIR)/include
 SCRIPT_DIR         =$(ROOT_DIR)/script
 REPORT_DIR         =$(ROOT_DIR)/report
 SV_DIR             =$(ROOT_DIR)/conf/simvision_conf
@@ -57,7 +58,7 @@ superlint:
 rtl0: $(BUILD)
 	cd $(BUILD_DIR); \
 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR) \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
@@ -73,7 +74,7 @@ syn0: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SYN_DIR) \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
 	+define+SYN \
 	+nc64bit \
 	+access+r \
