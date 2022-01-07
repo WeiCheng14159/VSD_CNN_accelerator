@@ -61,7 +61,7 @@ class QConv2d(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-        x = self.bn(x)
+        # x = self.bn(x)
         if self.full == 0:
             x = NbitActive.apply(x)
         if self.w and self.layer == 1:

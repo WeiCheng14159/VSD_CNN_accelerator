@@ -7,6 +7,8 @@ from Qfile import fileW8
 from ch_Qfile import ch_fileW2
 import os
 
+# for debug
+import ipdb
 
 class Quantize():
     def __init__(self, model):
@@ -164,10 +166,18 @@ class Quantize():
             xx[xx.ge(qmax)] = qmax
             pa[pa.le(qmin)] = qmin
             pa[pa.ge(qmax)] = qmax
-            ww = torch.from_numpy(we)
-            ww = ww.view(x.size())+2
 
-            if index == 1:
+            ww = torch.from_numpy(we)
+
+            # for Daniel index
+            # ww = ww.view(x.size())+2
+
+            # Max add for CLIPQ index
+            ww[ww == 1] = 3
+            ww[ww == -1] = 2
+            ww[ww == -2] = 1
+
+            if index == 0:
                 if not os.path.exists('./H_data/W2.hex'):
                     ch_fileW2(ww, './H_data/W2.hex')
                 if not os.path.exists('./H_data/W8.hex'):
