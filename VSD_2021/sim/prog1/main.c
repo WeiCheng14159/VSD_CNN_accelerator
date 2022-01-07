@@ -49,13 +49,14 @@ int main(void) {
   int *sort_addr = &_test_start;
   int sort_count = 0;
   copy_addr = &_test_start;
-
+// /*
   // Enable Global Interrupt
   asm("csrsi mstatus, 0x8"); // MIE of mstatus
 
   // Enable Local Interrupt
   asm("li t6, 0x800");
   asm("csrs mie, t6"); // MEIE of mie 
+// */
 
   // Enable Sensor Controller
   sensor_addr[0x40] = 1; // Enable sctrl_en

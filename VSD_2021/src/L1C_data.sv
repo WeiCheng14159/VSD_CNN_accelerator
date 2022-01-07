@@ -71,8 +71,7 @@ module L1C_data (
     logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff -> uncacheable
 
 // {{{ Sample
-    //assign c_addr = core_addr;
-    // assign cacheable = c_addr[31:16] != 16'h1000;
+    // assign cacheable = core_addr[31:16] != 16'h1000;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             c_addr    <= `DATA_BITS'h0;

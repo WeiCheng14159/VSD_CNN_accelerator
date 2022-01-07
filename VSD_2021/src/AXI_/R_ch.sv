@@ -112,27 +112,16 @@ module R_ch (
     assign grant[5] = validin_s[5] & (~|sel[4:0]) | sel[5];
     assign grant[6] = validin_s[6] & (~|sel[5:0]) | sel[6];
 
-    // always_comb begin
-    //     if (grant[6])	   slave = `AXI_DEFAULT_SLAVE;
-    //     else if (grant[5]) slave = `AXI_SLAVE5;
-    //     else if (grant[4]) slave = `AXI_SLAVE4;
-    //     else if (grant[2]) slave = `AXI_SLAVE2;
-    //     else if (grant[3]) slave = `AXI_SLAVE3;
-    //     else if (grant[1]) slave = `AXI_SLAVE1;
-    //     else if (grant[0]) slave = `AXI_SLAVE0;
-    //     else               slave = `AXI_SLAVE_BITS'h0;
-    // end
-
     always_comb begin
-		if (grant[0])	   slave = `AXI_SLAVE0;
-		else if (grant[1]) slave = `AXI_SLAVE1;
-		else if (grant[2]) slave = `AXI_SLAVE2;
-		else if (grant[3]) slave = `AXI_SLAVE3;
-		else if (grant[4]) slave = `AXI_SLAVE4;
+        if (grant[6])	   slave = `AXI_DEFAULT_SLAVE;
         else if (grant[5]) slave = `AXI_SLAVE5;
-		else if (grant[6]) slave = `AXI_DEFAULT_SLAVE;
-		else               slave = `AXI_DEFAULT_SLAVE;
-	end
+        else if (grant[4]) slave = `AXI_SLAVE4;
+        else if (grant[2]) slave = `AXI_SLAVE2;
+        else if (grant[3]) slave = `AXI_SLAVE3;
+        else if (grant[1]) slave = `AXI_SLAVE1;
+        else if (grant[0]) slave = `AXI_SLAVE0;
+        else               slave = `AXI_SLAVE_BITS'h0;
+    end
 
 // {{{ Master
     assign master = ids_s[`AXI_IDS_BITS-1:`AXI_ID_BITS];

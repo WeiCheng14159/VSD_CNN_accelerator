@@ -51,10 +51,15 @@ module CPU (
     logic exe_zero_flag; 
     logic mem_reg_wr, wb_reg_wr;
     logic exe_dm_rd;
-
+    // cpu wait
     logic cpuwait;
     logic dm_clear;
-    assign cpuwait = wait1_i | wait2_i;
+    // Interrupt, CSR
+    logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
+    logic csr_stall;
+    logic csr_int, csr_mret;
+
+    assign cpuwait = wait1_i | wait2_i | csr_stall;
 
     // assign write1_o = 1'b0;
     assign read1_o = 1'b1;
@@ -65,10 +70,7 @@ module CPU (
 
     assign req2_o = dm_clear ? 1'b0 : (read2_o | write2_o);
 
-    // Interrupt, CSR
-    logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
-    logic csr_stall;
-    logic csr_int, csr_mret;
+
 
     assign ifid_en   = ~cpuwait & ~csr_stall;
     assign idexe_en  = ~cpuwait & ~csr_stall;

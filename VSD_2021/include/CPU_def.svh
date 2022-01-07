@@ -1,8 +1,10 @@
-`ifndef _CPUBITS_DEF
-`define _CPUBITS_DEF
+`ifndef __CPUBITS_DEF__
+`define __CPUBITS_DEF__
 
 	`define DATA_BITS     32
 	`define ADDR_BITS     32
+	`define DRAM_A_BITS   11
+
 	// Instruction type
 	`define OPCODE_BITS   7
 	`define ROP           `OPCODE_BITS'b0110011 
