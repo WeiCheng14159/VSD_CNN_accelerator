@@ -4,11 +4,12 @@ import numpy as np
 import math as m
 import time
 from Qfile import fileW8
-from ch_Qfile import ch_fileW2
+from ch_Qfile import ch_fileW2, ch_fileW2_kernel_3x3, ch_fileW2_kernel_1x1
 import os
 
 # for debug
 import ipdb
+import sys
 
 class Quantize():
     def __init__(self, model):
@@ -47,6 +48,9 @@ class Quantize():
         for index in range(self.num_of_params):
             start = time.time()
             x = self.target_modules[index].data.cpu()
+            torch.set_printoptions(threshold=sys.maxsize) # for full print ndarray
+            torch.set_printoptions(profile="full")
+
             p = 0.4
             b = 2
             x1 = x.view(-1).numpy()
@@ -168,7 +172,6 @@ class Quantize():
             pa[pa.ge(qmax)] = qmax
 
             ww = torch.from_numpy(we)
-
             # for Daniel index
             # ww = ww.view(x.size())+2
 
@@ -177,11 +180,32 @@ class Quantize():
             ww[ww == -1] = 2
             ww[ww == -2] = 1
 
-            if index == 0:
-                if not os.path.exists('./H_data/W2.hex'):
-                    ch_fileW2(ww, './H_data/W2.hex')
-                if not os.path.exists('./H_data/W8.hex'):
-                    fileW8(pa, './H_data/W8.hex', 5)
+            # print(ww.view(x.size()))
+            # ipdb.set_trace()
+
+            # Max modified for generate mutiple layer data
+            if index == 0 or index == 3 or index == 6:
+                if not os.path.exists('./H_data/layer{:d}/W2.hex'.format(int(index))):
+                    ch_fileW2_kernel_3x3(ww, './H_data/layer{:d}/W2.hex'.format(int(index)))
+
+            if index == 1 or index == 4: # 1 * 1 * 96
+                if not os.path.exists('./H_data/layer{:d}/W2.hex'.format(int(index))):
+                    ch_fileW2_kernel_1x1(ww, './H_data/layer{:d}/W2.hex'.format(int(index)), 96)
+
+            if index == 2: # 1 * 1 * 160
+                if not os.path.exists('./H_data/layer{:d}/W2.hex'.format(int(index))):
+                    ch_fileW2_kernel_1x1(ww, './H_data/layer{:d}/W2.hex'.format(int(index)), 160)
+
+            if index == 5 or index == 8: # 1 * 1 * 192
+                if not os.path.exists('./H_data/layer{:d}/W2.hex'.format(int(index))):
+                    ch_fileW2_kernel_1x1(ww, './H_data/layer{:d}/W2.hex'.format(int(index)), 192)
+
+            if index == 7: # 1 * 1 * 384
+                if not os.path.exists('./H_data/layer{:d}/W2.hex'.format(int(index))):
+                    ch_fileW2_kernel_1x1(ww, './H_data/layer{:d}/W2.hex'.format(int(index)), 384)
+
+            if not os.path.exists('./H_data/layer{:d}/W8.hex'.format(int(index))):
+                fileW8(pa, './H_data/layer{:d}/W8.hex'.format(int(index)), 5)
 
             self.target_modules[index].data = xx.cuda()
 

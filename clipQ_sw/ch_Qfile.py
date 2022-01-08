@@ -83,35 +83,35 @@ def ch_fileW32(input, name, frag_bit):
     return 0
 
 
-# def ch_fileW2(input, name):
-#     x = input.clone().cpu()
-#     k = x.transpose(2, 0).transpose(3, 1)
-#     if(k.size(3) % 4 != 0):
-#         ze = torch.zeros(k.size(0), k.size(1), k.size(2), 4-k.size(3) % 4)
-#         k = torch.cat((k, ze), 3)
-#     k = k.view([-1, k.size(2), k.size(3)])
-#     div = int(k.size(2)/4)
-#     kc = k.view([k.size(0), -1, 4, div, 4])
-#     kc = kc.transpose(2, 3)
-#     d = kc.transpose(0, 1).transpose(1, 2)
-#     data = d.contiguous().view(-1).detach().numpy()
-#     for i in range(len(data)):
-#         data[i] = int(data[i])
-
-#     if len(data) % 16 != 0:
-#         for i in range(16 - int(len(data) % 16)):
-#             data = np.append(data, [0])
-#     f = open(name, 'w')
-#     for i in range(int(len(data)/4)):
-#         num = data[4*i]*64 + data[4*i+1]*16 + data[4*i+2]*4 + data[4*i+3]
-#         f.write('{:02X}'.format(int(num)))
-
-#         if i % 4 == 3:
-#             f.write('\n')
-#     f.close()
-#     return 0
-
 def ch_fileW2(input, name):
+    x = input.clone().cpu()
+    k = x.transpose(2, 0).transpose(3, 1)
+    if(k.size(3) % 4 != 0):
+        ze = torch.zeros(k.size(0), k.size(1), k.size(2), 4-k.size(3) % 4)
+        k = torch.cat((k, ze), 3)
+    k = k.view([-1, k.size(2), k.size(3)])
+    div = int(k.size(2)/4)
+    kc = k.view([k.size(0), -1, 4, div, 4])
+    kc = kc.transpose(2, 3)
+    d = kc.transpose(0, 1).transpose(1, 2)
+    data = d.contiguous().view(-1).detach().numpy()
+    for i in range(len(data)):
+        data[i] = int(data[i])
+
+    if len(data) % 16 != 0:
+        for i in range(16 - int(len(data) % 16)):
+            data = np.append(data, [0])
+    f = open(name, 'w')
+    for i in range(int(len(data)/4)):
+        num = data[4*i]*64 + data[4*i+1]*16 + data[4*i+2]*4 + data[4*i+3]
+        f.write('{:02X}'.format(int(num)))
+
+        if i % 4 == 3:
+            f.write('\n')
+    f.close()
+    return 0
+
+def ch_fileW2_kernel_3x3(input, name):
     x = input.clone().cpu()
     data = x.contiguous().view(-1).detach().numpy()
 
@@ -128,6 +128,29 @@ def ch_fileW2(input, name):
             sum = 0
         else:
             cnt = cnt + 1
+
+    f.close()
+
+    return 0
+
+def ch_fileW2_kernel_1x1(input, name, input_ch):
+    x = input.clone().cpu()
+    data = x.contiguous().view(-1).detach().numpy()
+
+    cnt = 0
+    sum = 0
+    f = open(name, 'w')
+    for i in range(len(data)):
+        sum = sum + (int(data[i]) << (2*cnt))
+
+        if cnt == 8 or (i%input_ch == input_ch-1):
+            f.write('{:05X}'.format(int(sum)))
+            f.write('\n')
+            cnt = 0
+            sum = 0
+        else:
+            cnt = cnt + 1
+
     f.close()
 
     return 0
