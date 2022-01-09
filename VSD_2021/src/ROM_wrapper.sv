@@ -23,7 +23,6 @@ module ROM_wrapper (
     logic [`AXI_LEN_BITS  -1:0] arlen;
     logic [`AXI_BURST_BITS-1:0] arburst;
     logic [               11:0] raddr;
-    logic rlast;
     logic [1:0] rom_off;
     logic [`AXI_LEN_BITS-1:0] cnt;
 

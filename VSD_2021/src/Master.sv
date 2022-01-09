@@ -8,13 +8,13 @@ module Master(
     inf_Master.M2AXIout           m2axi_o,
     // Cache
     input                         creq_i,
-    input                         sctrl_rd_i,
+    input                         arlenone_i,
     input                         cwrite_i,
     input        [`TYPE_BITS-1:0] cwtype_i,
     input        [`DATA_BITS-1:0] cdatain_i,
     input        [`DATA_BITS-1:0] caddr_i,
     output logic [`DATA_BITS-1:0] dataout_o,
-    output logic wait_o
+    output logic                  wait_o
 );
 // {{{
     // STATE
@@ -56,7 +56,7 @@ module Master(
     end
     //
     assign m2axi_o.arid    = `AXI_ID_BITS'h0;
-    assign m2axi_o.arlen   = sctrl_rd_i ? `AXI_LEN_ONE : `AXI_LEN_FOUR;
+    assign m2axi_o.arlen   = arlenone_i ? `AXI_LEN_ONE : `AXI_LEN_FOUR;
     assign m2axi_o.arsize  = `AXI_SIZE_BITS'b10;
     assign m2axi_o.arburst = `AXI_BURST_INC;
     assign m2axi_o.araddr  = caddr_i;
@@ -103,7 +103,7 @@ module Master(
     end
 // }}}	
 
-    assign req_rd = (creq_i & ~cwrite_i) | sctrl_rd_i;
+    assign req_rd = (creq_i & ~cwrite_i) | arlenone_i;
     assign req_wr = creq_i & cwrite_i;
 
     logic [2:0] validout;

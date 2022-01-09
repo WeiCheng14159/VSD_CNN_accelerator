@@ -1,5 +1,5 @@
 // prog0
-/*
+// /*
 void boot() {
 	extern unsigned int _dram_i_start;   // instruction start address in DRAM
 	extern unsigned int _dram_i_end;     // instruction end address in DRAM
@@ -28,20 +28,20 @@ void boot() {
 	for(i = 0; i < len; i++)
 		(&__data_start)[i] = (&__data_paddr_start)[i];
 }
-*/
-
+// */
+/*
 void setDMA(int *source,int *dest,int length) {
     volatile int *_dma_i_start = (int *) 0x40000000;
     int tmpSource = (int)source;
     int tmpdest = (int)dest;
-    while(length){
+    while(length) {
         int x = length >= 255 ? 255: length;
         length -= x;
         *(_dma_i_start+0) = tmpSource;  
         *(_dma_i_start+1) = tmpdest;
         *(_dma_i_start+2) = x;
         *(_dma_i_start+3) = 1;  // Enable DMA
-        asm("wfi");
+        asm("wfi");   
         tmpSource = tmpSource + (x << 2) + 4;
         tmpdest = tmpdest + (x << 2 ) + 4;
     }
@@ -62,7 +62,7 @@ void boot() {
     asm("csrsi mstatus, 0x8"); // MIE of mstatus
     // Enable Local Interrupt
     asm("li t6, 0x800");
-    asm("csrs mie, t6"); // MEIE of mie 
+    asm("csrs mie, t6"); // MEIE of mie
 
     int length = (&_dram_i_end - &_dram_i_start);
     setDMA(&_dram_i_start,&_imem_start,length);
@@ -72,3 +72,4 @@ void boot() {
     setDMA(&__data_start,&__data_paddr_start,length);
 
 }
+*/

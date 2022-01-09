@@ -151,8 +151,10 @@ module DRAM_wrapper (
     assign off = rcnt[1:0];
 
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)      col_r <= `DRAM_A_BITS'h0;
-        else if (rhns) col_r <= addr[9:0] + rcnt + `DRAM_A_BITS'h1;
+        if (~rst)       col_r <= `DRAM_A_BITS'h0;
+        else if (arhns) col_r <= s2axi_i.araddr[11:2];
+        else if (awhns) col_r <= s2axi_i.awaddr[11:2];
+        else if (rhns)  col_r <= col_r +  `DRAM_A_BITS'h1;
     end
 
     // DRAM_WEn
@@ -171,10 +173,7 @@ module DRAM_wrapper (
             default         : dramwen = 4'h0; 
         endcase
     end
-    // DRAM_A
-    // always_comb begin
-    //     if (burst)
-    // end
+
     always_comb begin
         case (STATE)
             IDLE     : begin

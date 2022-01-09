@@ -29,6 +29,7 @@ SECTIONS {
 
   .text1 : {
     _imem_start = .;
+    isr.o(.text);
     *(.text);
     *(.text.*);
   } > imem AT > dram_i

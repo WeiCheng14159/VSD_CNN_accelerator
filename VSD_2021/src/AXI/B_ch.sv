@@ -80,7 +80,7 @@ module B_ch (
     end
     // output
     logic [`AXI_MASTER_NUM -1:0] validout_m;
-    assign {valid_m2_o, valid_m1_o} = validout_m[`AXI_MASTER_NUM-1:1];
+    assign {valid_m2_o, valid_m1_o} = validout_m[`AXI_MASTER_NUM:1];
     always_comb begin
         validout_m = `AXI_MASTER_NUM'b0;
         case(master)

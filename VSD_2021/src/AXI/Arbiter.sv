@@ -78,7 +78,7 @@ module Arbiter (
                 readyout_m[1] = readys_i & valid_m1_i;
             end
             `AXI_MASTER2 : begin
-                id_o          = {`AXI_MASTER2, id_m2_i};
+                id_o          = {`AXI_MASTER2, id_m1_i};
                 addr_o        = addr_m2_i;
                 len_o         = len_m2_i;
                 size_o        = size_m2_i;
