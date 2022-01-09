@@ -8,7 +8,7 @@ module Hazard (
     input  [`REG_BITS   -1:0] exe_rd_addr_i,
     output                    stall_o, flush_o,
 
-    input csr_int_i, csr_mret_i
+    input csr_wfi_i, csr_mret_i, csr_int_i
 );
     // Load
     bit rd_rs1, rd_rs2;
@@ -29,7 +29,7 @@ module Hazard (
 
     // Flush
     logic flush_csr;
-    assign flush_csr = csr_int_i | csr_mret_i;
+    assign flush_csr = csr_wfi_i | csr_mret_i | csr_int_i;
     assign flush_o = flush_beq | flush_j | flush_csr;
 
 endmodule

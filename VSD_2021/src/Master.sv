@@ -4,27 +4,27 @@
 
 module Master(
     input clk, rst,
-    inf_Master.M2AXIin  m2axi_i,
-    inf_Master.M2AXIout m2axi_o,
+    inf_Master.M2AXIin            m2axi_i,
+    inf_Master.M2AXIout           m2axi_o,
     // Cache
     input                         creq_i,
-    input                         sctrl_rd_i,
+    input                         arlenone_i,
     input                         cwrite_i,
     input        [`TYPE_BITS-1:0] cwtype_i,
     input        [`DATA_BITS-1:0] cdatain_i,
     input        [`DATA_BITS-1:0] caddr_i,
     output logic [`DATA_BITS-1:0] dataout_o,
-    output logic wait_o
+    output logic                  wait_o
 );
 // {{{
     // STATE
     logic [2:0] STATE, NEXT;
     parameter IDLE  = 3'h0,
-                AR_CH = 3'h1,
-                R_CH  = 3'h2,
-                AW_CH = 3'h3,
-                W_CH  = 3'h4,
-                B_CH  = 3'h5;
+              AR_CH = 3'h1,
+              R_CH  = 3'h2,
+              AW_CH = 3'h3,
+              W_CH  = 3'h4,
+              B_CH  = 3'h5;
     // Handshake
     logic awhns, arhns, rhns, whns, bhns;
     // Other
@@ -56,14 +56,14 @@ module Master(
     end
     //
     assign m2axi_o.arid    = `AXI_ID_BITS'h0;
-    assign m2axi_o.arlen   = sctrl_rd_i ? `AXI_LEN_ONE : `AXI_LEN_FOUR;
+    assign m2axi_o.arlen   = arlenone_i ? `AXI_LEN_ONE : `AXI_LEN_FOUR;
     assign m2axi_o.arsize  = `AXI_SIZE_BITS'b10;
     assign m2axi_o.arburst = `AXI_BURST_INC;
     assign m2axi_o.araddr  = caddr_i;
     assign m2axi_o.awid    = `AXI_ID_BITS'h0;
     assign m2axi_o.awlen   = `AXI_LEN_ONE;
     assign m2axi_o.awsize  = `AXI_SIZE_BITS'b10;
-    assign m2axi_o.awburst = `AXI_BURST_INC;
+    assign m2axi_o.awburst = `AXI_BURST_FIXED;
     assign m2axi_o.awaddr  = caddr_i;
     assign m2axi_o.wstrb   = wstrb;
     assign m2axi_o.wlast   = 1'b1;
@@ -103,7 +103,7 @@ module Master(
     end
 // }}}	
 
-    assign req_rd = (creq_i & ~cwrite_i) | sctrl_rd_i;
+    assign req_rd = (creq_i & ~cwrite_i) | arlenone_i;
     assign req_wr = creq_i & cwrite_i;
 
     logic [2:0] validout;
@@ -121,7 +121,6 @@ module Master(
             default : validout = 3'b0;
         endcase
     end
-
     always_comb begin
         case (STATE)
             IDLE    : readyout = 2'b0;

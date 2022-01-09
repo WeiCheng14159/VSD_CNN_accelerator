@@ -94,19 +94,20 @@ module MEM_S (
             mem2wb_o.dm_out  <= `DATA_BITS'h0;
             mem2wb_o.dm2reg  <=  1'b0; 
         end
-        else if (~memwb_en_i) begin
-            mem2wb_o.rd_data <= mem2wb_o.rd_data;
-            mem2wb_o.rd_addr <= mem2wb_o.rd_addr;
-            mem2wb_o.reg_wr  <= mem2wb_o.reg_wr;
-            mem2wb_o.dm_out  <= mem2wb_o.dm_out;
-            mem2wb_o.dm2reg  <= mem2wb_o.dm2reg; 
-        end
-        else begin
+        // else if (~memwb_en_i) begin
+        //     mem2wb_o.rd_data <= mem2wb_o.rd_data;
+        //     mem2wb_o.rd_addr <= mem2wb_o.rd_addr;
+        //     mem2wb_o.reg_wr  <= mem2wb_o.reg_wr;
+        //     mem2wb_o.dm_out  <= mem2wb_o.dm_out;
+        //     mem2wb_o.dm2reg  <= mem2wb_o.dm2reg; 
+        // end
+        else if (memwb_en_i) begin
             mem2wb_o.rd_data <= rd_data_o;
             mem2wb_o.rd_addr <= mem2ex_i.rd_addr;
             mem2wb_o.reg_wr  <= mem2ex_i.reg_wr;
             mem2wb_o.dm_out  <= dm2wb;
             mem2wb_o.dm2reg  <= mem2ex_i.dm2reg; 
         end
+
     end
 endmodule
