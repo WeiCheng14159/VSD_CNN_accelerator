@@ -1,7 +1,8 @@
-
 `timescale 1ns/10ps
 
-module  CONV(
+`include "conv_acc.svh"
+
+module  conv(
 	input					clk,
 	input					rst,
 			

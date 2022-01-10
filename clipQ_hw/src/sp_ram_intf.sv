@@ -1,6 +1,8 @@
+`ifndef SP_RAM_INTF_SV
+`define SP_RAM_INTF_SV
 `include "conv_acc.svh"
 
-interface bram_intf;
+interface sp_ram_intf;
 
   logic en;
   logic [`ADDR_BUS_WIDTH-1:0] addr;
@@ -14,3 +16,4 @@ interface bram_intf;
   modport compute(input R_data, output en, addr, W_req, W_data);
 
 endinterface
+`endif
