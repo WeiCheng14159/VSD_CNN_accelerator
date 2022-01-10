@@ -65,7 +65,6 @@ module B_ch (
     assign id_m0    = `AXI_ID_BITS'h0;
     assign resp_m0  = `AXI_RESP_BITS'h0;
     assign ready_m0 = 1'b0;
-    assign valid_m0 = 1'b0;
     // M1
     assign id_m1_o   = ids_s[`AXI_ID_BITS-1:0];
     assign resp_m1_o = resp_s;
@@ -80,7 +79,7 @@ module B_ch (
     end
     // output
     logic [`AXI_MASTER_NUM -1:0] validout_m;
-    assign {valid_m2_o, valid_m1_o} = validout_m[`AXI_MASTER_NUM:1];
+    assign {valid_m2_o, valid_m1_o, valid_m0} = {validout_m[`AXI_MASTER_NUM-1:1], 1'b0};
     always_comb begin
         validout_m = `AXI_MASTER_NUM'b0;
         case(master)

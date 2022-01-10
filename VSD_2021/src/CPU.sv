@@ -177,9 +177,7 @@ module CPU (
         .wfi_o       (csr_wfi          ),
         .mret_o      (csr_mret         ),
         .int_o       (csr_int          ),
-        
-        
-        .stall_o (csr_stall        )
+        .stall_o     (csr_stall        )
     );
 
     MEM_S i_mem (
