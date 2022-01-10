@@ -1,6 +1,7 @@
 
 `timescale 1ns/10ps
 
+
 module  CONV(
 	input					clk,
 	input					rst,
@@ -59,6 +60,9 @@ module  CONV(
 	logic 	[ 2:0]	counter;
 	logic 	[ 4:0]	row_counter;
 	logic 	[ 4:0]	col_counter;
+	logic 	[ 4:0]	cha_counter;
+	logic 	[ 4:0]	ker_counter;
+	logic 	[ 2:0]	index;
 	integer 		i;
 
 	logic	[ 2:0]	CurrentState;
@@ -99,7 +103,7 @@ module  CONV(
 				partial_sum[i] <= data[i] * weight[i];
 		end
 		else if(write_state & (counter == 3'b0))
-			partial_sum[0] <= partial_sum[0] + partial_sum[1] + partial_sum[2] + partial_sum[3] + partial_sum[4] + partial_sum[5] + partial_sum[6] + partial_sum[7] + partial_sum[8]
+			partial_sum[0] <= partial_sum[0] + partial_sum[1] + partial_sum[2] + partial_sum[3] + partial_sum[4] + partial_sum[5] + partial_sum[6] + partial_sum[7] + partial_sum[8];
 	end
 
 	//*********************************************//
@@ -247,60 +251,60 @@ module  CONV(
 			for(i = 0; i < 9; i = i + 1)
 				weight[i] <= 32'b0;
 		end
-		else if((CurrentState == load_weight_state) & (counter == 2'h1))
+		else if((CurrentState == load_weight_state) & (counter == 2'h1))begin
 			case(weight_rdata[1:0])
-				2'b00: weight[0] <= w8[ 7: 0];
-				2'b01: weight[0] <= w8[15: 8];
-				2'b10: weight[0] <= w8[23:16];
-				2'b11: weight[0] <= w8[31:24];
+				2'b00: weight[0] <= w8_temp[ 7: 0];
+				2'b01: weight[0] <= w8_temp[15: 8];
+				2'b10: weight[0] <= w8_temp[23:16];
+				2'b11: weight[0] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[3:2])
-				2'b00: weight[1] <= w8[ 7: 0];
-				2'b01: weight[1] <= w8[15: 8];
-				2'b10: weight[1] <= w8[23:16];
-				2'b11: weight[1] <= w8[31:24];
+				2'b00: weight[1] <= w8_temp[ 7: 0];
+				2'b01: weight[1] <= w8_temp[15: 8];
+				2'b10: weight[1] <= w8_temp[23:16];
+				2'b11: weight[1] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[5:4])
-				2'b00: weight[2] <= w8[ 7: 0];
-				2'b01: weight[2] <= w8[15: 8];
-				2'b10: weight[2] <= w8[23:16];
-				2'b11: weight[2] <= w8[31:24];
+				2'b00: weight[2] <= w8_temp[ 7: 0];
+				2'b01: weight[2] <= w8_temp[15: 8];
+				2'b10: weight[2] <= w8_temp[23:16];
+				2'b11: weight[2] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[7:6])
-				2'b00: weight[3] <= w8[ 7: 0];
-				2'b01: weight[3] <= w8[15: 8];
-				2'b10: weight[3] <= w8[23:16];
-				2'b11: weight[3] <= w8[31:24];
+				2'b00: weight[3] <= w8_temp[ 7: 0];
+				2'b01: weight[3] <= w8_temp[15: 8];
+				2'b10: weight[3] <= w8_temp[23:16];
+				2'b11: weight[3] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[9:8])
-				2'b00: weight[4] <= w8[ 7: 0];
-				2'b01: weight[4] <= w8[15: 8];
-				2'b10: weight[4] <= w8[23:16];
-				2'b11: weight[4] <= w8[31:24];
+				2'b00: weight[4] <= w8_temp[ 7: 0];
+				2'b01: weight[4] <= w8_temp[15: 8];
+				2'b10: weight[4] <= w8_temp[23:16];
+				2'b11: weight[4] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[11:10])
-				2'b00: weight[5] <= w8[ 7: 0];
-				2'b01: weight[5] <= w8[15: 8];
-				2'b10: weight[5] <= w8[23:16];
-				2'b11: weight[5] <= w8[31:24];
+				2'b00: weight[5] <= w8_temp[ 7: 0];
+				2'b01: weight[5] <= w8_temp[15: 8];
+				2'b10: weight[5] <= w8_temp[23:16];
+				2'b11: weight[5] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[13:12])
-				2'b00: weight[6] <= w8[ 7: 0];
-				2'b01: weight[6] <= w8[15: 8];
-				2'b10: weight[6] <= w8[23:16];
-				2'b11: weight[6] <= w8[31:24];
+				2'b00: weight[6] <= w8_temp[ 7: 0];
+				2'b01: weight[6] <= w8_temp[15: 8];
+				2'b10: weight[6] <= w8_temp[23:16];
+				2'b11: weight[6] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[15:14])
-				2'b00: weight[7] <= w8[ 7: 0];
-				2'b01: weight[7] <= w8[15: 8];
-				2'b10: weight[7] <= w8[23:16];
-				2'b11: weight[7] <= w8[31:24];
+				2'b00: weight[7] <= w8_temp[ 7: 0];
+				2'b01: weight[7] <= w8_temp[15: 8];
+				2'b10: weight[7] <= w8_temp[23:16];
+				2'b11: weight[7] <= w8_temp[31:24];
 			endcase
 			case(weight_rdata[17:16])
-				2'b00: weight[8] <= w8[ 7: 0];
-				2'b01: weight[8] <= w8[15: 8];
-				2'b10: weight[8] <= w8[23:16];
-				2'b11: weight[8] <= w8[31:24];
+				2'b00: weight[8] <= w8_temp[ 7: 0];
+				2'b01: weight[8] <= w8_temp[15: 8];
+				2'b10: weight[8] <= w8_temp[23:16];
+				2'b11: weight[8] <= w8_temp[31:24];
 			endcase
 		end
 	end
@@ -526,7 +530,7 @@ module  CONV(
 
 	always_ff @(posedge clk or posedge rst) begin
 		if(rst)
-			CurrentState <= idle;
+			CurrentState <= idle_state;
 		else 
 			CurrentState <= NextState;
 	end
