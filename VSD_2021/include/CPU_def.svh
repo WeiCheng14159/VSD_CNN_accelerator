@@ -1,8 +1,10 @@
-`ifndef _CPUBITS_DEF
-`define _CPUBITS_DEF
+`ifndef __CPUBITS_DEF__
+`define __CPUBITS_DEF__
 
 	`define DATA_BITS     32
 	`define ADDR_BITS     32
+	`define DRAM_A_BITS   11
+
 	// Instruction type
 	`define OPCODE_BITS   7
 	`define ROP           `OPCODE_BITS'b0110011 
@@ -32,17 +34,22 @@
 	`define CSRRCI        `FUNC3_BITS'b111
 	`define TRAPINT       `FUNC3_BITS'b000
 
-	
-	`define CSRADDR_BITS  12
-	`define MSTATUS       `CSRADDR_BITS'h300
-	`define MIE           `CSRADDR_BITS'h304 
-	`define MTVEC         `CSRADDR_BITS'h305
-	`define MEPC          `CSRADDR_BITS'h341
-	`define MIP           `CSRADDR_BITS'h344
-	`define MCYCLE        `CSRADDR_BITS'hb00
-	`define MINSTRET      `CSRADDR_BITS'hb02
-	`define MCYCLEH       `CSRADDR_BITS'hb80
-	`define MINSTRETH     `CSRADDR_BITS'hb82
+	`define CSRADDR_BITS   12
+	`define MSTATUS_ADDR   `CSRADDR_BITS'h300
+	`define MIE_ADDR       `CSRADDR_BITS'h304 
+	`define MTVEC_ADDR     `CSRADDR_BITS'h305
+	`define MEPC_ADDR      `CSRADDR_BITS'h341
+	`define MIP_ADDR       `CSRADDR_BITS'h344
+	`define MCYCLE_ADDR    `CSRADDR_BITS'hb00
+	`define MINSTRET_ADDR  `CSRADDR_BITS'hb02
+	`define MCYCLEH_ADDR   `CSRADDR_BITS'hb80
+	`define MINSTRETH_ADDR `CSRADDR_BITS'hb82
+
+	`define MIE   3
+	`define MPIE  7
+	`define MPP   12:11
+	`define MEIP  11
+	`define MEIE  11
 
 	// Register file
 	`define REG_NUMS      32
@@ -67,12 +74,13 @@
 	`define CPU_HWORD_U   `TYPE_BITS'b101
 	// ALUOP
 	`define ALUOP_BITS    3
-	`define	NO_ALUOP      `ALUOP_BITS'h0 // jal, auipc
+	`define	NO_ALUOP      `ALUOP_BITS'h0 // jal
 	`define R_ALUOP       `ALUOP_BITS'h1
 	`define I_ALUOP       `ALUOP_BITS'h2
 	`define ADD_ALUOP     `ALUOP_BITS'h3 // Load, Jalr, store
 	`define BEQ_ALUOP     `ALUOP_BITS'h4
-	`define LUI_ALUOP     `ALUOP_BITS'h5
+	`define AUIPC_ALUOP   `ALUOP_BITS'h5
+	`define LUI_ALUOP     `ALUOP_BITS'h6
 	// ALU CTRL
 	`define ALUCTRL_BITS  5
 	`define	IDLE  		  `ALUCTRL_BITS'h0
@@ -94,6 +102,7 @@
 	`define BNE   		  `ALUCTRL_BITS'h10
 	`define BGE   		  `ALUCTRL_BITS'h11
 	`define BGEU  		  `ALUCTRL_BITS'h12
-	`define CSRALU        `ALUCTRL_BITS'h13 
+	`define CSRALU        `ALUCTRL_BITS'h13
+	`define PCADDIMM      `ALUCTRL_BITS'h14
 
 `endif 
