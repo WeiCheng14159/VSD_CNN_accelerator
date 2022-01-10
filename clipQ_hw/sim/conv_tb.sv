@@ -39,6 +39,9 @@ module top_tb;
   logic [31:0] w2[200000:0];
   logic [31:0] bias[200000:0];
 
+  // GOLDEN
+  logic [7:0] out;
+
   // Interface
   sp_ram_intf param_intf ();
   sp_ram_intf input_intf ();
@@ -187,12 +190,12 @@ module top_tb;
     err = 0;
     num = 2000;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
-      if (output_mem.content[i] !== GOLDEN[i]) begin
-        $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i],
-                 GOLDEN[i]);
+      out = output_mem.content[i][7:0];
+      if (out !== GOLDEN[i]) begin
+        $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
         err = err + 1;
       end else begin
-        $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
+        $display("DM[%4d] = %h, pass", i, out);
       end
     end
     result(err, num);
