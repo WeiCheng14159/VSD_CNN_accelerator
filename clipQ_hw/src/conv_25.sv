@@ -1,30 +1,21 @@
-`ifndef CONV_25_V
-`define CONV_25_V
-`include "../src/c_unit.v"
+`ifndef CONV_25_SV
+`define CONV_25_SV
+`include "c_unit.sv"
+`include "conv_acc.svh"
 
 module conv_25 (
-    clk,
-    rst,
-    d_in,
-    w_in,
-    w_en,
-    z_en,
-    ans_out
-
+    input  logic                        clk,
+    input  logic                        rst,
+    input  logic [`QDATA_BUS_WIDTH-1:0] d_in,
+    input  logic [`QDATA_BUS_WIDTH-1:0] w_in,
+    input  logic                        w_en,
+    input  logic                        z_en,
+    output logic [ `DATA_BUS_WIDTH-1:0] ans_out
 );
 
-  input clk, rst;
-  input [7:0] d_in;
-
-  input [7:0] w_in;
-  input w_en;
-
-  input z_en;
-  output [31:0] ans_out;
-
-  wire signed [31:0] d_out[0:24];
-  wire signed [ 7:0] w_out[0:24];
-  wire signed [24:0] en;
+  logic signed [`DATA_BUS_WIDTH-1:0] d_out[0:24];
+  logic signed [`QDATA_BUS_WIDTH-1:0] w_out[0:24];
+  logic signed [24:0] en;
 
   genvar i;
 
@@ -40,7 +31,7 @@ module conv_25 (
       .w_en(w_en),
       .w_out(w_out[24]),
       .w_in(w_out[23]),
-      .l_in(32'b0),
+      .l_in(`EMPTY_DATA),
       .d_in(d_in),
       .d_out(d_out[0])
 
