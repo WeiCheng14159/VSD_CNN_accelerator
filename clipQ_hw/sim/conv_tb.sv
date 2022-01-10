@@ -27,17 +27,17 @@
 
 module top_tb;
 
-  reg clk;
-  reg rst;
-  wire fin;
-  reg start;
-  wire qst;
-  reg [7:0] GOLDEN [200000:0];
-  reg [31:0] param [3:0];
-  reg [31:0] in_data [200000:0];
-  reg [31:0] w8 [0:1];
-  reg [31:0] w2 [200000:0];
-  reg [31:0] bias [200000:0];
+  logic clk;
+  logic rst;
+  logic fin;
+  logic start;
+
+  logic [7:0] GOLDEN[200000:0];
+  logic [31:0] param[3:0];
+  logic [31:0] in_data[200000:0];
+  logic [31:0] w8[0:1];
+  logic [31:0] w2[200000:0];
+  logic [31:0] bias[200000:0];
 
   // Interface
   sp_ram_intf param_intf ();
@@ -48,7 +48,7 @@ module top_tb;
 
   integer gf, i, num;
   integer err;
-  string prog_path;
+  string  prog_path;
   always #(`CYCLE / 2) clk = ~clk;
 
   conv TOP (
@@ -137,37 +137,45 @@ module top_tb;
 
     // Input data
     num = 0;
-    gf  = $fopen({prog_path,"/In8.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/In8.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", input_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
 
     //write weight
-    $readmemh({prog_path,"/W8.hex"}, w8);
+    $readmemh({prog_path, "/W8.hex"}, w8);
 
     // Weight (W2)
     num = 0;
-    gf  = $fopen({prog_path,"/W2.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/W2.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", weight_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
-    
+
     // Bias (32b)
     num = 0;
-    gf  = $fopen({prog_path,"/Bias32.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/Bias32.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", bias_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
 
     num = 0;
-    gf  = $fopen({prog_path,"/Out8.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/Out8.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", GOLDEN[num]);
       num = num + 1;
     end
@@ -177,10 +185,11 @@ module top_tb;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    num = 2000; // Check first 2000 data by default
+    num = 2000;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
-      if(output_mem.content[i] !== GOLDEN[i])begin
-        $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
+      if (output_mem.content[i] !== GOLDEN[i]) begin
+        $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i],
+                 GOLDEN[i]);
         err = err + 1;
       end else begin
         $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
