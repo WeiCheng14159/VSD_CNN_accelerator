@@ -132,7 +132,7 @@ module top_tb;
     #(`CYCLE) rst = 1;
     $value$plusargs("prog_path=%s", prog_path);
 
-    //write parameter
+    // Parameter
     $readmemh({prog_path, "/param.hex"}, param);
     for (i = 0; i < 4; i = i + 1) begin
       param_mem.content[i] = param[i];
@@ -149,10 +149,10 @@ module top_tb;
     end
     $fclose(gf);
 
-    //write weight
+    // Weight (8 bit)
     $readmemh({prog_path, "/W8.hex"}, w8);
 
-    // Weight (W2)
+    // Weight (2 bit)
     num = 0;
     gf  = $fopen({prog_path, "/W2.hex"}, "r");
     while (!$feof(
@@ -163,7 +163,7 @@ module top_tb;
     end
     $fclose(gf);
 
-    // Bias (32b)
+    // Bias (32 bit)
     num = 0;
     gf  = $fopen({prog_path, "/Bias32.hex"}, "r");
     while (!$feof(
@@ -174,6 +174,7 @@ module top_tb;
     end
     $fclose(gf);
 
+    // Output (8 bit)
     num = 0;
     gf  = $fopen({prog_path, "/Out8.hex"}, "r");
     while (!$feof(
@@ -183,6 +184,7 @@ module top_tb;
       num = num + 1;
     end
     $fclose(gf);
+
     #20 start = 1;
     #(`CYCLE) start = 0;
     wait (fin);
