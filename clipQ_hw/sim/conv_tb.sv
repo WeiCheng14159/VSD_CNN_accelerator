@@ -47,8 +47,6 @@ module top_tb;
   sp_ram_intf bias_intf ();
 
   integer gf, i, num;
-  integer img;
-  wire [31:0] temp;
   integer err;
   string prog_path;
   always #(`CYCLE / 2) clk = ~clk;
