@@ -206,18 +206,6 @@ module top_tb;
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
 `endif
-    #(`CYCLE * `MAX)
-      for (i = 0; i < 100; i = i + 1) begin
-        if (output_mem.content[i] !== GOLDEN[i]) begin
-          $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
-          err = err + 1;
-        end else begin
-          $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
-        end
-      end
-    $display("SIM_END no finish!!!");
-    result(num, num);
-    $finish;
   end
 
   task result;
