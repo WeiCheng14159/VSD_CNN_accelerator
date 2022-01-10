@@ -177,7 +177,7 @@ module top_tb;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    // num = 2000; // Check first 2000 data
+    num = 2000; // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
       if(output_mem.content[i] !== GOLDEN[i])begin
         $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
