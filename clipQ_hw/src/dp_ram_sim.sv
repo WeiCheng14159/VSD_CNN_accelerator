@@ -1,9 +1,9 @@
-`ifndef DUAL_BRAM_SV
-`define DUAL_BRAM_SV
+`ifndef DP_RAM_SIM_SV
+`define DP_RAM_SIM_SV
 
 `include "conv_acc.svh"
 
-module dual_bram (
+module dp_ram_sim (
     input logic            clk,
     input logic            rst,
           bram_intf.memory p0_intf,
