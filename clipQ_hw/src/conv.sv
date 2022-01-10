@@ -9,31 +9,31 @@ module  conv(
 	output	logic			param_en,
 	output	logic	[31:0]	param_addr,
 	input			[31:0]	param_rdata,
-	output	logic			param_write,
+	output	logic	[ 3:0]	param_write,
 	output	logic	[31:0]	param_wdata,
 
 	output	logic			bias_en,
 	output	logic	[31:0]	bias_addr,
 	input			[31:0]	bias_rdata,
-	output	logic			bias_write,
+	output	logic	[ 3:0]	bias_write,
 	output	logic	[31:0]	bias_wdata,
 
 	output	logic			weight_en,
 	output	logic	[31:0]	weight_addr,
 	input			[17:0]	weight_rdata,
-	output	logic			weight_write,
+	output	logic	[ 3:0]	weight_write,
 	output	logic	[17:0]	weight_wdata,
 
 	output	logic			input_en,
 	output	logic	[31:0]	input_addr,
 	input			[ 7:0]	input_rdata,
-	output	logic			input_write,
+	output	logic	[ 3:0]	input_write,
 	output	logic	[ 7:0]	input_wdata,
 
 	output	logic			output_en,
 	output	logic	[31:0]	output_addr,
 	input			[ 7:0]	output_rdata,
-	output	logic			output_write,
+	output	logic	[ 3:0]	output_write,
 	output	logic	[ 7:0]	output_wdata,
 
 	input			[31:0]	w8,
@@ -54,8 +54,9 @@ module  conv(
 
 	logic 	signed	[ 7:0]	data[8:0];
 	logic 	signed	[ 7:0]	weight[8:0];
-	logic	signed	[16:0]	partial_sum[8:0];
+	logic	signed	[15:0]	partial_sum[8:0];
 	logic	signed	[32:0]	bias;
+	logic	signed	[15:0]	sum;
 
 	logic 	[ 2:0]	counter;
 	logic 	[ 4:0]	row_counter;
@@ -86,6 +87,8 @@ module  conv(
 	assign input_2D_size = num_row * num_row;
 	assign kernel_size = 32'h3;
 
+	assign sum = bias[15:0] + partial_sum[0];
+
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
 			w8_temp <= 32'b0;
@@ -107,7 +110,7 @@ module  conv(
 			partial_sum[7] <= 32'b0;
 			partial_sum[8] <= 32'b0;
 		end
-		else if(calculate_state)begin
+		else if(CurrentState == calculate_state)begin
 			// for(i = 0; i < 9; i = i + 1)
 			// 	partial_sum[i] <= data[i] * weight[i];
 			partial_sum[0] <= data[0] * weight[0];
@@ -120,7 +123,7 @@ module  conv(
 			partial_sum[7] <= data[7] * weight[7];
 			partial_sum[8] <= data[8] * weight[8];
 		end
-		else if(write_state & (counter == 3'b0))
+		else if((CurrentState == write_state) & (counter == 3'b0))
 			partial_sum[0] <= partial_sum[0] + partial_sum[1] + partial_sum[2] + partial_sum[3] + partial_sum[4] + partial_sum[5] + partial_sum[6] + partial_sum[7] + partial_sum[8];
 	end
 
@@ -422,7 +425,7 @@ module  conv(
 		if(~rst)
 			input_addr <= 32'b0;
 		else if(CurrentState == load_weight_state)
-			input_addr <= cha_counter * input_2D_size;
+			input_addr <= 4 * cha_counter * input_2D_size;
 		else if(CurrentState == load_input_state)begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0))begin
 				case(counter)
@@ -531,7 +534,7 @@ module  conv(
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
 			output_en <= 1'b0;
-		else if(calculate_state)
+		else if(CurrentState == calculate_state)
 			output_en <= 1'b1;
 		else
 			output_en <= 1'b0;
@@ -540,7 +543,7 @@ module  conv(
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
 			output_addr <= 32'b0;
-		else if(write_state & (counter == 3'h2))begin
+		else if((CurrentState == write_state) & (counter == 3'h2))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))
 				output_addr <= output_addr + 1'b1;
 			else if((row_counter == 5'b0) & (col_counter == 5'b0))
@@ -552,19 +555,20 @@ module  conv(
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			output_write <= 1'b0;
-		else if(write_state & (counter == 3'h1))
-			output_write <= 1'b1;
+			output_write <= 4'b0;
+		else if((CurrentState == write_state) & (counter == 3'h1))
+			output_write <= 4'hf;
 		else 
-			output_write <= 1'b0;
+			output_write <= 4'b0;
 	end
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
 			output_wdata <= 8'b0;
-		else if(write_state & (counter == 3'h1))begin
-			if(output_addr < input_2D_size)
-				output_wdata <= bias[12:5] + partial_sum[0][12:5];
+		else if((CurrentState == write_state) & (counter == 3'h1))begin
+			if(cha_counter == 5'b0)
+				//output_wdata <= bias[12:5] + partial_sum[0][12:5];
+				output_wdata <= sum[12:5];
 			else 
 				output_wdata <= output_rdata + partial_sum[0][12:5];
 		end
@@ -637,90 +641,90 @@ module  conv(
 		case(CurrentState)
 			idle_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			load_parameter_state:begin
 				param_en = 1'b1;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			load_bias_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b1;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			load_weight_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b1;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			load_input_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b1;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			calculate_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			write_state:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b0;
 			end
 			default:begin
 				param_en = 1'b0;
-				param_write = 1'b0;
+				param_write = 4'b0;
 				bias_en = 1'b0;
-				bias_write = 1'b0;
+				bias_write = 4'b0;
 				weight_en = 1'b0;
-				weight_write = 1'b0;
+				weight_write = 4'b0;
 				input_en = 1'b0;
-				input_write = 1'b0;
+				input_write = 4'b0;
 				finish = 1'b1;
 			end
 		endcase
