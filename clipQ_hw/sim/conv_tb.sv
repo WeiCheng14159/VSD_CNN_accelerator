@@ -137,25 +137,35 @@ module top_tb;
       param_mem.content[i] = param[i];
     end
 
-    //write input data 
-    $readmemh({prog_path,"/In8.hex"}, in_data);
-    for (i = 0; i < 1024; i = i + 1) begin
-      input_mem.content[i] = in_data[i];
+    // Input data
+    num = 0;
+    gf  = $fopen({prog_path,"/In8.hex"}, "r");
+    while (!$feof(gf)) begin
+      $fscanf(gf, "%h\n", input_mem.content[num]);
+      num = num + 1;
     end
+    $fclose(gf);
 
     //write weight
     $readmemh({prog_path,"/W8.hex"}, w8);
 
-    $readmemh({prog_path,"/W2.hex"}, w2);
-    for (i = 0; i < 432; i = i + 1) begin
-      weight_mem.content[i] = w2[i];
+    // Weight (W2)
+    num = 0;
+    gf  = $fopen({prog_path,"/W2.hex"}, "r");
+    while (!$feof(gf)) begin
+      $fscanf(gf, "%h\n", weight_mem.content[num]);
+      num = num + 1;
     end
-
-    // write bias
-    $readmemh({prog_path,"/Bias32.hex"}, bias);
-    for (i = 0; i < 192; i = i + 1) begin
-      bias_mem.content[i] = bias[i];
+    $fclose(gf);
+    
+    // Bias (32b)
+    num = 0;
+    gf  = $fopen({prog_path,"/Bias32.hex"}, "r");
+    while (!$feof(gf)) begin
+      $fscanf(gf, "%h\n", bias_mem.content[num]);
+      num = num + 1;
     end
+    $fclose(gf);
 
     num = 0;
     gf  = $fopen({prog_path,"/Out8.hex"}, "r");
@@ -189,15 +199,12 @@ module top_tb;
 `endif
 
   initial begin
-
 `ifdef FSDB
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars();
 `elsif FSDB_ALL
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
-`else
-
 `endif
     #(`CYCLE * `MAX)
       for (i = 0; i < 100; i = i + 1) begin
