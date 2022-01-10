@@ -4,26 +4,25 @@
 
 `ifdef SYN
 `include "conv_syn.v"
-`include "bram_sim.sv"
-`include "dual_bram.sv"
+`include "sp_ram_sim.sv"
+`include "dp_ram_sim.sv"
 `include "SRAM/SRAM.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
 `include "conv_pr.v"
-`include "bram_sim.sv"
-`include "dual_bram.sv"
+`include "sp_ram_sim.sv"
+`include "dp_ram_sim.sv"
 `include "SRAM/SRAM.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
 `include "conv.sv"
-`include "bram_sim.sv"
-`include "dual_bram.sv"
+`include "sp_ram_sim.sv"
+`include "dp_ram_sim.sv"
 `include "SRAM/SRAM_rtl.sv"
 `endif
 
-`include "bram_intf.sv"
 `timescale 1ns / 10ps
 
 module top_tb;
@@ -33,181 +32,95 @@ module top_tb;
   wire fin;
   reg start;
   wire qst;
-  reg [31:0] GOLDEN[200000:0];
-  reg [31:0] param[3:0];
-  reg [31:0] in_data[4096:0];
-  reg [31:0] w1[1024:0];
-  reg [31:0] w2[1024:0];
-  reg [31:0] w3[1024:0];
+  reg [7:0] GOLDEN [200000:0];
+  reg [31:0] param [3:0];
+  reg [31:0] in_data [200000:0];
+  reg [31:0] w8 [0:1];
+  reg [31:0] w2 [200000:0];
+  reg [31:0] bias [200000:0];
 
   // Interface
-  bram_intf param_intf ();
-  bram_intf input_intf ();
-  bram_intf output_intf ();
-  bram_intf weight_intf ();
-  bram_intf bias_intf ();
-  bram_intf k0_p0_intf ();
-  bram_intf k0_p1_intf ();
-  bram_intf k1_p0_intf ();
-  bram_intf k1_p1_intf ();
-  bram_intf k2_p0_intf ();
-  bram_intf k2_p1_intf ();
-  bram_intf k3_p0_intf ();
-  bram_intf k3_p1_intf ();
+  sp_ram_intf param_intf ();
+  sp_ram_intf input_intf ();
+  sp_ram_intf output_intf ();
+  sp_ram_intf weight_intf ();
+  sp_ram_intf bias_intf ();
 
   integer gf, i, num;
   integer img;
   wire [31:0] temp;
   integer err;
+  string prog_path;
   always #(`CYCLE / 2) clk = ~clk;
 
   conv TOP (
       .rst(rst),
       .clk(clk),
 
-      .Mp_en(param_intf.en),
-      .Mp_addr(param_intf.addr),
-      .Mp_R_data(param_intf.R_data),
-      .Mp_W_req(param_intf.W_req),
-      .Mp_W_data(param_intf.W_data),
+      .param_en(param_intf.en),
+      .param_addr(param_intf.addr),
+      .param_rdata(param_intf.R_data),
+      .param_write(param_intf.W_req),
+      .param_wdata(param_intf.W_data),
 
-      .Min_en(input_intf.en),
-      .Min_addr(input_intf.addr),
-      .Min_R_data(input_intf.R_data),
-      .Min_W_req(input_intf.W_req),
-      .Min_W_data(input_intf.W_data),
+      .bias_en(bias_intf.en),
+      .bias_addr(bias_intf.addr),
+      .bias_rdata(bias_intf.R_data),
+      .bias_write(bias_intf.W_req),
+      .bias_wdata(bias_intf.W_data),
 
-      .Mout_en(output_intf.en),
-      .Mout_addr(output_intf.addr),
-      .Mout_R_data(output_intf.R_data),
-      .Mout_W_req(output_intf.W_req),
-      .Mout_W_data(output_intf.W_data),
+      .weight_en(weight_intf.en),
+      .weight_addr(weight_intf.addr),
+      .weight_rdata(weight_intf.R_data[17:0]),
+      .weight_write(weight_intf.W_req),
+      .weight_wdata(weight_intf.W_data[17:0]),
 
-      .Mw_en(weight_intf.en),
-      .Mw_addr(weight_intf.addr),
-      .Mw_R_data(weight_intf.R_data),
-      .Mw_W_req(weight_intf.W_req),
-      .Mw_W_data(weight_intf.W_data),
+      .input_en(input_intf.en),
+      .input_addr(input_intf.addr),
+      .input_rdata(input_intf.R_data[7:0]),
+      .input_write(input_intf.W_req),
+      .input_wdata(input_intf.W_data[7:0]),
 
-      .Mb_en(bias_intf.en),
-      .Mb_addr(bias_intf.addr),
-      .Mb_R_data(bias_intf.R_data),
-      .Mb_W_req(bias_intf.W_req),
-      .Mb_W_data(bias_intf.W_data),
+      .output_en(output_intf.en),
+      .output_addr(output_intf.addr),
+      .output_rdata(output_intf.R_data[7:0]),
+      .output_write(output_intf.W_req),
+      .output_wdata(output_intf.W_data[7:0]),
 
-      .Mk0_p0_en(k0_p0_intf.en),
-      .Mk0_p0_addr(k0_p0_intf.addr),
-      .Mk0_p0_R_data(k0_p0_intf.R_data),
-      .Mk0_p0_W_req(k0_p0_intf.W_req),
-      .Mk0_p0_W_data(k0_p0_intf.W_data),
-
-      .Mk0_p1_en(k0_p1_intf.en),
-      .Mk0_p1_addr(k0_p1_intf.addr),
-      .Mk0_p1_R_data(k0_p1_intf.R_data),
-      .Mk0_p1_W_req(k0_p1_intf.W_req),
-      .Mk0_p1_W_data(k0_p1_intf.W_data),
-
-      .Mk1_p0_en(k1_p0_intf.en),
-      .Mk1_p0_addr(k1_p0_intf.addr),
-      .Mk1_p0_R_data(k1_p0_intf.R_data),
-      .Mk1_p0_W_req(k1_p0_intf.W_req),
-      .Mk1_p0_W_data(k1_p0_intf.W_data),
-
-      .Mk1_p1_en(k1_p1_intf.en),
-      .Mk1_p1_addr(k1_p1_intf.addr),
-      .Mk1_p1_R_data(k1_p1_intf.R_data),
-      .Mk1_p1_W_req(k1_p1_intf.W_req),
-      .Mk1_p1_W_data(k1_p1_intf.W_data),
-
-      .Mk2_p0_en(k2_p0_intf.en),
-      .Mk2_p0_addr(k2_p0_intf.addr),
-      .Mk2_p0_R_data(k2_p0_intf.R_data),
-      .Mk2_p0_W_req(k2_p0_intf.W_req),
-      .Mk2_p0_W_data(k2_p0_intf.W_data),
-
-      .Mk2_p1_en(k2_p1_intf.en),
-      .Mk2_p1_addr(k2_p1_intf.addr),
-      .Mk2_p1_R_data(k2_p1_intf.R_data),
-      .Mk2_p1_W_req(k2_p1_intf.W_req),
-      .Mk2_p1_W_data(k2_p1_intf.W_data),
-
-      .Mk3_p0_en(k3_p0_intf.en),
-      .Mk3_p0_addr(k3_p0_intf.addr),
-      .Mk3_p0_R_data(k3_p0_intf.R_data),
-      .Mk3_p0_W_req(k3_p0_intf.W_req),
-      .Mk3_p0_W_data(k3_p0_intf.W_data),
-
-      .Mk3_p1_en(k3_p1_intf.en),
-      .Mk3_p1_addr(k3_p1_intf.addr),
-      .Mk3_p1_R_data(k3_p1_intf.R_data),
-      .Mk3_p1_W_req(k3_p1_intf.W_req),
-      .Mk3_p1_W_data(k3_p1_intf.W_data),
+      .w8(w8[0]),
 
       .start (start),
       .finish(fin)
   );
 
-  bram_sim b_param (
+  sp_ram_sim param_mem (
       .rst (rst),
       .clk (clk),
       .intf(param_intf)
   );
 
-
-  bram_sim b_in (
+  sp_ram_sim input_mem (
       .rst (rst),
       .clk (clk),
       .intf(input_intf)
   );
 
-  bram_sim b_out (
+  sp_ram_sim output_mem (
       .rst (rst),
       .clk (clk),
       .intf(output_intf)
   );
 
-
-  bram_sim b_w (
+  sp_ram_sim weight_mem (
       .rst (rst),
       .clk (clk),
       .intf(weight_intf)
   );
 
-  bram_sim b_bias (
+  sp_ram_sim bias_mem (
       .rst (rst),
       .clk (clk),
       .intf(bias_intf)
-  );
-
-
-
-  dual_bram b_0_4k (
-      .rst(rst),
-      .clk(clk),
-      .p0_intf(k0_p0_intf),
-      .p1_intf(k0_p1_intf)
-  );
-
-
-  dual_bram b_1_4k (
-      .rst(rst),
-      .clk(clk),
-      .p0_intf(k1_p0_intf),
-      .p1_intf(k1_p1_intf)
-  );
-
-  dual_bram b_2_4k (
-      .rst(rst),
-      .clk(clk),
-      .p0_intf(k2_p0_intf),
-      .p1_intf(k2_p1_intf)
-  );
-
-  dual_bram b_3_4k (
-      .rst(rst),
-      .clk(clk),
-      .p0_intf(k3_p0_intf),
-      .p1_intf(k3_p1_intf)
   );
 
   initial begin
@@ -216,40 +129,38 @@ module top_tb;
     start = 0;
     #1 rst = 0;
     #(`CYCLE) rst = 1;
+    $value$plusargs("prog_path=%s", prog_path);
 
     //write parameter
-    $readmemh("../data/param.hex", param);
+    $readmemh({prog_path, "/param.hex"}, param);
     for (i = 0; i < 4; i = i + 1) begin
-      b_param.content[i] = param[i];
+      param_mem.content[i] = param[i];
     end
 
     //write input data 
-    $readmemh("../data/In8.hex", in_data);
+    $readmemh({prog_path,"/In8.hex"}, in_data);
     for (i = 0; i < 1024; i = i + 1) begin
-      b_in.content[i] = in_data[i];
+      input_mem.content[i] = in_data[i];
     end
 
     //write weight
-    $readmemh("../data/W8.hex", w1);
-    b_w.content[0] = w1[0];
+    $readmemh({prog_path,"/W8.hex"}, w8);
 
-    $readmemh("../data/W2.hex", w2);
+    $readmemh({prog_path,"/W2.hex"}, w2);
     for (i = 0; i < 432; i = i + 1) begin
-      b_w.content[i+1] = w2[i];
+      weight_mem.content[i] = w2[i];
     end
 
     // write bias
-    $readmemh("../data/Bias32.hex", w3);
+    $readmemh({prog_path,"/Bias32.hex"}, bias);
     for (i = 0; i < 192; i = i + 1) begin
-      b_bias.content[i] = w3[i];
+      bias_mem.content[i] = bias[i];
     end
 
     num = 0;
-    gf  = $fopen("../data/Out8.hex", "r");
-    while (!$feof(
-        gf
-    )) begin
-      $fscanf(gf, "%h \n", GOLDEN[num]);
+    gf  = $fopen({prog_path,"/Out8.hex"}, "r");
+    while (!$feof(gf)) begin
+      $fscanf(gf, "%h\n", GOLDEN[num]);
       num = num + 1;
     end
     $fclose(gf);
@@ -260,11 +171,11 @@ module top_tb;
     err = 0;
     num = 2000;
     for (i = 0; i < num; i = i + 1) begin
-      if(b_out.content[i] !== GOLDEN[i] && b_out.content[i] !== GOLDEN[i] + 256)begin
-        $display("DM[%4d] = %h, expect = %h", i, b_out.content[i], GOLDEN[i]);
+      if(output_mem.content[i] !== GOLDEN[i] && output_mem.content[i] !== GOLDEN[i] + 256)begin
+        $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
         err = err + 1;
       end else begin
-        $display("DM[%4d] = %h, pass", i, b_out.content[i]);
+        $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
       end
     end
     result(err, num);
@@ -290,11 +201,11 @@ module top_tb;
 `endif
     #(`CYCLE * `MAX)
       for (i = 0; i < 100; i = i + 1) begin
-        if (b_out.content[i] !== GOLDEN[i]) begin
-          $display("DM[%4d] = %h, expect = %h", i, b_out.content[i], GOLDEN[i]);
+        if (output_mem.content[i] !== GOLDEN[i]) begin
+          $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
           err = err + 1;
         end else begin
-          $display("DM[%4d] = %h, pass", i, b_out.content[i]);
+          $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
         end
       end
     $display("SIM_END no finish!!!");
