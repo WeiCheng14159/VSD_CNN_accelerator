@@ -73,7 +73,7 @@ module ID_S (
             `IOP_JALR  : aluop = `ADD_ALUOP;
             `SOP       : aluop = `ADD_ALUOP;
             `BOP       : aluop = `BEQ_ALUOP;
-            `UOP_AUPIC : aluop = `NO_ALUOP;
+            `UOP_AUPIC : aluop = `AUIPC_ALUOP;
             `UOP_LUI   : aluop = `LUI_ALUOP;
             `JOP_JAL   : aluop = `NO_ALUOP;
             `CSROP     : aluop = `NO_ALUOP;
@@ -179,8 +179,8 @@ module ID_S (
             {1'b1, `CSRRCI}  : csr_ctrl = 7'b1100100;
             {1'b1, `TRAPINT} : begin
                 csr_ctrl[6:2] = 5'b0;
-                csr_ctrl[1] =  func7[4];  // func7 == 7'b0011000
-                csr_ctrl[0] = ~func7[4];  // func7 == 7'b0001000
+                csr_ctrl[1] =  func7[4];  // func7 == 7'b0011000, MRET
+                csr_ctrl[0] = ~func7[4];  // func7 == 7'b0001000, WFI
             end
             default  : csr_ctrl = 7'b0;
         endcase

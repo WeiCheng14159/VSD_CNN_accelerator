@@ -43,12 +43,10 @@ module L1C_inst(
     logic [`CACHE_LINE_BITS-1:0] valid;
 
 //--------------- complete this part by yourself -----------------//
-  
-    // STATE
     parameter INIT  = 3'h0,
-                CHK   = 3'h1,
-                RMISS = 3'h4,
-                FIN   = 3'h5;
+              CHK   = 3'h1,
+              RMISS = 3'h4,
+              FIN   = 3'h5;
     logic [2:0] STATE, NEXT;
     // Sample
     logic [`DATA_BITS      -1:0] c_addr, c_in;

@@ -15,9 +15,9 @@ module IF_S (
     input  [`BRANCH_BITS-1:0] exe_branch_ctrl_i,
     input                     exe_zero_flag_i,
     // CSR
-    input csr_int_i,
-    input csr_mret_i,
-    input [`ADDR_BITS-1:0] csr_pc_i, csr_retpc_i
+    input                     csr_int_i,
+    input                     csr_mret_i,
+    input  [`ADDR_BITS  -1:0] csr_pc_i, csr_retpc_i
 );
     logic [`ADDR_BITS-1:0] pc_in, pc_out, pc_outadd4;
     assign pc_outadd4 = pc_out + 32'h4;
@@ -40,23 +40,24 @@ module IF_S (
     assign inst_pc_o = pc_out;
     always @(posedge clk or posedge rst) begin
         if (rst)             pc_out <= `ADDR_BITS'h0;
-        else if (~ifid_en_i) pc_out <= pc_out;
-        else if (stall_i)    pc_out <= pc_out;
-        else                 pc_out <= pc_in;
+        // else if (ifid_en_i) pc_out <= pc_out;
+        else if (ifid_en_i & stall_i) pc_out <= pc_out;
+        else if (ifid_en_i)           pc_out <= pc_in;
+        // else                 pc_out <= pc_in;
     end	
     always @(posedge clk or posedge rst) begin
         if (rst)             if2id_o.pc <= `ADDR_BITS'h0;
-        else if (~ifid_en_i) if2id_o.pc <= if2id_o.pc;
-        else if (stall_i)    if2id_o.pc <= if2id_o.pc;
-        else                 if2id_o.pc <= pc_out;     
+        // else if (~ifid_en_i) if2id_o.pc <= if2id_o.pc;
+        else if (ifid_en_i & stall_i)    if2id_o.pc <= if2id_o.pc;
+        else if (ifid_en_i)              if2id_o.pc <= pc_out;     
     end
     // Inst
     always @(posedge clk or posedge rst) begin
         if (rst)             if2id_o.inst <= `DATA_BITS'h0;
-        else if (~ifid_en_i) if2id_o.inst <= if2id_o.inst;
-        else if (flush_i)    if2id_o.inst <= `DATA_BITS'h0;
-        else if (stall_i)    if2id_o.inst <= if2id_o.inst;
-        else                 if2id_o.inst <= inst_i;
+        // else if (~ifid_en_i) if2id_o.inst <= if2id_o.inst;
+        else if (ifid_en_i & flush_i)    if2id_o.inst <= `DATA_BITS'h0;
+        else if (ifid_en_i & stall_i)    if2id_o.inst <= if2id_o.inst;
+        else if (ifid_en_i)              if2id_o.inst <= inst_i;
     end
 
 
