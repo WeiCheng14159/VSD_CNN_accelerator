@@ -56,6 +56,7 @@ int main(void) {
   // Enable Local Interrupt
   asm("li t6, 0x800");
   asm("csrs mie, t6"); // MEIE of mie 
+  // asm("csrsi mie, 0x800"); // MEIE of mie 
 
   // Enable Sensor Controller
   sensor_addr[0x40] = 1; // Enable sctrl_en

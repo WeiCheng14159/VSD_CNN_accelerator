@@ -46,14 +46,19 @@ module CPU (
     logic [`REG_BITS    -1:0] exe_rd_addr, mem_rd_addr, wb_rd_addr;
     logic [`FORWARD_BITS-1:0] forward_rs1, forward_rs2;
     logic [`ADDR_BITS   -1:0] exe_pc_imm, exe_pc_add4, exe_pc_aluout;
-    logic ifid_en, idexe_en, exemem_en, memwb_en;  // enable
+    logic ifid_en, idexe_en, exemem_en, memwb_en, csr_en;  // enable
     logic stall, flush;
     logic exe_zero_flag; 
     logic mem_reg_wr, wb_reg_wr;
     logic exe_dm_rd;
-
+    // cpu wait
     logic cpuwait;
     logic dm_clear;
+    // Interrupt, CSR
+    logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
+    logic csr_stall;
+    logic csr_wfi, csr_mret, csr_int;
+
     assign cpuwait = wait1_i | wait2_i;
 
     // assign write1_o = 1'b0;
@@ -65,15 +70,14 @@ module CPU (
 
     assign req2_o = dm_clear ? 1'b0 : (read2_o | write2_o);
 
-    // Interrupt, CSR
-    logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
-    logic csr_stall;
-    logic csr_int, csr_mret;
+
 
     assign ifid_en   = ~cpuwait & ~csr_stall;
     assign idexe_en  = ~cpuwait & ~csr_stall;
     assign exemem_en = ~cpuwait & ~csr_stall;
     assign memwb_en  = ~cpuwait & ~csr_stall;
+    assign csr_en    = ~cpuwait;
+    
 // /*
 // {{{ Debug
     logic [31:0] d_idpc, d_exepc, d_mempc, d_wbpc;
@@ -166,13 +170,16 @@ module CPU (
         .clk         (clk              ),
         .rst         (rst              ),
         .csr2ex      (inf_EX_CSR.CSR2EX),
-        .idexe_en_i  (idexe_en         ),
+        .csr_en_i    (csr_en           ),
         .int_taken_i (int_taken_i      ),
         .csr_pc_o    (csr_pc           ),
         .csr_retpc_o (csr_retpc        ),
-        .int_o       (csr_int          ),
+        .wfi_o       (csr_wfi          ),
         .mret_o      (csr_mret         ),
-        .csr_stall_o (csr_stall        )
+        .int_o       (csr_int          ),
+        
+        
+        .stall_o (csr_stall        )
     );
 
     MEM_S i_mem (
@@ -230,8 +237,10 @@ module CPU (
         .exe_rd_addr_i     (exe_rd_addr    ),
         .stall_o           (stall          ),
         .flush_o           (flush          ),
-        .csr_int_i         (csr_int        ),
-        .csr_mret_i        (csr_mret       )
+        .csr_wfi_i       (csr_wfi      ),
+        .csr_mret_i        (csr_mret       ),
+        .csr_int_i         (csr_int        )
+        
     );
 
 endmodule

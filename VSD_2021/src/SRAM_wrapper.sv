@@ -1,5 +1,6 @@
 `include "../include/AXI_define.svh"
 `include "./Interface/inf_Slave.sv"
+parameter SRAM_A_BITS = 14;
 
 module SRAM_wrapper(
     input clk, rst,
@@ -8,9 +9,9 @@ module SRAM_wrapper(
 );
 
     parameter IDLE  = 3'h0,
-                W_CH  = 3'h1,
-                R_CH  = 3'h2,
-                B_CH  = 3'h3;
+              R_CH  = 3'h1,
+              W_CH  = 3'h2,
+              B_CH  = 3'h3;
     logic [2:0] STATE, NEXT;
     // Handshake
     logic awhns, arhns, whns, rhns, bhns;
@@ -21,17 +22,20 @@ module SRAM_wrapper(
     logic [`AXI_DATA_BITS-1:0] DI;
     logic [`AXI_DATA_BITS-1:0] DO;
     logic [`AXI_STRB_BITS-1:0] WEB;
-    logic CS;
-    logic OE;
+    logic CS, OE;
     logic [`AXI_STRB_BITS-1:0] wweb;
     logic [1:0] A_off;
+    logic [SRAM_A_BITS   -1:0] sram_a_r;
 
-    logic [13:0] raddr, waddr;
+    // logic [13:0] raddr, waddr;
+    logic [SRAM_A_BITS    -1:0] addr_r;
     logic [ 1:0] byte_off;
-    logic [`AXI_IDS_BITS -1:0] arids, awids;
-    logic [`AXI_DATA_BITS-1:0] rdata;
-    logic [`AXI_LEN_BITS -1:0] arlen, awlen;
-    logic [`AXI_STRB_BITS-1:0] wstrb;
+    // logic [`AXI_IDS_BITS  -1:0] arids, awids;
+    logic [`AXI_IDS_BITS  -1:0] ids_r;
+    logic [`AXI_DATA_BITS -1:0] rdata;
+    logic [`AXI_LEN_BITS  -1:0] arlen, awlen;
+    logic [`AXI_STRB_BITS -1:0] wstrb;
+    logic [`AXI_BURST_BITS-1:0] burst_r;
     logic rvalid;
 
     logic [`AXI_LEN_BITS-1:0] cnt;
@@ -54,33 +58,40 @@ module SRAM_wrapper(
         end
     end
 
-    // Sample
+// {{{ Sample
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
-            raddr    <= 14'h0;
-            waddr    <= 14'h0;
+            // raddr    <= 14'h0;
+            // waddr    <= 14'h0;
+            addr_r   <= {SRAM_A_BITS{1'b0}};
             byte_off <= 2'h0;
-            arids    <= `AXI_IDS_BITS'h0;
-            awids    <= `AXI_IDS_BITS'h0;
+            // arids    <= `AXI_IDS_BITS'h0;
+            // awids    <= `AXI_IDS_BITS'h0;
+            ids_r    <= `AXI_IDS_BITS'h0;
             arlen    <= `AXI_LEN_BITS'h0;
             awlen    <= `AXI_LEN_BITS'h0;
             wstrb    <= `AXI_STRB_BITS'h0;
+            burst_r  <= `AXI_BURST_BITS'h0;
             rvalid   <= 1'b0;
             rdata    <= `AXI_DATA_BITS'h0;
         end
         else begin
-            raddr    <= arhns ? s2axi_i.araddr[15:2] : raddr;
-            waddr    <= awhns ? s2axi_i.awaddr[15:2] : waddr;
+            // raddr    <= arhns ? s2axi_i.araddr[15:2] : raddr;
+            // waddr    <= awhns ? s2axi_i.awaddr[15:2] : waddr;
+            addr_r   <= awhns ? s2axi_i.awaddr[15:2] : arhns ? s2axi_i.araddr[15:2] : addr_r;
             byte_off <= awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
-            arids    <= arhns ? s2axi_i.arid : arids;
-            awids    <= awhns ? s2axi_i.awid : awids;
+            // arids    <= arhns ? s2axi_i.arid : arids;
+            // awids    <= awhns ? s2axi_i.awid : awids;
+            ids_r    <= awhns ? s2axi_i.awid  : arhns ? s2axi_i.arid : ids_r;
             arlen    <= arhns ? s2axi_i.arlen : arlen;
             awlen    <= awhns ? s2axi_i.awlen : awlen;
             wstrb    <= awhns ? s2axi_i.wstrb : wstrb;
+            burst_r  <= awhns ? s2axi_i.awburst : arhns ? s2axi_i.arburst : burst_r;
             rvalid   <= s2axi_o.rvalid;
             rdata    <= (s2axi_o.rvalid & ~rvalid) ? DO : rdata;
         end
     end
+// }}}
 // {{{ STATE
     always_ff@(posedge clk or negedge rst) begin
         STATE <= ~rst ? IDLE : NEXT;
@@ -121,8 +132,8 @@ module SRAM_wrapper(
     assign s2axi_o.rresp = `AXI_RESP_OKAY;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
     assign s2axi_o.rdata = DO; 
-    assign s2axi_o.rid = arids;
-    assign s2axi_o.bid = awids;
+    assign s2axi_o.rid = ids_r;
+    assign s2axi_o.bid = ids_r;
     always_comb begin
         case (STATE)
             IDLE    : begin
@@ -173,9 +184,17 @@ module SRAM_wrapper(
     assign A_off = ~|cnt[1:0] ? (rhns ? cnt[1:0] + 2'h1 : cnt[1:0]) : cnt[1:0] + 2'h1;
     assign WEB = whns ? wweb : 4'hf;
     assign DI  = s2axi_i.wdata;
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)               sram_a_r <= {SRAM_A_BITS{1'b0}};
+        else if (awhns)         sram_a_r <= s2axi_i.awaddr[15:2];
+        else if (arhns)         sram_a_r <= s2axi_i.araddr[15:2];
+        else if (wrfin | rdfin) sram_a_r <= {SRAM_A_BITS{1'b0}};
+        else if (whns | rhns)   sram_a_r <= sram_a_r + {{(SRAM_A_BITS-1){1'b0}}, 1'b1};
+        else if (~bhns)         sram_a_r <= sram_a_r;
+    end
+
     always_comb begin
         wweb = 4'hf;
-        // case (s2axi_i.wstrb)
         case (wstrb)
             `AXI_STRB_BYTE  : wweb[byte_off] = 1'b0;
             `AXI_STRB_HWORD : wweb[{byte_off[1], 1'b0}+:2] = 2'b0;
@@ -194,14 +213,14 @@ module SRAM_wrapper(
     always_comb begin
         case (STATE)
             IDLE    : A = awhns ? s2axi_i.awaddr[15:2] : s2axi_i.araddr[15:2];
-            R_CH    : A = raddr + {12'h0, A_off};
-            W_CH    : A = waddr;
-            B_CH    : A = ~bhns ? waddr : (awhns ? s2axi_i.awaddr[15:2] : s2axi_i.araddr[15:2]);
+            R_CH    : A = addr_r + {12'h0, A_off};
+            W_CH    : A = sram_a_r;
+            B_CH    : A = ~bhns ? addr_r : (awhns ? s2axi_i.awaddr[15:2] : s2axi_i.araddr[15:2]);
             default : A = 14'h0;
         endcase
     end
 // }}}
-// {{{
+// {{{ i_SRAM
     SRAM i_SRAM (
         .A0   (A[0]  ),
         .A1   (A[1]  ),

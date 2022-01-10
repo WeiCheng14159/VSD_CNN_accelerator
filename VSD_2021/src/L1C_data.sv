@@ -30,7 +30,7 @@ module L1C_data (
     output logic [`DATA_BITS      -1:0] D_in,
     output logic [`CACHE_TYPE_BITS-1:0] D_type,
     // 
-    output logic sctrl_rd_o
+    output logic arlenone_o
 );
 
     logic [`CACHE_IDX_BITS  -1:0] index;
@@ -68,11 +68,13 @@ module L1C_data (
     logic [2:0] cnt;
     logic hit;
     logic flag;
-    logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff -> uncacheable
+    logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff and 0x4000_0000 ~ 0x4000_ffff -> uncacheable
 
+logic test, test2;
+assign test  = core_addr[31:16] != 16'h4000;
+assign test2 = (core_addr[31:16] != 16'h1000);
 // {{{ Sample
-    //assign c_addr = core_addr;
-    // assign cacheable = c_addr[31:16] != 16'h1000;
+    // assign cacheable = core_addr[31:16] != 16'h1000;
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             c_addr    <= `DATA_BITS'h0;
@@ -86,11 +88,11 @@ module L1C_data (
             c_in      <= core_in;
             c_type    <= core_type;
             c_write   <= core_write;
-            cacheable <= core_addr[31:16] != 16'h1000;
+            cacheable <= (core_addr[31:16] != 16'h1000) & (core_addr[31:16] != 16'h4000);
         end
     end
 // }}}
-// {{{ counter, flag, cacheable
+// {{{ counter, flag
     always_ff @(posedge clk or posedge rst) begin
         if (rst)          cnt <= 3'h0;
         else if (flag)    cnt <= 3'h0;
@@ -113,15 +115,15 @@ module L1C_data (
     end
     always_comb begin
         case (STATE)
-            INIT    : begin
-                casez ({core_req, core_write, valid[index]})
-                    3'b0??  : NEXT = INIT;
-                    3'b110  : NEXT = WMISS;
-                    3'b100  : NEXT = RMISS;
-                    default : NEXT = CHK;   // valid
-                endcase
-            end
-            // CHK     : NEXT = c_write & hit ? WHIT : (c_write ? WMISS : (~cacheable ? NOUSE : (hit ? FIN : RMISS)));
+            INIT    : NEXT = core_req ? CHK : INIT;
+            // begin
+            //     casez ({core_req, core_write, valid[index]})
+            //         3'b0??  : NEXT = INIT;
+            //         3'b110  : NEXT = WMISS;
+            //         3'b100  : NEXT = RMISS;
+            //         default : NEXT = CHK;   // valid
+            //     endcase
+            // end
             CHK     : begin
                 casez ({c_write, hit, ~cacheable})
                     3'b11?  : NEXT = WHIT;
@@ -234,15 +236,15 @@ module L1C_data (
     end
 // }}}
 // {{{ CPU_wrapper
-    // assign sctrl_rd_o = (STATE == NOUSE) & ~cacheable;
+    // assign arlenone_o = (STATE == NOUSE) & ~cacheable;
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             // D_req      <= 1'b0;
-            sctrl_rd_o <= 1'b0;
+            arlenone_o <= 1'b0;
         end
         else if (STATE == CHK) begin
             // D_req      <= cacheable & c_write & hit
-            sctrl_rd_o <= ~c_write & ~hit & ~cacheable;
+            arlenone_o <= ~c_write & ~hit & ~cacheable;
         end
     end
     always_comb begin

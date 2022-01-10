@@ -1,3 +1,5 @@
+// prog0
+// /*
 void boot() {
 	extern unsigned int _dram_i_start;   // instruction start address in DRAM
 	extern unsigned int _dram_i_end;     // instruction end address in DRAM
@@ -26,43 +28,48 @@ void boot() {
 	for(i = 0; i < len; i++)
 		(&__data_start)[i] = (&__data_paddr_start)[i];
 }
+// */
+/*
+void setDMA(int *source,int *dest,int length) {
+    volatile int *_dma_i_start = (int *) 0x40000000;
+    int tmpSource = (int)source;
+    int tmpdest = (int)dest;
+    while(length) {
+        int x = length >= 255 ? 255: length;
+        length -= x;
+        *(_dma_i_start+0) = tmpSource;  
+        *(_dma_i_start+1) = tmpdest;
+        *(_dma_i_start+2) = x;
+        *(_dma_i_start+3) = 1;  // Enable DMA
+        asm("wfi");   
+        tmpSource = tmpSource + (x << 2) + 4;
+        tmpdest = tmpdest + (x << 2 ) + 4;
+    }
+}
 
+void boot() {
+    extern int _dram_i_start; 
+    extern int _dram_i_end; 
+    extern int _imem_start;
+    extern int __sdata_paddr_start;
+    extern int __sdata_start;
+    extern int __sdata_end;
+    extern int __data_paddr_start;
+    extern int __data_start;
+    extern int __data_end;
 
-// void setDMA(int *source,int *dest,int length){
-//     volatile int *_dma_i_start = (int *) 0x40000000;
-//     int tmpSource = (int)source;
-//     int tmpdest = (int)dest;
-//     while(length){
-//         int x = length >= 255 ? 255: length;
-//         length -= x;
-//         *(_dma_i_start+0) = tmpSource;  
-//         *(_dma_i_start+1) = tmpdest;
-//         *(_dma_i_start+2) = x;
-//         *(_dma_i_start+3) = 1;
-//         while(1)
-//             if(*(_dma_i_start+4) == 1) break;
-//         tmpSource =  tmpSource + (x << 2) + 4;
-//         tmpdest  = tmpdest + (x << 2 )+ 4;
-//     }
-// }
+    // Enable Global Interrupt
+    asm("csrsi mstatus, 0x8"); // MIE of mstatus
+    // Enable Local Interrupt
+    asm("li t6, 0x800");
+    asm("csrs mie, t6"); // MEIE of mie
 
-// int boot(){
-//     extern int _dram_i_start; 
-//     extern int _dram_i_end; 
-//     extern int _imem_start;
-//     extern int __sdata_paddr_start;
-//     extern int __sdata_start;
-//     extern int __sdata_end;
-//     extern int __data_paddr_start;
-//     extern int __data_start;
-//     extern int __data_end;
-//     int length = (&_dram_i_end - &_dram_i_start);
-//     setDMA(&_dram_i_start,&_imem_start,length);
-//     length = (&__sdata_end - &__sdata_start );
-//     setDMA(&__sdata_start,&__sdata_paddr_start,length);
-//     length = (&__data_end - &__data_start);
-//     setDMA(&__data_start,&__data_paddr_start,length);
-//     return 0;
-// }
+    int length = (&_dram_i_end - &_dram_i_start);
+    setDMA(&_dram_i_start,&_imem_start,length);
+    length = (&__sdata_end - &__sdata_start );
+    setDMA(&__sdata_start,&__sdata_paddr_start,length);
+    length = (&__data_end - &__data_start);
+    setDMA(&__data_start,&__data_paddr_start,length);
 
-
+}
+*/
