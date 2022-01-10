@@ -1,7 +1,7 @@
 # Define constants
 .section .text
 .align 2
-.globl trap_entry
-trap_entry:
+.globl dmaint_entry
+dmaint_entry:
     nop
     mret
