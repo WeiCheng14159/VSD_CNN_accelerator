@@ -9,7 +9,7 @@ module sp_ram_sim (
     sp_ram_intf.memory intf
 );
 
-  logic [`DATA_BUS_WIDTH-1:0] content[60000:0];
+  logic [`DATA_BUS_WIDTH-1:0] content[200000:0];
   logic [`ADDR_BUS_WIDTH-1:0] addrW;
 
   assign addrW = intf.addr >> 2;
