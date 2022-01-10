@@ -27,17 +27,20 @@
 
 module top_tb;
 
-  reg clk;
-  reg rst;
-  wire fin;
-  reg start;
-  wire qst;
-  reg [7:0] GOLDEN [200000:0];
-  reg [31:0] param [3:0];
-  reg [31:0] in_data [200000:0];
-  reg [31:0] w8 [0:1];
-  reg [31:0] w2 [200000:0];
-  reg [31:0] bias [200000:0];
+  logic clk;
+  logic rst;
+  logic fin;
+  logic start;
+
+  logic [7:0] GOLDEN[200000:0];
+  logic [31:0] param[3:0];
+  logic [31:0] in_data[200000:0];
+  logic [31:0] w8[0:1];
+  logic [31:0] w2[200000:0];
+  logic [31:0] bias[200000:0];
+
+  // GOLDEN
+  logic [7:0] out;
 
   // Interface
   sp_ram_intf param_intf ();
@@ -47,10 +50,8 @@ module top_tb;
   sp_ram_intf bias_intf ();
 
   integer gf, i, num;
-  integer img;
-  wire [31:0] temp;
   integer err;
-  string prog_path;
+  string  prog_path;
   always #(`CYCLE / 2) clk = ~clk;
 
   conv TOP (
@@ -77,15 +78,15 @@ module top_tb;
 
       .input_en(input_intf.en),
       .input_addr(input_intf.addr),
-      .input_rdata(input_intf.R_data[7:0]),
+      .input_rdata(input_intf.R_data[15:0]),
       .input_write(input_intf.W_req),
-      .input_wdata(input_intf.W_data[7:0]),
+      .input_wdata(input_intf.W_data[15:0]),
 
       .output_en(output_intf.en),
       .output_addr(output_intf.addr),
-      .output_rdata(output_intf.R_data[7:0]),
+      .output_rdata(output_intf.R_data[15:0]),
       .output_write(output_intf.W_req),
-      .output_wdata(output_intf.W_data[7:0]),
+      .output_wdata(output_intf.W_data[15:0]),
 
       .w8(w8[0]),
 
@@ -131,7 +132,7 @@ module top_tb;
     #(`CYCLE) rst = 1;
     $value$plusargs("prog_path=%s", prog_path);
 
-    //write parameter
+    // Parameter
     $readmemh({prog_path, "/param.hex"}, param);
     for (i = 0; i < 4; i = i + 1) begin
       param_mem.content[i] = param[i];
@@ -139,53 +140,64 @@ module top_tb;
 
     // Input data
     num = 0;
-    gf  = $fopen({prog_path,"/In8.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/In8.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", input_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
 
-    //write weight
-    $readmemh({prog_path,"/W8.hex"}, w8);
+    // Weight (8 bit)
+    $readmemh({prog_path, "/W8.hex"}, w8);
 
-    // Weight (W2)
+    // Weight (2 bit)
     num = 0;
-    gf  = $fopen({prog_path,"/W2.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/W2.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", weight_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
-    
-    // Bias (32b)
+
+    // Bias (32 bit)
     num = 0;
-    gf  = $fopen({prog_path,"/Bias32.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/Bias32.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", bias_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
 
+    // Output (8 bit)
     num = 0;
-    gf  = $fopen({prog_path,"/Out8.hex"}, "r");
-    while (!$feof(gf)) begin
+    gf  = $fopen({prog_path, "/Out8.hex"}, "r");
+    while (!$feof(
+        gf
+    )) begin
       $fscanf(gf, "%h\n", GOLDEN[num]);
       num = num + 1;
     end
     $fclose(gf);
+
     #20 start = 1;
     #(`CYCLE) start = 0;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    num = 2000;
+    num = 2000;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
-      if(output_mem.content[i] !== GOLDEN[i] && output_mem.content[i] !== GOLDEN[i] + 256)begin
-        $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
+      out = output_mem.content[i][7:0];
+      if (out !== GOLDEN[i]) begin
+        $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
         err = err + 1;
       end else begin
-        $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
+        $display("DM[%4d] = %h, pass", i, out);
       end
     end
     result(err, num);
@@ -206,18 +218,6 @@ module top_tb;
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
 `endif
-    #(`CYCLE * `MAX)
-      for (i = 0; i < 100; i = i + 1) begin
-        if (output_mem.content[i] !== GOLDEN[i]) begin
-          $display("DM[%4d] = %h, expect = %h", i, output_mem.content[i], GOLDEN[i]);
-          err = err + 1;
-        end else begin
-          $display("DM[%4d] = %h, pass", i, output_mem.content[i]);
-        end
-      end
-    $display("SIM_END no finish!!!");
-    result(num, num);
-    $finish;
   end
 
   task result;
