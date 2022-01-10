@@ -78,15 +78,15 @@ module top_tb;
 
       .input_en(input_intf.en),
       .input_addr(input_intf.addr),
-      .input_rdata(input_intf.R_data[7:0]),
+      .input_rdata(input_intf.R_data[15:0]),
       .input_write(input_intf.W_req),
-      .input_wdata(input_intf.W_data[7:0]),
+      .input_wdata(input_intf.W_data[15:0]),
 
       .output_en(output_intf.en),
       .output_addr(output_intf.addr),
-      .output_rdata(output_intf.R_data[7:0]),
+      .output_rdata(output_intf.R_data[15:0]),
       .output_write(output_intf.W_req),
-      .output_wdata(output_intf.W_data[7:0]),
+      .output_wdata(output_intf.W_data[15:0]),
 
       .w8(w8[0]),
 
