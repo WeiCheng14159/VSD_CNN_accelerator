@@ -2,12 +2,13 @@
 `define DP_RAM_SIM_SV
 
 `include "conv_acc.svh"
+`include "sp_ram_intf.sv"
 
 module dp_ram_sim (
     input logic            clk,
     input logic            rst,
-          bram_intf.memory p0_intf,
-          bram_intf.memory p1_intf
+          sp_ram_intf.memory p0_intf,
+          sp_ram_intf.memory p1_intf
 );
 
   logic [`DATA_BUS_WIDTH-1:0] content  [60000:0];
