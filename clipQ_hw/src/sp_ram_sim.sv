@@ -1,6 +1,9 @@
+`ifndef SP_RAM_SIM_SV
+`define SP_RAM_SIM_SV
+
 `include "conv_acc.svh"
 
-module bram_sim (
+module sp_ram_sim (
     input logic clk,
     input logic rst,
     bram_intf.memory intf
@@ -21,3 +24,4 @@ module bram_sim (
   end
 
 endmodule
+`endif

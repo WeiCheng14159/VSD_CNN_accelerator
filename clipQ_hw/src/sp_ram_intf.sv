@@ -1,6 +1,6 @@
 `include "conv_acc.svh"
 
-interface bram_intf;
+interface sp_ram_intf;
 
   logic en;
   logic [`ADDR_BUS_WIDTH-1:0] addr;
