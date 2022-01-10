@@ -62,6 +62,81 @@ rtl0: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer0 \
+
+rtl1: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer1 \
+
+rtl2: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer2 \
+
+
+rtl3: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer3 \
+
+
+rtl4: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer4 \
+
+rtl5: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer5 \
+
+rtl6: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer6 \
+
+rtl7: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer7 \
+
+rtl8: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer8 \
 
 # Run synthesize with Design Compiler
 synthesize: $(BUILD) syn_init
@@ -79,6 +154,7 @@ syn0: $(BUILD) syn_init
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer0 \
 
 # Remove all files
 clean:
