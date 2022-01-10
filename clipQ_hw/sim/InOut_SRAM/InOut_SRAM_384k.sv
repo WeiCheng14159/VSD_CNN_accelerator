@@ -1,19 +1,30 @@
-`include "SRAM_16b_32768w_64k.sv"
+`include "InOut_SRAM/SRAM_16b_32768w_64k.sv"
+`include "ram_intf.sv"
 
 // Combine six 64kB SRAM into 384kB SRAM
 
 module InOut_SRAM_384k (
-    input logic         CK,
-    input logic         CS,
-    input logic         OE,
-    input logic         WEB,
-    input logic  [17:0] A,
-    input logic  [15:0] DI,
-    output logic [15:0] DO
+    input logic         clk,
+    ram_intf.memory mem
 );
+
+  logic         CK;
+  logic         CS;
+  logic         OE;
+  logic         WEB;
+  logic  [17:0] A;
+  logic  [15:0] DI;
+  logic  [15:0] DO;
 
   logic [17:0] latched_A;
   logic [15:0] _DO [0:5];
+
+  assign CK = clk;
+  assign CS = mem.cs;
+  assign OE = mem.oe;
+  assign A  = mem.addr[17:0];
+  assign DI = mem.W_data[15:0];
+  assign mem.R_data = {{16{DO[15]}}, DO}; 
 
   always_ff @(posedge CK) latched_A <= A;
 

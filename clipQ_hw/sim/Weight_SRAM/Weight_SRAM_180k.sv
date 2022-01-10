@@ -1,19 +1,30 @@
-`include "SRAM_18b_16384w_36k.sv"
+`include "Weight_SRAM/SRAM_18b_16384w_36k.sv"
+`include "ram_intf.sv"
 
 // Combine five 36kB SRAM into 180kB SRAM
 
 module Weight_SRAM_180k (
-    input               CK,
-    input               CS,
-    input               OE,
-    input               WEB,
-    input        [16:0] A,
-    input        [17:0] DI,
-    output logic [17:0] DO
+  input logic clk,
+  ram_intf.memory mem
 );
+
+  logic        CK;
+  logic        CS;
+  logic        OE;
+  logic       WEB;
+  logic [16:0]  A;
+  logic [17:0] DI;
+  logic [17:0] DO;
 
   logic [16:0] latched_A;
   logic [17:0] _DO[0:4];
+
+  assign CK = clk;
+  assign CS = mem.cs;
+  assign OE = mem.oe;
+  assign A  = mem.addr[16:0];
+  assign DI = mem.W_data[17:0];
+  assign mem.R_data = {{14{DO[17]}}, DO}; 
 
   always_ff @(posedge CK) latched_A <= A;
 
@@ -42,7 +53,7 @@ module Weight_SRAM_180k (
       assign _OE  = latched_A[16:14] == g[2:0] ? OE : 1'b0;
       assign _WEB = A[16:14] == g[2:0] ? WEB : 1'b1;
 
-      SRAMSUMA180_16384X18X1BM4_64k i_SUMA180_16384X18X1BM4 (
+      SRAM_18b_16384w_36k i_SRAM_18b_16384w_36k (
           .CK (CK),
           .CS (_CS),
           .OE (_OE),
