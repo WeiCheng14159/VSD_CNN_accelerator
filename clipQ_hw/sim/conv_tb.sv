@@ -6,22 +6,28 @@
 `include "conv_syn.v"
 `include "sp_ram_sim.sv"
 `include "dp_ram_sim.sv"
-`include "SRAM/SRAM.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
 `include "conv_pr.v"
 `include "sp_ram_sim.sv"
 `include "dp_ram_sim.sv"
-`include "SRAM/SRAM.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
 `include "conv.sv"
 `include "sp_ram_sim.sv"
 `include "dp_ram_sim.sv"
-`include "SRAM/SRAM_rtl.sv"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
 `endif
+
+`include "InOut_SRAM/InOut_SRAM_384k.sv" // Input SRAM or Output SRAM (384 KB)
+`include "Weight_SRAM/Weight_SRAM_180k.sv" // Weight SRAM (180 KB)
 
 `timescale 1ns / 10ps
 
