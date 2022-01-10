@@ -2,15 +2,15 @@
 `define OUT_COMB_SV
 
 module out_comb (
-    input  logic [31:0] out0,
-    input  logic [31:0] out1,
-    input  logic [31:0] out2,
-    input  logic [31:0] out3,
-    output logic [31:0] out
+    input  logic [`ADDR_BUS_WIDTH-1:0] out0,
+    input  logic [`ADDR_BUS_WIDTH-1:0] out1,
+    input  logic [`ADDR_BUS_WIDTH-1:0] out2,
+    input  logic [`ADDR_BUS_WIDTH-1:0] out3,
+    output logic [`ADDR_BUS_WIDTH-1:0] out
 );
 
-  logic [7:0] out_tmp[0:3];
-  logic [7:0] out_sig[0:3];
+  logic [`QDATA_BUS_WIDTH-1:0] out_tmp[0:3];
+  logic [`QDATA_BUS_WIDTH-1:0] out_sig[0:3];
 
   assign out_tmp[0] = out0[31] ? out0[12:5] + 1 : out0[12:5];
   assign out_tmp[1] = out1[31] ? out1[12:5] + 1 : out1[12:5];
