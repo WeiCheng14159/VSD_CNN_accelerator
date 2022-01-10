@@ -3,10 +3,11 @@
 `include "../FIFO.sv"
 
 parameter FIFO_DEPTH = 2;
-parameter IDLE  = 3'h0, 
-          AR_CH = 3'h1,  // send address to source
-          AW_CH = 3'h2,  // send address to destination
-          BUSY  = 3'h3, B_CH = 3'h4;
+parameter IDLE  = 3'h0,
+          CHECK = 3'h1,
+          AR_CH = 3'h2,  // send address to source
+          AW_CH = 3'h3,  // send address to destination
+          BUSY  = 3'h4, B_CH = 3'h5, FIN = 3'h6;
 
 module DMA_master (
     input clk, rst,
@@ -27,6 +28,13 @@ module DMA_master (
     logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
     logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
     logic [FIFO_DEPTH-1:0] fifo_cnt_r;
+    // DMA
+    logic [`AXI_LEN_BITS-1:0] op_qty_r;   // send to AXI
+    logic [`DATA_BITS   -1:0] rem_qty_r;  // remainder of quantity
+    logic done;  // rem_qty_r == 0
+    // AXI
+    logic [`ADDR_BITS-1:0] src_addr_r;  // araddr
+    logic [`ADDR_BITS-1:0] dst_addr_r;  // awaddr
     
     // Handshake
     assign awhns = m2axi_i.awready & m2axi_o.awvalid;
@@ -36,37 +44,70 @@ module DMA_master (
     assign rhns  = m2axi_o.rready  & m2axi_i.rvalid;
     assign rdfin = rhns & m2axi_i.rlast;
     assign wrfin = whns & m2axi_o.wlast;
-    // Interrupt
-    assign dma_fin_o = STATE == B_CH;
+    // DMA
+    assign done = (~|rem_qty_r) && (STATE == B_CH);
+    assign dma_fin_o = STATE == FIN;  // interrupt
 
 
 // {{{ STATE
-    logic dma_en;
+    logic start;
+
     always_ff @(posedge clk or posedge rst) begin
-        dma_en <= rst ? 1'b0 : dma_en_i;
+        start <= rst ? 1'b0 : dma_en_i;
     end
     always_ff @(posedge clk or posedge rst) begin
         STATE <= rst ? IDLE : NEXT;
     end
     always_comb begin
         case (STATE)
-            IDLE  : NEXT = dma_en ? AR_CH : IDLE;
-            AR_CH : NEXT = arhns  ? AW_CH : AR_CH;
-            AW_CH : NEXT = awhns  ? BUSY  : AW_CH;
-            BUSY  : NEXT = wrfin  ? B_CH  : BUSY;
-            B_CH  : NEXT = IDLE;
+            IDLE    : NEXT = start       ? CHECK : IDLE;
+            CHECK   : NEXT = |rem_qty_r  ? AR_CH : FIN;
+            AR_CH   : NEXT = arhns       ? AW_CH : AR_CH;
+            AW_CH   : NEXT = awhns       ? BUSY  : AW_CH;
+            BUSY    : NEXT = wrfin       ? B_CH  : BUSY;
+            B_CH    : NEXT = ~|rem_qty_r ? FIN   : AR_CH;
+            FIN     : NEXT = IDLE;
+            default : NEXT = STATE;
         endcase
     end
 // }}}
+// {{{
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)           rem_qty_r <= `DATA_BITS'h0;
+        else if (dma_en_i) rem_qty_r <= data_qty_i;
+        else if (wrfin)    rem_qty_r <= rem_qty_r - op_qty_r;
+    end
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)                op_qty_r <= `AXI_LEN_BITS'h0;
+        else if (dma_en_i)      op_qty_r <= data_qty_i < `DATA_BITS'hff ? data_qty_i[`AXI_LEN_BITS-1:0] : `AXI_LEN_BITS'hff;
+        else if (STATE == B_CH) op_qty_r <= rem_qty_r  < `DATA_BITS'hff ? rem_qty_r[`AXI_LEN_BITS-1:0]    : `AXI_LEN_BITS'hff;   
+    end
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            src_addr_r <= `ADDR_BITS'h0;
+            dst_addr_r <= `ADDR_BITS'h0;
+        end
+        else if (dma_en_i) begin
+            src_addr_r <= src_addr_i;
+            dst_addr_r <= dst_addr_i;
+        end
+        else if ((STATE == B_CH) && ~done) begin
+            src_addr_r <= src_addr_r + `ADDR_BITS'h400;
+            dst_addr_r <= dst_addr_r + `ADDR_BITS'h400;
+        end
+    end
+
+
+// }}}
 // {{{ AXI
     assign m2axi_o.arid    = `AXI_DMA_ID;
-    assign m2axi_o.araddr  = src_addr_i;
-    assign m2axi_o.arlen   = data_qty_i[`AXI_LEN_BITS-1:0];
+    assign m2axi_o.araddr  = src_addr_r;
+    assign m2axi_o.arlen   = op_qty_r;//data_qty_i[`AXI_LEN_BITS-1:0];
     assign m2axi_o.arsize  = `AXI_SIZE_WORD;
     assign m2axi_o.arburst = `AXI_BURST_FIXED;
     assign m2axi_o.awid    = `AXI_DMA_ID;
-    assign m2axi_o.awaddr  = dst_addr_i;
-    assign m2axi_o.awlen   = data_qty_i[`AXI_LEN_BITS-1:0];
+    assign m2axi_o.awaddr  = dst_addr_r;
+    assign m2axi_o.awlen   = op_qty_r;//data_qty_i[`AXI_LEN_BITS-1:0];
     assign m2axi_o.awburst = `AXI_BURST_FIXED;
     assign m2axi_o.wstrb   = `AXI_STRB_WORD;
     assign m2axi_o.wdata   = fifo_dataout;
@@ -78,6 +119,10 @@ module DMA_master (
             IDLE  : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
                 {m2axi_o.rready, m2axi_o.bready} = 2'b0;
+            end
+            CHECK : begin
+                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
+                {m2axi_o.rready, m2axi_o.bready} = 2'b0;                
             end
             AR_CH : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b100;
@@ -119,17 +164,17 @@ module DMA_master (
     );
 // }}}
 
-    // always_ff @(posedge clk) begin
-    //     if (wrfin)
-    //         $display("==================================================");
-    //     if (whns)
-    //         $display("%h", fifo_dataout);
-    // end
-    // always_comb begin
-    //     if (dma_en_i)
-    //         $display("src: %h, dst: %h\n--------------------------------------------------", src_addr_i, dst_addr_i);
+    always_ff @(posedge clk) begin
+        if (wrfin)
+            $display("==================================================");
+        if (whns)
+            $display("%h", fifo_dataout);
+    end
+    always_comb begin
+        if (dma_en_i)
+            $display("src: %h, dst: %h\n--------------------------------------------------", src_addr_i, dst_addr_i);
         
-    // end
+    end
 
 
 endmodule
