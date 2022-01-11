@@ -44,7 +44,7 @@ module InOut_SRAM_384k (
 
   genvar g;
   generate
-    for (g = 0; g < 6; g = g + 1) begin : i_SRAM
+    for (g = 0; g < 6; g = g + 1) begin : SRAM_blk
       logic       _CS;
       logic       _OE;
       logic       _WEB;
@@ -62,7 +62,7 @@ module InOut_SRAM_384k (
           .DI (DI),
           .DO (_DO[g])
       );
-    end : i_SRAM
+    end : SRAM_blk
   endgenerate
 
 endmodule
