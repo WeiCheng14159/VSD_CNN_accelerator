@@ -4,16 +4,17 @@
 
 interface sp_ram_intf;
 
-  logic en;
+  logic cs;
+  logic oe;
   logic [`ADDR_BUS_WIDTH-1:0] addr;
   logic [`DATA_BUS_WIDTH-1:0] R_data;
-  logic [`W_REQ_WIDTH-1:0]    W_req;
+  logic                       W_req;
   logic [`DATA_BUS_WIDTH-1:0] W_data;
 
   // To memory
-  modport memory(output R_data, input en, addr, W_req, W_data);
+  modport memory(output R_data, input cs, oe, addr, W_req, W_data);
   // To compute unit
-  modport compute(input R_data, output en, addr, W_req, W_data);
+  modport compute(input R_data, output cs, oe, addr, W_req, W_data);
 
 endinterface
 `endif

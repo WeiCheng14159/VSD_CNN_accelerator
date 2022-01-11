@@ -8,9 +8,8 @@
 `define EMPTY_DATA ({`DATA_BUS_WIDTH{1'b0}})
 `define EMPTY_QDATA ({`QDATA_BUS_WIDTH{1'b0}})
 
-`define W_REQ_WIDTH 4
-`define WRITE_ENB (1'b1)
-`define WRITE_DIS (1'b0)
+`define WRITE_ENB (1'b0)
+`define WRITE_DIS (1'b1)
 
 `define READ_ENB (1'b1)
 `define READ_DIS (1'b0)

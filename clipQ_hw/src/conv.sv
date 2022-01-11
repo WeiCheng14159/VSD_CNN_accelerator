@@ -5,41 +5,15 @@
 module  conv(
 	input					clk,
 	input					rst,
-			
-	output	logic			param_en,
-	output	logic	[31:0]	param_addr,
-	input			[31:0]	param_rdata,
-	output	logic			param_write,
-	output	logic	[31:0]	param_wdata,
-
-	output	logic			bias_en,
-	output	logic	[31:0]	bias_addr,
-	input			[31:0]	bias_rdata,
-	output	logic			bias_write,
-	output	logic	[31:0]	bias_wdata,
-
-	output	logic			weight_en,
-	output	logic	[31:0]	weight_addr,
-	input			[17:0]	weight_rdata,
-	output	logic			weight_write,
-	output	logic	[17:0]	weight_wdata,
-
-	output	logic			input_en,
-	output	logic	[31:0]	input_addr,
-	input			[ 7:0]	input_rdata,
-	output	logic			input_write,
-	output	logic	[ 7:0]	input_wdata,
-
-	output	logic			output_en,
-	output	logic	[31:0]	output_addr,
-	input			[ 7:0]	output_rdata,
-	output	logic			output_write,
-	output	logic	[ 7:0]	output_wdata,
-
 	input			[31:0]	w8,
-
 	input					start,
-	output	logic			finish
+	output	logic			finish,
+
+	sp_ram_intf.compute param_intf,
+	sp_ram_intf.compute bias_intf,
+	sp_ram_intf.compute weight_intf,
+	sp_ram_intf.compute input_intf,
+	sp_ram_intf.compute output_intf
 );
 
 	logic 	[ 2:0]	num_input;
@@ -54,16 +28,21 @@ module  conv(
 
 	logic 	signed	[ 7:0]	data[8:0];
 	logic 	signed	[ 7:0]	weight[8:0];
-	logic	signed	[16:0]	partial_sum[8:0];
+	logic	signed	[15:0]	partial_sum[8:0];
 	logic	signed	[32:0]	bias;
+	logic	signed	[15:0]	sum;
+
+	logic   [17:0]	weight_rdata;
+	logic   [15:0]	input_rdata;
+	logic   [15:0]	output_rdata;
+	logic	[15:0]	output_wdata;
 
 	logic 	[ 2:0]	counter;
 	logic 	[ 4:0]	row_counter;
 	logic 	[ 4:0]	col_counter;
-	logic 	[ 4:0]	cha_counter;
-	logic 	[ 4:0]	ker_counter;
-	logic 	[ 2:0]	index;
-	integer 		i;
+	logic 	[ 9:0]	cha_counter;
+	logic 	[ 9:0]	ker_counter;
+	logic 	[ 3:0]	index;
 
 	logic	[ 2:0]	CurrentState;
 	logic	[ 2:0]	NextState;
@@ -77,65 +56,99 @@ module  conv(
 				write_state = 3'h6,
 				finish_state = 3'h7;
 
-	assign param_wdata = 32'b0;
-	assign bias_wdata = 32'b0;
-	assign weight_wdata = 18'b0;
-	assign input_wdata = 8'b0;
+	// Param
+	assign param_intf.W_req = `WRITE_DIS;
+	assign param_intf.W_data = 32'b0;
+	assign param_intf.oe = 1'b1;
+	// Bias
+	assign bias_intf.W_req = `WRITE_DIS;
+	assign bias_intf.W_data = 32'b0;
+	assign bias_intf.oe = 1'b1;
+	// Input 
+	assign input_intf.W_req = `WRITE_DIS;
+	assign input_intf.W_data = 16'b0;
+	assign input_rdata = input_intf.R_data[15:0];
+	assign input_intf.oe = 1'b1;
+	// Weight
+	assign weight_intf.W_req = `WRITE_DIS;
+	assign weight_intf.W_data = 32'b0;
+	assign weight_rdata = weight_intf.R_data[17:0];
+	assign weight_intf.oe = 1'b1;
+	// Output
+	assign output_rdata = output_intf.R_data[15:0];
+	assign output_intf.W_data = {16'h0, output_wdata};
+	assign output_intf.oe = 1'b1;
 
 	assign input_size = num_row * num_row * num_channel;
 	assign input_2D_size = num_row * num_row;
 	assign kernel_size = 32'h3;
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	assign sum = output_rdata + partial_sum[0];
+
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			w8_temp <= 32'b0;
 		else if(start)
 			w8_temp <= w8;
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)begin
-			for(i = 0; i < 9; i = i + 1)
-				partial_sum[i] <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)begin
+			partial_sum[0] <= 32'b0;
+			partial_sum[1] <= 32'b0;
+			partial_sum[2] <= 32'b0;
+			partial_sum[3] <= 32'b0;
+			partial_sum[4] <= 32'b0;
+			partial_sum[5] <= 32'b0;
+			partial_sum[6] <= 32'b0;
+			partial_sum[7] <= 32'b0;
+			partial_sum[8] <= 32'b0;
 		end
-		else if(calculate_state)begin
-			for(i = 0; i < 9; i = i + 1)
-				partial_sum[i] <= data[i] * weight[i];
+		else if(CurrentState == calculate_state)begin
+			partial_sum[0] <= data[0] * weight[0];
+			partial_sum[1] <= data[1] * weight[1];
+			partial_sum[2] <= data[2] * weight[2];
+			partial_sum[3] <= data[3] * weight[3];
+			partial_sum[4] <= data[4] * weight[4];
+			partial_sum[5] <= data[5] * weight[5];
+			partial_sum[6] <= data[6] * weight[6];
+			partial_sum[7] <= data[7] * weight[7];
+			partial_sum[8] <= data[8] * weight[8];
 		end
-		else if(write_state & (counter == 3'b0))
+		else if((CurrentState == write_state) & (counter == 3'b0))
 			partial_sum[0] <= partial_sum[0] + partial_sum[1] + partial_sum[2] + partial_sum[3] + partial_sum[4] + partial_sum[5] + partial_sum[6] + partial_sum[7] + partial_sum[8];
 	end
 
 	//*********************************************//
 	//counter
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			counter <= 3'b0;
-		else if(load_parameter_state)begin
+		else if(CurrentState == load_parameter_state)begin
 			if(counter == 3'h3)
 				counter <= 3'b0;
 			else 
 				counter <= counter + 1'b1;
 		end
-		else if(load_bias_state)begin
+		else if(CurrentState == load_bias_state)begin
 			if(counter == 3'h1)
 				counter <= 3'b0;
 			else 
 				counter <= counter + 1'b1;
 		end
-		else if(load_weight_state)begin
+		else if(CurrentState == load_weight_state)begin
 			if(counter == 3'h1)
 				counter <= 3'b0;
 			else 
 				counter <= counter + 1'b1;
 		end
-		else if(load_input_state)begin
+		else if(CurrentState == load_input_state)begin
 			if(counter == num_input)
 				counter <= 3'b0;
 			else 
 				counter <= counter + 1'b1;
 		end
-		else if(write_state)begin
+		else if(CurrentState == write_state)begin
 			if(counter == 3'h2)
 				counter <= 3'b0;
 			else 
@@ -143,8 +156,8 @@ module  conv(
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			row_counter <= 5'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input))begin
 			if(row_counter == (num_row - 1'b1))
@@ -154,8 +167,8 @@ module  conv(
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			col_counter <= 5'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 1'b1)))begin
 			if(col_counter == (num_row - 1'b1))
@@ -165,23 +178,23 @@ module  conv(
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			cha_counter <= 5'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			cha_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 1'b1)) & (col_counter == (num_row - 1'b1)))begin
 			if(cha_counter == (num_channel - 1'b1))
-				cha_counter <= 5'b0;
+				cha_counter <= 10'b0;
 			else
 				cha_counter <= cha_counter + 1'b1;
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			ker_counter <= 5'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			ker_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 1'b1)) & (col_counter == (num_row - 1'b1)) & (cha_counter == (num_channel - 1'b1)))begin
 			if(ker_counter == (num_kernel - 1'b1))
-				ker_counter <= 5'b0;
+				ker_counter <= 10'b0;
 			else
 				ker_counter <= ker_counter + 1'b1;
 		end
@@ -191,28 +204,28 @@ module  conv(
 
 	//*********************************************//
 	//load parameter
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			param_addr <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			param_intf.addr <= 32'b0;
 		else if((CurrentState == load_parameter_state))begin
 			if(counter == 2'h3)
-				param_addr <= 32'b0;
+				param_intf.addr <= 32'b0;
 			else
-				param_addr <= param_addr + 1'b1;
+				param_intf.addr <= param_intf.addr + 3'h1;
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)begin
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)begin
 			num_row <= 32'b0;
 			num_channel <= 32'b0;
 			num_kernel <= 32'b0;
 		end
 		else if((CurrentState == load_parameter_state))begin
 			case(counter)
-				2'h1: num_row <= param_rdata;
-				2'h2: num_channel <= param_rdata;
-				2'h3: num_kernel <= param_rdata;
+				2'h1: num_row <= param_intf.R_data;
+				2'h2: num_channel <= param_intf.R_data;
+				2'h3: num_kernel <= param_intf.R_data;
 			endcase
 		end
 	end
@@ -221,35 +234,42 @@ module  conv(
 
 	//*********************************************//
 	//load bias
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			bias_addr <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			bias_intf.addr <= 32'b0;
 		else if((CurrentState == load_bias_state) & (counter == 1'b0))
-			bias_addr <= bias_addr + 1'b1;
+			bias_intf.addr <= bias_intf.addr + 3'h1;
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			bias <= 32'b0;
 		else if((CurrentState == load_bias_state) & (counter == 2'h1))
-			bias <= bias_rdata;
+			bias <= bias_intf.R_data;
 	end
 	//load bias
 	//*********************************************//
 
 	//*********************************************//
 	//load weight
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			weight_addr <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			weight_intf.addr <= 32'b0;
 		else if((CurrentState == load_weight_state) & (counter == 1'b0))
-			weight_addr <= weight_addr + 1'b1;
+			weight_intf.addr <= weight_intf.addr + 1'b1;
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)begin
-			for(i = 0; i < 9; i = i + 1)
-				weight[i] <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)begin
+			weight[0] <= 32'b0;
+			weight[1] <= 32'b0;
+			weight[2] <= 32'b0;
+			weight[3] <= 32'b0;
+			weight[4] <= 32'b0;
+			weight[5] <= 32'b0;
+			weight[6] <= 32'b0;
+			weight[7] <= 32'b0;
+			weight[8] <= 32'b0;
 		end
 		else if((CurrentState == load_weight_state) & (counter == 2'h1))begin
 			case(weight_rdata[1:0])
@@ -313,8 +333,8 @@ module  conv(
 
 	//*********************************************//
 	//load input
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			num_input <= 3'b0;
 		else if(CurrentState == load_weight_state)
 			num_input <= 3'h4;
@@ -334,133 +354,142 @@ module  conv(
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			index <= 3'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			index <= 4'b0;
 		else if(CurrentState == load_input_state)begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0))begin
 				case(counter)
-					3'h0: index <= 3'h4;
-					3'h1: index <= 3'h5;
-					3'h2: index <= 3'h7;
-					3'h3: index <= 3'h8;
+					3'h0: index <= 4'h4;
+					3'h1: index <= 4'h5;
+					3'h2: index <= 4'h7;
+					3'h3: index <= 4'h8;
 				endcase
 			end
 			else if((row_counter == 5'b0) & (col_counter == (num_row - 1'b1)))begin
 				case(counter)
-					3'h0: index <= 3'h1;
-					3'h1: index <= 3'h2;
-					3'h2: index <= 3'h4;
-					3'h3: index <= 3'h5;
+					3'h0: index <= 4'h1;
+					3'h1: index <= 4'h2;
+					3'h2: index <= 4'h4;
+					3'h3: index <= 4'h5;
 				endcase
 			end
 			else if(row_counter == 5'b0)begin
 				case(counter)
-					3'h0: index <= 3'h1;
-					3'h1: index <= 3'h2;
-					3'h2: index <= 3'h4;
-					3'h3: index <= 3'h5;
-					3'h4: index <= 3'h7;
-					3'h5: index <= 3'h8;
+					3'h0: index <= 4'h1;
+					3'h1: index <= 4'h2;
+					3'h2: index <= 4'h4;
+					3'h3: index <= 4'h5;
+					3'h4: index <= 4'h7;
+					3'h5: index <= 4'h8;
 				endcase
 			end
-			// else if(row_counter == (num_row - 1'b1))begin
-			// 	case(counter)
-			// 		3'h0: index <= 3'h4;
-			// 	endcase
-			// end
 			else if(col_counter == 5'b0)begin
 				case(counter)
-					3'h0: index <= 3'h5;
-					3'h1: index <= 3'h8;
+					3'h0: index <= 4'h5;
+					3'h1: index <= 4'h8;
 				endcase
 			end
 			else if(col_counter == (num_row - 1'b1))begin
 				case(counter)
-					3'h0: index <= 3'h2;
-					3'h1: index <= 3'h5;
+					3'h0: index <= 4'h2;
+					3'h1: index <= 4'h5;
 				endcase
 			end
 			else begin
 				case(counter)
-					3'h0: index <= 3'h2;
-					3'h1: index <= 3'h5;
-					3'h2: index <= 3'h8;
+					3'h0: index <= 4'h2;
+					3'h1: index <= 4'h5;
+					3'h2: index <= 4'h8;
 				endcase
 			end
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			input_addr <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			input_intf.addr <= 32'b0;
 		else if(CurrentState == load_weight_state)
-			input_addr <= cha_counter * input_2D_size;
+			input_intf.addr <= cha_counter * input_2D_size;
 		else if(CurrentState == load_input_state)begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0))begin
 				case(counter)
-					3'h0: input_addr <= input_addr + 1'b1;
-					3'h1: input_addr <= input_addr + num_row - 1'b1;
-					3'h2: input_addr <= input_addr + 1'b1;
-					3'h3: input_addr <= input_addr - num_row + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h1: input_intf.addr <= input_intf.addr + num_row - 1'b1;
+					3'h2: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h3: input_intf.addr <= input_intf.addr - num_row + 1'b1;
 				endcase
 			end
 			else if((row_counter == 5'b0) & (col_counter == (num_row - 1'b1)))begin
 				case(counter)
-					3'h0: input_addr <= input_addr + 1'b1;
-					3'h1: input_addr <= input_addr + num_row - 1'b1;
-					3'h2: input_addr <= input_addr + 1'b1;
-					3'h3: input_addr <= input_addr - num_row + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h1: input_intf.addr <= input_intf.addr + num_row - 1'b1;
+					3'h2: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h3: input_intf.addr <= input_intf.addr - num_row + 1'b1;
 				endcase
 			end
 			else if(row_counter == 5'b0)begin
 				case(counter)
-					3'h0: input_addr <= input_addr + 1'b1;
-					3'h1: input_addr <= input_addr + num_row - 1'b1;
-					3'h2: input_addr <= input_addr + 1'b1;
-					3'h3: input_addr <= input_addr + num_row - 1'b1;
-					3'h4: input_addr <= input_addr + 1'b1;
-					3'h5: input_addr <= input_addr - (2 * num_row) + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h1: input_intf.addr <= input_intf.addr + num_row - 1'b1;
+					3'h2: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h3: input_intf.addr <= input_intf.addr + num_row - 1'b1;
+					3'h4: input_intf.addr <= input_intf.addr + 1'b1;
+					3'h5: input_intf.addr <= input_intf.addr - (2 * num_row) + 1'b1;
 				endcase
 			end
 			else if(row_counter == (num_row - 1'b1))begin
 				if(col_counter == 5'b0)
-					input_addr <= input_addr - num_row;
+					input_intf.addr <= input_intf.addr - num_row;
 				else if(col_counter == (num_row - 1'b1))
-					input_addr <= input_addr + num_row;
+					input_intf.addr <= input_intf.addr + num_row;
 			end
 			else if(col_counter == 5'b0)begin
 				case(counter)
-					3'h0: input_addr <= input_addr + num_row;
-					3'h1: input_addr <= input_addr - num_row + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + num_row;
+					3'h1: input_intf.addr <= input_intf.addr - num_row + 1'b1;
 				endcase
 			end
 			else if(col_counter == (num_row - 1'b1))begin
 				case(counter)
-					3'h0: input_addr <= input_addr + num_row;
-					3'h1: input_addr <= input_addr - num_row + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + num_row;
+					3'h1: input_intf.addr <= input_intf.addr - num_row + 1'b1;
 				endcase
 			end
 			else begin
 				case(counter)
-					3'h0: input_addr <= input_addr + num_row;
-					3'h1: input_addr <= input_addr + num_row;
-					3'h2: input_addr <= input_addr - (2 * num_row) + 1'b1;
+					3'h0: input_intf.addr <= input_intf.addr + num_row;
+					3'h1: input_intf.addr <= input_intf.addr + num_row;
+					3'h2: input_intf.addr <= input_intf.addr - (2 * num_row) + 1'b1;
 				endcase
 			end
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)begin
-			for(i = 0; i < 9; i = i + 1)
-				data[i] <= 32'b0;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)begin
+			data[0] <= 32'b0;
+			data[1] <= 32'b0;
+			data[2] <= 32'b0;
+			data[3] <= 32'b0;
+			data[4] <= 32'b0;
+			data[5] <= 32'b0;
+			data[6] <= 32'b0;
+			data[7] <= 32'b0;
+			data[8] <= 32'b0;
 		end
 		else if(CurrentState == load_input_state)begin
 			if(counter == 3'h0)begin
 				if(row_counter == 5'b0)begin
-					for(i = 0; i < 9; i = i + 1)
-						data[i] <= 32'b0;
+					data[0] <= 32'b0;
+					data[1] <= 32'b0;
+					data[2] <= 32'b0;
+					data[3] <= 32'b0;
+					data[4] <= 32'b0;
+					data[5] <= 32'b0;
+					data[6] <= 32'b0;
+					data[7] <= 32'b0;
+					data[8] <= 32'b0;
 				end
 				else begin
 					data[0] <= data[1];
@@ -475,7 +504,7 @@ module  conv(
 				end
 			end
 			else
-				data[index] <= input_rdata;
+				data[index] <= input_rdata[7:0];
 		end
 	end
 	//load input
@@ -483,53 +512,86 @@ module  conv(
 
 	//*********************************************//
 	//write output
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			output_en <= 1'b0;
-		else if(calculate_state)
-			output_en <= 1'b1;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			output_intf.cs <= 1'b0;
+		else if(CurrentState == calculate_state)
+			output_intf.cs <= 1'b1;
+		else if((CurrentState == write_state) & (counter == 3'h1))
+			output_intf.cs <= 1'b1;
 		else
-			output_en <= 1'b0;
+			output_intf.cs <= 1'b0;
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			output_addr <= 32'b0;
-		else if(write_state & (counter == 3'h2))begin
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			output_intf.addr <= 32'b0;
+		else if((CurrentState == write_state) & (counter == 3'h2))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))
-				output_addr <= output_addr + 1'b1;
+				output_intf.addr <= output_intf.addr + 1'b1;
 			else if((row_counter == 5'b0) & (col_counter == 5'b0))
-				output_addr <= output_addr - input_2D_size + 1'b1;
+				output_intf.addr <= output_intf.addr - input_2D_size + 1'b1;
 			else 
-				output_addr <= output_addr + 1'b1;
+				output_intf.addr <= output_intf.addr + 1'b1;
 		end
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
-			output_write <= 1'b0;
-		else if(write_state & (counter == 3'h1))
-			output_write <= 1'b1;
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
+			output_intf.W_req <= `WRITE_DIS;
+		else if((CurrentState == write_state) & (counter == 3'h1))
+			output_intf.W_req <= `WRITE_ENB;
 		else 
-			output_write <= 1'b0;
+			output_intf.W_req <= `WRITE_DIS;
 	end
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			output_wdata <= 8'b0;
-		else if(write_state & (counter == 3'h1))begin
-			if(output_addr < input_2D_size)
-				output_wdata <= bias[12:5] + partial_sum[0][12:5];
+		else if((CurrentState == write_state) & (counter == 3'h1))begin
+			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))begin
+				if(sum[15])begin
+					if(~&sum[15:12])
+						output_wdata <= 8'h80;
+					else 
+						output_wdata <= sum[12:5] + 1'b1;
+				end
+				else begin
+					if(|sum[15:12])
+						output_wdata <= 8'h7f;
+					else
+						output_wdata <= sum[12:5];
+				end
+			end
+			else if(cha_counter == 5'b0)
+				output_wdata <= bias[15:0] + partial_sum[0];
+			else if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b1))
+				output_wdata <= bias[15:0] + partial_sum[0];
+			else if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == (num_channel - 1'b1)))
+				output_wdata <= output_rdata + partial_sum[0];
+			else if(cha_counter == (num_channel - 1'b1))begin
+				if(sum[15])begin
+					if(~&sum[15:12])
+						output_wdata <= 8'h80;
+					else 
+						output_wdata <= sum[12:5] + 1'b1;
+				end
+				else begin
+					if(|sum[15:12])
+						output_wdata <= 8'h7f;
+					else
+						output_wdata <= sum[12:5];
+				end
+			end
 			else 
-				output_wdata <= output_rdata + partial_sum[0][12:5];
+				output_wdata <= output_rdata + partial_sum[0];
 		end
 	end
-
 	//write output
 	//*********************************************//
 
-	always_ff @(posedge clk or posedge rst) begin
-		if(rst)
+	always_ff @(posedge clk or negedge rst) begin
+		if(~rst)
 			CurrentState <= idle_state;
 		else 
 			CurrentState <= NextState;
@@ -591,84 +653,60 @@ module  conv(
 	always_comb begin
 		case(CurrentState)
 			idle_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b1;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			load_parameter_state:begin
-				param_en = 1'b1;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b1;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			load_bias_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b1;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b1;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			load_weight_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b1;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b1;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			load_input_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b1;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b1;
+				finish = 1'b0;
 			end
 			calculate_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			write_state:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b0;
 			end
 			default:begin
-				param_en = 1'b0;
-				param_write = 1'b0;
-				bias_en = 1'b0;
-				bias_write = 1'b0;
-				weight_en = 1'b0;
-				weight_write = 1'b0;
-				input_en = 1'b0;
-				input_write = 1'b0;
+				param_intf.cs = 1'b0;
+				bias_intf.cs = 1'b0;
+				weight_intf.cs = 1'b0;
+				input_intf.cs = 1'b0;
+				finish = 1'b1;
 			end
 		endcase
 	end
