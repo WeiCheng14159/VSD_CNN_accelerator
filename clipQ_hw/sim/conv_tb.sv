@@ -8,6 +8,7 @@
 `include "dp_ram_sim.sv"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
@@ -16,6 +17,7 @@
 `include "dp_ram_sim.sv"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns / 10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
@@ -24,10 +26,14 @@
 `include "dp_ram_sim.sv"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
+`include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
 `endif
 
 `include "InOut_SRAM/InOut_SRAM_384k.sv" // Input SRAM or Output SRAM (384 KB)
+`define INOUT_BLOCK_WORD_SIZE 32768
 `include "Weight_SRAM/Weight_SRAM_180k.sv" // Weight SRAM (180 KB)
+`define WEIGHT_BLOCK_WORD_SIZE 16384
+`include "Bias_SRAM/Bias_SRAM_2k.sv"
 
 `timescale 1ns / 10ps
 
@@ -55,8 +61,13 @@ module top_tb;
   sp_ram_intf weight_intf ();
   sp_ram_intf bias_intf ();
 
-  integer gf, i, num;
-  integer err;
+  ram_intf input_ram_intf();
+  ram_intf weight_ram_intf();
+  ram_intf output_ram_intf();
+  ram_intf bias_ram_intf();
+
+  integer gf, i, num, slice;
+  integer err, ret;
   string  prog_path;
   always #(`CYCLE / 2) clk = ~clk;
 
@@ -106,10 +117,20 @@ module top_tb;
       .intf(param_intf)
   );
 
+  InOut_SRAM_384k i_Input_SRAM_384k (
+    .clk(clk),
+    .mem(input_ram_intf)
+  );
+
   sp_ram_sim input_mem (
       .rst (rst),
       .clk (clk),
       .intf(input_intf)
+  );
+
+  InOut_SRAM_384k i_Output_SRAM_384k (
+    .clk(clk),
+    .mem(output_ram_intf)
   );
 
   sp_ram_sim output_mem (
@@ -123,11 +144,21 @@ module top_tb;
       .clk (clk),
       .intf(weight_intf)
   );
+  
+  Weight_SRAM_180k i_Weight_SRAM_180k (
+    .clk(clk),
+    .mem(weight_ram_intf)
+  );
 
   sp_ram_sim bias_mem (
       .rst (rst),
       .clk (clk),
       .intf(bias_intf)
+  );
+
+  Bias_SRAM_2k i_Bias_SRAM_2k (
+    .clk(clk),
+    .mem(bias_ram_intf)
   );
 
   initial begin
@@ -136,7 +167,7 @@ module top_tb;
     start = 0;
     #1 rst = 0;
     #(`CYCLE) rst = 1;
-    $value$plusargs("prog_path=%s", prog_path);
+    ret = $value$plusargs("prog_path=%s", prog_path);
 
     // Parameter
     $readmemh({prog_path, "/param.hex"}, param);
@@ -150,10 +181,36 @@ module top_tb;
     while (!$feof(
         gf
     )) begin
-      $fscanf(gf, "%h\n", input_mem.content[num]);
+      ret = $fscanf(gf, "%h\n", input_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
+
+    // num = 0; slice = 0;
+    // gf  = $fopen({prog_path, "/In8.hex"}, "r");
+    // while (!$feof(
+    //     gf
+    // )) begin
+    //   if(num < `INOUT_BLOCK_WORD_SIZE) begin
+    //     if(slice == 0)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+    //     else if(slice == 1)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+    //     else if(slice == 2)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+    //     else if(slice == 3)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+    //     else if(slice == 4)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+    //     else if(slice == 5)
+    //       ret = $fscanf(gf, "%h\n", i_Input_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]);
+        
+    //     num = num + 1;
+    //   end else begin // num == 32768
+    //     slice = slice + 1; num = 0;
+    //   end
+    // end
+    // $fclose(gf);
 
     // Weight (8 bit)
     $readmemh({prog_path, "/W8.hex"}, w8);
@@ -164,10 +221,33 @@ module top_tb;
     while (!$feof(
         gf
     )) begin
-      $fscanf(gf, "%h\n", weight_mem.content[num]);
+      ret = $fscanf(gf, "%h\n", weight_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
+    // num = 0; slice = 0;
+    // gf  = $fopen({prog_path, "/W2.hex"}, "r");
+    // while (!$feof(
+    //     gf
+    // )) begin
+    //   if(num < `WEIGHT_BLOCK_WORD_SIZE) begin
+    //     if(slice == 0)
+    //       ret = $fscanf(gf, "%h\n", i_Weight_SRAM_180k.SRAM_blk[0].i_SRAM_18b_16384w_36k.i_SUMA180_16384X18X1BM4.Memory[num]);
+    //     else if(slice == 1)
+    //       ret = $fscanf(gf, "%h\n", i_Weight_SRAM_180k.SRAM_blk[1].i_SRAM_18b_16384w_36k.i_SUMA180_16384X18X1BM4.Memory[num]);
+    //     else if(slice == 2)
+    //       ret = $fscanf(gf, "%h\n", i_Weight_SRAM_180k.SRAM_blk[2].i_SRAM_18b_16384w_36k.i_SUMA180_16384X18X1BM4.Memory[num]);
+    //     else if(slice == 3)
+    //       ret = $fscanf(gf, "%h\n", i_Weight_SRAM_180k.SRAM_blk[3].i_SRAM_18b_16384w_36k.i_SUMA180_16384X18X1BM4.Memory[num]);
+    //     else if(slice == 4)
+    //       ret = $fscanf(gf, "%h\n", i_Weight_SRAM_180k.SRAM_blk[4].i_SRAM_18b_16384w_36k.i_SUMA180_16384X18X1BM4.Memory[num]);
+        
+    //     num = num + 1;
+    //   end else begin // num == 32768
+    //     slice = slice + 1; num = 0;
+    //   end
+    // end
+    // $fclose(gf);
 
     // Bias (32 bit)
     num = 0;
@@ -175,10 +255,19 @@ module top_tb;
     while (!$feof(
         gf
     )) begin
-      $fscanf(gf, "%h\n", bias_mem.content[num]);
+      ret = $fscanf(gf, "%h\n", bias_mem.content[num]);
       num = num + 1;
     end
     $fclose(gf);
+    // num = 0;
+    // gf  = $fopen({prog_path, "/Bias32.hex"}, "r");
+    // while (!$feof(
+    //     gf
+    // )) begin
+    //   ret = $fscanf(gf, "%h\n", i_Bias_SRAM_2k.i_SRAM_32b_384w_2k.i_SUMA180_384X32X1BM4.Memory[num]);
+    //   num = num + 1;
+    // end
+    // $fclose(gf);
 
     // Output (8 bit)
     num = 0;
@@ -186,7 +275,7 @@ module top_tb;
     while (!$feof(
         gf
     )) begin
-      $fscanf(gf, "%h\n", GOLDEN[num]);
+      ret = $fscanf(gf, "%h\n", GOLDEN[num]);
       num = num + 1;
     end
     $fclose(gf);
@@ -206,6 +295,28 @@ module top_tb;
         $display("DM[%4d] = %h, pass", i, out);
       end
     end
+    // for (i = 0; i < num; i = i + 1) begin
+
+    //   if(slice == 0)
+    //     out = i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+    //   else if(slice == 1)
+    //     out = i_Output_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+    //   else if(slice == 2)
+    //     out = i_Output_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+    //   else if(slice == 3)
+    //     out = i_Output_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+    //   else if(slice == 4)
+    //     out = i_Output_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+    //   else if(slice == 5)
+    //     out = i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+      
+    //   if (out !== GOLDEN[i]) begin
+    //     $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
+    //     err = err + 1;
+    //   end else begin
+    //     $display("DM[%4d] = %h, pass", i, out);
+    //   end
+    // end
     result(err, num);
     $finish;
   end
@@ -223,6 +334,7 @@ module top_tb;
 `elsif FSDB_ALL
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
+    $fsdbDumpvars("+struct", "+mda", i_Bias_SRAM_2k);
 `endif
   end
 
