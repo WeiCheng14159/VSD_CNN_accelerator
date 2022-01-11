@@ -1,0 +1,42 @@
+
+Initializing...
+lc_shell> read_lib SUMA180_16384X18X1BM4_BC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_BC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'BCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SUMA180_16384X18X1BM4_BC' read successfully
+1
+lc_shell> write_lib SUMA180_16384X18X1BM4_BC -format db -output SUMA180_16384X18X1BM4_BC.db
+Wrote the 'SUMA180_16384X18X1BM4_BC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_BC.db' successfully
+1
+lc_shell> read_lib SUMA180_16384X18X1BM4_TC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_TC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'TCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SUMA180_16384X18X1BM4_TC' read successfully
+1
+lc_shell> write_lib SUMA180_16384X18X1BM4_TC -format db -output SUMA180_16384X18X1BM4_TC.db
+Wrote the 'SUMA180_16384X18X1BM4_TC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_TC.db' successfully
+1
+lc_shell> read_lib SUMA180_16384X18X1BM4_WC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_WC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'WCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SUMA180_16384X18X1BM4_WC' read successfully
+1
+lc_shell> write_lib SUMA180_16384X18X1BM4_WC -format db -output SUMA180_16384X18X1BM4_WC.db
+Wrote the 'SUMA180_16384X18X1BM4_WC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/weight_18b_sram/SUMA180_16384X18X1BM4_WC.db' successfully
+1
+lc_shell> exit
+Maximum memory usage for this session: 77.18 MB
+Maximum memory usage for this session including child processes: 77.18 MB
+CPU usage for this session:      1 seconds (  0.00 hours)
+Elapsed time for this session:     75 seconds (  0.02 hours)
+Thank you for using Library Compiler.
+
