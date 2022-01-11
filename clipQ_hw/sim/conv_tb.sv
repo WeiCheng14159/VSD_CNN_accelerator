@@ -284,9 +284,19 @@ module top_tb;
 `ifdef FSDB
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars();
+    $fsdbDumpvars(1, top_tb.param_intf);
+    $fsdbDumpvars(1, top_tb.input_intf);
+    $fsdbDumpvars(1, top_tb.weight_intf);
+    $fsdbDumpvars(1, top_tb.output_intf);
+    $fsdbDumpvars(1, top_tb.bias_intf);
 `elsif FSDB_ALL
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
+    $fsdbDumpvars(1, top_tb.param_intf);
+    $fsdbDumpvars(1, top_tb.input_intf);
+    $fsdbDumpvars(1, top_tb.weight_intf);
+    $fsdbDumpvars(1, top_tb.output_intf);
+    $fsdbDumpvars(1, top_tb.bias_intf);
     // $fsdbDumpvars("+struct", "+mda", param_mem);
     // $fsdbDumpvars("+struct", "+mda", i_Input_SRAM_384k);
     // $fsdbDumpvars("+struct", "+mda", i_Output_SRAM_384k);
