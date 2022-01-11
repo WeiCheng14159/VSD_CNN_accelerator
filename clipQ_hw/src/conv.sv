@@ -212,7 +212,7 @@ module  conv(
 			if(counter == 2'h3)
 				param_intf.addr <= 32'b0;
 			else
-				param_intf.addr <= param_intf.addr + 3'h4;
+				param_intf.addr <= param_intf.addr + 3'h1;
 		end
 	end
 
@@ -666,7 +666,7 @@ module  conv(
 	always_comb begin
 		case(CurrentState)
 			idle_state:begin
-				param_intf.cs = 1'b0;
+				param_intf.cs = 1'b1;
 				param_intf.W_req = `WRITE_DIS;
 				bias_intf.cs = 1'b0;
 				bias_intf.W_req = `WRITE_DIS;
