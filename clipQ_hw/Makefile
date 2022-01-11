@@ -4,7 +4,8 @@ BUILD_DIR          =$(ROOT_DIR)/$(BUILD)
 SRC_DIR            =$(ROOT_DIR)/src
 SIM_DIR            =$(ROOT_DIR)/sim
 SYN_DIR            =$(ROOT_DIR)/syn
-APR_DIR            =$(ROOT_DIR)/icc
+APR_DIR            =$(ROOT_DIR)/pr
+INC_DIR            =$(ROOT_DIR)/include
 SCRIPT_DIR         =$(ROOT_DIR)/script
 REPORT_DIR         =$(ROOT_DIR)/report
 SV_DIR             =$(ROOT_DIR)/conf/simvision_conf
@@ -13,29 +14,27 @@ NC_DIR             =$(ROOT_DIR)/conf/nWave_conf
 TB_TOP             =conv_tb
 TOP                =conv
 
-SRC=$(shell ls $(SRC_DIR)/*.v)
-
 TB_SRC=$(shell ls $(ROOT_DIR)/data/*.hex)
 
-# U18
-CBDK_DIR         =/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/CIC/Verilog
-CORE_CELL        =fsa0m_a_generic_core_21.lib.src
-IO_CELL          =fsa0m_a_t33_generic_io_21.lib.src
+FSDB_DEF :=
+ifeq ($(FSDB),1)
+FSDB_DEF := +FSDB
+else ifeq ($(FSDB),2)
+FSDB_DEF := +FSDB_ALL
+endif
 
-.PHONY: default init check rtl nw sv syn syn_chip syn_init icc_init autosyn pre pre_chip pre_sv clean
+.PHONY: default init rtl0 nw sv syn0 synthesize syn_init pr_init clean
 
 # Show available all command
 default:
-	@echo "clean   => Clean previous build"
-	@echo "init    => Create necessary directory"
-	@echo "rtl     => Run RTL simulation"
-	@echo "nw      => Run nWave"
-	@echo "sv      => Run Simvision"
-	@echo "syn     => Run synthesize in interactive mode"
-	@echo "autosyn => Run synthesize in background"
-	@echo "pre    => Run gate-level simulation"
-	@echo "pre_sv => Run Simvision with pre sim"
-
+	@echo "clean      => Clean previous build"
+	@echo "init       => Create necessary directory"
+	@echo "rtl0       => Run RTL simulation"
+	@echo "nw         => Run nWave"
+	@echo "sv         => Run Simvision"
+	@echo "synthesize => Run synthesize in interactive mode"
+	@echo "syn0       => Run gate-level simulation"
+	
 $(BUILD):
 	mkdir -p $(BUILD)
 
@@ -47,46 +46,115 @@ init: clean
 syn_init:
 	mkdir -p $(SYN_DIR);
 
-cp_tb_src:
-	cd $(BUILD_DIR); \
-	cp $(TB_SRC) .;
+# APR directory init
+pr_init:
+	mkdir -p $(APR_DIR);
 
 # Check HDL syntax
 superlint:
 	jg -superlint $(SCRIPT_DIR)/superlint.tcl &
 
 # Run RTL simulation
-rtl0: $(BUILD) cp_tb_src
+rtl0: $(BUILD)
 	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).v $(SRC) \
-	+incdir+$(SRC_DIR) \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
 	+nc64bit \
 	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\" \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer0 \
+
+rtl1: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer1 \
+
+rtl2: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer2 \
+
+
+rtl3: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer3 \
+
+
+rtl4: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer4 \
+
+rtl5: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer5 \
+
+rtl6: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer6 \
+
+rtl7: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer7 \
+
+rtl8: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer8 \
 
 # Run synthesize with Design Compiler
-syn: $(BUILD) syn_init
+synthesize: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
 	cp $(SCRIPT_DIR)/synopsys_dc.setup $(BUILD_DIR)/.synopsys_dc.setup; \
 	dcnxt_shell -f $(SCRIPT_DIR)/synthesize.tcl;
 
-# Auto run synthesize with Design Compiler
-autosyn: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	cp $(SCRIPT_DIR)/synopsys_dc.setup $(BUILD_DIR)/.synopsys_dc.setup; \
-	nohup dcnxt_shell -f $(SCRIPT_DIR)/synthesize.tcl &> $(ROOT_DIR)/nohup.log &
-
 # Run gate-level simulation (nWave)
-syn0: $(BUILD) cp_tb_src syn_init
+syn0: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
-	cp $(SYN_DIR)/$(TOP)_syn.sdf $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).v $(SYN_DIR)/$(TOP)_syn.v \
-	-v $(CBDK_DIR)/$(CORE_CELL) \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+	+define+SYN \
 	+nc64bit \
 	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\" \
-	+define+SDF \
-	+define+SDFFILE=\"$(SYN_DIR)/$(TOP)_syn.sdf\"
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/layer0 \
 
 # Remove all files
 clean:
