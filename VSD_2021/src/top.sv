@@ -17,18 +17,18 @@ module top (
     output logic                   ROM_enable,
     output logic [`ADDR_BITS-21:0] ROM_address,
 
-    input                   sensor_ready,
-    input  [`DATA_BITS-1:0] sensor_out,
-    output                  sensor_en,
+    input                          sensor_ready,
+    input        [`DATA_BITS -1:0] sensor_out,
+    output                         sensor_en,
 
-    input        [`DATA_BITS-1:0] DRAM_Q,
-    input                         DRAM_valid,
-    output logic                  DRAM_CSn,
-    output logic [`WEB_BITS -1:0] DRAM_WEn,
-    output logic                  DRAM_RASn,
-    output logic                  DRAM_CASn,
-    output logic [          10:0] DRAM_A,
-    output logic [`DATA_BITS-1:0] DRAM_D
+    input        [`DATA_BITS -1:0] DRAM_Q,
+    input                          DRAM_valid,
+    output logic                   DRAM_CSn,
+    output logic [`WEB_BITS  -1:0] DRAM_WEn,
+    output logic                   DRAM_RASn,
+    output logic                   DRAM_CASn,
+    output logic [           10:0] DRAM_A,
+    output logic [`DATA_BITS -1:0] DRAM_D
 );
 
 
