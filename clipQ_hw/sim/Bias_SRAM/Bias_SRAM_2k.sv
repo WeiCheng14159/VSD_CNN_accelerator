@@ -21,6 +21,7 @@ module Bias_SRAM_2k (
   assign OE = mem.oe;
   assign A  = mem.addr[8:0];
   assign DI = mem.W_data;
+  assign WEB = mem.W_req;
   assign mem.R_data = DO; 
 
   SRAM_32b_384w_2k i_SRAM_32b_384w_2k (
