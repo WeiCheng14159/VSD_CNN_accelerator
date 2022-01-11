@@ -126,6 +126,7 @@ syn0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+    +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
 syn1: | $(bld_dir)
@@ -157,6 +158,7 @@ syn2: | $(bld_dir)
 	+define+SYN+prog2$(FSDB_DEF) \
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
+    +nc64bit \
 	+access+r \
 	+prog_path=$(root_dir)/$(sim_dir)/prog2
 
@@ -174,6 +176,7 @@ syn3: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+    +nc64bit\
 	+prog_path=$(root_dir)/$(sim_dir)/prog3
 
 # Post-Layout simulation

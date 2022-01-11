@@ -203,7 +203,7 @@ module SRAM_wrapper(
     end
     always_comb begin
         case (STATE)
-            IDLE    : {OE, CS} = {~s2axi_i.awvalid & arhns, s2axi_i.awvalid | s2axi_i.arvalid};
+            IDLE    : {OE, CS} = {~s2axi_i.awvalid && arhns, s2axi_i.awvalid || s2axi_i.arvalid};
             R_CH    : {OE, CS} = 2'b11;
             W_CH    : {OE, CS} = 2'b1;
             B_CH    : {OE, CS} = 2'b1;
