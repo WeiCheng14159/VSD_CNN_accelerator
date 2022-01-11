@@ -68,8 +68,8 @@ class QConv2d(nn.Module):
 
         if self.w:
             # for write input.hex
-            if not os.path.exists('./H_data/layer{:d}/In8.hex'.format(int(self.layer)-1)):
-                ch_fileW8(x[0], './H_data/layer{:d}/In8.hex'.format(int(self.layer)-1), 5)
+            if not os.path.exists('./H_data/conv{:d}/In8.hex'.format(int(self.layer)-1)):
+                ch_fileW8(x[0], './H_data/conv{:d}/In8.hex'.format(int(self.layer)-1), 5)
 
         if self.dropout_ratio != 0:
             x = self.dropout(x)
@@ -78,14 +78,38 @@ class QConv2d(nn.Module):
 
         if self.w:
             # for write output.hex
-            if not os.path.exists('./H_data/layer{:d}/Out8.hex'.format(int(self.layer)-1)):
-                out_ch_fileW8(x[0], './H_data/layer{:d}/Out8.hex'.format(int(self.layer)-1), 5)
+            if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
+                out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
             # for write bias.hex
-            if not os.path.exists('./H_data/layer{:d}/Bias32.hex'.format(int(self.layer)-1)):
-                fileW32(self.conv.bias.data, './H_data/layer{:d}/Bias32.hex'.format(int(self.layer)-1), 10)
+            if not os.path.exists('./H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1)):
+                fileW32(self.conv.bias.data, './H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1), 10)
 
         x = self.relu(x)
 
+        return x
+
+
+class QMaxPool2d(nn.Module):
+    def __init__(self, kernel_size=-1, stride=-1,padding=-1, layer=0, w=False):
+        super(QMaxPool2d, self).__init__()
+
+        self.kernel_size = kernel_size
+        self.layer = layer
+        self.w = w
+        self.MaxPool = nn.MaxPool2d(kernel_size=kernel_size, stride=stride, padding=padding)
+
+    def forward(self, x):
+        if self.w:
+            # for write input.hex
+            if not os.path.exists('./H_data/pool{:d}/In8.hex'.format(int(self.layer))):
+                ch_fileW8(x[0], './H_data/pool{:d}/In8.hex'.format(int(self.layer)), 5)
+
+        x = self.MaxPool(x)
+
+        if self.w:
+            # for write Output.hex
+            if not os.path.exists('./H_data/pool{:d}/Out8.hex'.format(int(self.layer))):
+                ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)), 5)
         return x
 
 
@@ -99,7 +123,9 @@ class Net(nn.Module):
                     padding=0, layer=2, full=f, w=write),
             QConv2d(160, 192, kernel_size=1, stride=1,
                     padding=0, layer=3, full=f, w=write),
-            nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            QMaxPool2d(kernel_size=2, stride=2,
+                    padding=0, layer=0, w=write),
 
             QConv2d(192, 96, kernel_size=3, stride=1,
                     padding=1, layer=4, full=f, w=write),
@@ -107,7 +133,10 @@ class Net(nn.Module):
                     padding=0, layer=5, full=f, w=write),
             QConv2d(192, 192, kernel_size=1, stride=1,
                     padding=0, layer=6, full=f, w=write),
-            nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
+            # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
+            QMaxPool2d(kernel_size=2, stride=2,
+                    padding=0, layer=1, w=write),
 
             QConv2d(192, 384, kernel_size=3, stride=1,
                     padding=1, layer=7, full=f, w=write),
@@ -115,7 +144,10 @@ class Net(nn.Module):
                     padding=0, layer=8, full=f, w=write),
             QConv2d(192, int(cifar), kernel_size=1,
                     stride=1, padding=0, layer=9, full=f, w=write),
-            nn.AvgPool2d(kernel_size=8, stride=1, padding=0),
+            # nn.AvgPool2d(kernel_size=8, stride=1, padding=0),
+            # nn.MaxPool2d(kernel_size=8, stride=1, padding=0),
+            QMaxPool2d(kernel_size=8, stride=1,
+                    padding=0, layer=2, w=write),
         )
 
     def forward(self, x):
