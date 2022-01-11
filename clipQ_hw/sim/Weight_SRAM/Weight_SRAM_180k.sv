@@ -24,6 +24,7 @@ module Weight_SRAM_180k (
   assign OE = mem.oe;
   assign A  = mem.addr[16:0];
   assign DI = mem.W_data[17:0];
+  assign WEB = mem.W_req;
   assign mem.R_data = {{14{DO[17]}}, DO}; 
 
   always_ff @(posedge CK) latched_A <= A;

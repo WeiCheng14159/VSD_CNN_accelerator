@@ -24,6 +24,7 @@ module InOut_SRAM_384k (
   assign OE = mem.oe;
   assign A  = mem.addr[17:0];
   assign DI = mem.W_data[15:0];
+  assign WEB = mem.W_req;
   assign mem.R_data = {{16{DO[15]}}, DO}; 
 
   always_ff @(posedge CK) latched_A <= A;
