@@ -3,39 +3,8 @@
 `include "conv_acc.svh"
 
 module  conv(
-	input					clk,
-	input					rst,
-		
-	// output	logic			param_intf.cs,
-	// output	logic	[31:0]	param_intf.addr,
-	// input			[31:0]	param_intf.R_data,
-	// output	logic	[ 3:0]	param_intf.W_req,
-	// output	logic	[31:0]	param_intf.W_data,
-
-	// output	logic			bias_intf.cs,
-	// output	logic	[31:0]	bias_intf.addr,
-	// input			[31:0]	bias_intf.R_data,
-	// output	logic	[ 3:0]	bias_intf.W_req,
-	// output	logic	[31:0]	bias_intf.W_data,
-
-	// output	logic			weight_intf.cs,
-	// output	logic	[31:0]	weight_intf.addr,
-	// input			[17:0]	weight_rdata,
-	// output	logic	[ 3:0]	weight_intf.W_req,
-	// output	logic	[17:0]	weight_intf.W_data,
-
-	// output	logic			input_intf.cs,
-	// output	logic	[31:0]	input_intf.addr,
-	// input			[15:0]	input_rdata,
-	// output	logic	[ 3:0]	input_intf.W_req,
-	// output	logic	[15:0]	input_intf.W_data,
-
-	// output	logic			output_intf.cs,
-	// output	logic	[31:0]	output_intf.addr,
-	// input			[15:0]	output_rdata,
-	// output	logic	[ 3:0]	output_intf.W_req,
-	// output	logic	[15:0]	output_wdata,
-
+	input							clk,
+	input							rst,
 	input			[31:0]	w8,
 	input					    start,
 	output	logic			finish,
