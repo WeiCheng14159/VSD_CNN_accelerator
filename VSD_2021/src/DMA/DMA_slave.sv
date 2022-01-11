@@ -63,7 +63,6 @@ module DMA_slave (
                     default : NEXT = B_CH;
                 endcase
             end
-            default : NEXT = STATE;
         endcase
     end
 // }}}

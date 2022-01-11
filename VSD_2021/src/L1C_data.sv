@@ -47,22 +47,20 @@ module L1C_data (
 //--------------- complete this part by yourself -----------------//
     // STATE
     parameter INIT  = 3'h0,
-                CHK   = 3'h1,
-                WHIT  = 3'h2,
-                WMISS = 3'h3,
-                RMISS = 3'h4,
-                NOUSE = 3'h5,
-                FIN   = 3'h6;
+              CHK   = 3'h1,
+              WHIT  = 3'h2,
+              WMISS = 3'h3,
+              RMISS = 3'h4,
+              NOUSE = 3'h5,
+              FIN   = 3'h6;
     logic [2:0] STATE, NEXT;
     // Sample
     logic [`ADDR_BITS      -1:0] c_addr;
     logic [`DATA_BITS      -1:0] c_in;
     logic [`CACHE_TYPE_BITS-1:0] c_type;
     logic c_write;
-    logic [`CACHE_DATA_BITS -1:0] da_in;
     logic [`CACHE_WRITE_BITS-1:0] da_write;
-    logic [`DATA_BITS      -1:0] read_data;
-    logic [`CACHE_DATA_BITS-1:0] r_data;
+    logic [`DATA_BITS       -1:0] read_data;
     // Other
     logic [1:0] blk_off, byte_off;
     logic [2:0] cnt;
@@ -70,25 +68,20 @@ module L1C_data (
     logic flag;
     logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff and 0x4000_0000 ~ 0x4000_ffff -> uncacheable
 
-logic test, test2;
-assign test  = core_addr[31:16] != 16'h4000;
-assign test2 = (core_addr[31:16] != 16'h1000);
 // {{{ Sample
-    // assign cacheable = core_addr[31:16] != 16'h1000;
+    assign cacheable = (core_addr[31:16] != 16'h1000) & (core_addr[31:16] != 16'h4000);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
-            c_addr    <= `DATA_BITS'h0;
-            c_in      <= `DATA_BITS'h0;
-            c_type    <= `CACHE_TYPE_BITS'h0;
-            c_write   <= 1'b0;
-            cacheable <= 1'b0;
+            c_addr  <= `DATA_BITS'h0;
+            c_in    <= `DATA_BITS'h0;
+            c_type  <= `CACHE_TYPE_BITS'h0;
+            c_write <= 1'b0;
         end
         else if (STATE == INIT) begin
-            c_addr    <= core_addr;
-            c_in      <= core_in;
-            c_type    <= core_type;
-            c_write   <= core_write;
-            cacheable <= (core_addr[31:16] != 16'h1000) & (core_addr[31:16] != 16'h4000);
+            c_addr  <= core_addr;
+            c_in    <= core_in;
+            c_type  <= core_type;
+            c_write <= core_write;
         end
     end
 // }}}
@@ -115,22 +108,22 @@ assign test2 = (core_addr[31:16] != 16'h1000);
     end
     always_comb begin
         case (STATE)
-            INIT    : NEXT = core_req ? CHK : INIT;
-            // begin
-            //     casez ({core_req, core_write, valid[index]})
-            //         3'b0??  : NEXT = INIT;
-            //         3'b110  : NEXT = WMISS;
-            //         3'b100  : NEXT = RMISS;
-            //         default : NEXT = CHK;   // valid
-            //     endcase
-            // end
+            // INIT    : NEXT = core_req ? CHK : INIT;
+            INIT    : begin
+                casez ({core_req, core_write, valid[index], ~cacheable})
+                    4'b1001 : NEXT = NOUSE;
+                    4'b110? : NEXT = WMISS;
+                    4'b1000 : NEXT = RMISS;
+                    4'b0??? : NEXT = INIT;
+                    default : NEXT = CHK;  // valid
+                endcase
+            end
             CHK     : begin
-                casez ({c_write, hit, ~cacheable})
-                    3'b11?  : NEXT = WHIT;
-                    3'b10?  : NEXT = WMISS;
-                    3'b001  : NEXT = NOUSE;
-                    3'b010  : NEXT = FIN;
-                    default : NEXT = RMISS;
+                case ({c_write, hit})
+                    2'b11 : NEXT = WHIT;
+                    2'b10 : NEXT = WMISS;
+                    2'b01 : NEXT = FIN;   // RHIT
+                    2'b00 : NEXT = RMISS;
                 endcase
             end
             WHIT    : NEXT = flag ? FIN : WHIT;
@@ -146,19 +139,13 @@ assign test2 = (core_addr[31:16] != 16'h1000);
     assign blk_off  = c_addr[3:2];
     assign byte_off = c_addr[1:0];
     assign index = (STATE == INIT) ? core_addr[9:4] : c_addr[9:4];
+    assign hit   = (STATE == CHK) && (TA_out == c_addr[`DATA_BITS-1:`CACHE_ADDR_BITS]) && valid[index];
     always_ff @(posedge clk or posedge rst) begin
         if (rst)                 valid <= `CACHE_LINE_BITS'h0;
         else if (STATE == RMISS) valid[index] <= 1'b1;
     end
-    always_comb begin
-        case (STATE)
-            INIT    : hit = valid[core_addr[`CACHE_ADDR_BITS-1:4]] & (TA_out == core_addr[31:10]);
-            CHK     : hit = TA_out == c_addr[31:10];
-            WHIT    : hit = 1'b1;
-            default : hit = 1'b0; // WMISS, RMISS, FIN
-        endcase
-    end
-    // web
+// }}}
+// {{{ web
     logic [3:0] web, bweb, hweb;
     always_comb begin
         case (byte_off)
@@ -211,7 +198,7 @@ assign test2 = (core_addr[31:16] != 16'h1000);
                     DA_in    <= ~|cnt ? {c_in, c_in, c_in, c_in} : DA_in;
                 end
                 RMISS   : begin
-                    DA_write <= &cnt[1:0] ?  `CACHE_WRITE_BITS'h0 : `CACHE_WRITE_BITS'hffff;
+                    DA_write <= &cnt[1:0] ? `CACHE_WRITE_BITS'h0 : `CACHE_WRITE_BITS'hffff;
                     DA_in[{cnt[1:0], 5'h0}+:32] <= D_out;
                 end
                 default : begin
@@ -222,8 +209,15 @@ assign test2 = (core_addr[31:16] != 16'h1000);
         end
     end
     // read hit, miss
-    assign r_data = (STATE == RMISS) & flag ? DA_in : DA_out;
-    assign read_data = r_data[{core_addr[3:2], 5'b0}+:32];
+    // assign r_data = (STATE == RMISS) & flag ? DA_in : DA_out;
+    // assign read_data = r_data[{core_addr[3:2], 5'b0}+:32];
+    always_comb begin
+        case (STATE)
+            CHK     : read_data = DA_out[{c_addr[3:2], 5'b0}+:32];
+            RMISS   : read_data = DA_in[{c_addr[3:2], 5'b0}+:32];
+            default : read_data = `DATA_BITS'h0;
+        endcase
+    end
 // }}}
 
 // {{{ CPU
@@ -236,58 +230,23 @@ assign test2 = (core_addr[31:16] != 16'h1000);
     end
 // }}}
 // {{{ CPU_wrapper
-    // assign arlenone_o = (STATE == NOUSE) & ~cacheable;
     always_ff @(posedge clk or posedge rst) begin
-        if (rst) begin
-            // D_req      <= 1'b0;
-            arlenone_o <= 1'b0;
-        end
-        else if (STATE == CHK) begin
-            // D_req      <= cacheable & c_write & hit
-            arlenone_o <= ~c_write & ~hit & ~cacheable;
-        end
+        arlenone_o <= rst ? 1'b0 : (STATE == CHK) ? (~c_write && ~hit && ~cacheable) : arlenone_o;
     end
+    assign D_addr  = (STATE == RMISS) ? {c_addr[`DATA_BITS-1:4], 4'h0} : c_addr;
+    assign D_type  = c_write ? c_type : `CACHE_WORD;
+    assign D_in    = c_write ? c_in   : `DATA_BITS'h0;
+    assign D_write = c_write;
     always_comb begin
         case (STATE)
-            WMISS   : begin
-                D_req   = ~|cnt;
-                D_write = 1'b1;
-                D_addr  = c_addr;
-                D_in    = c_in;
-                D_type  = c_type;
-            end
-            WHIT    : begin
-                D_req   = ~|cnt;
-                D_write = 1'b1;
-                D_addr  = c_addr;
-                D_in    = c_in;
-                D_type  = c_type;
-            end
-            RMISS   : begin
-                D_req   = ~flag;
-                D_write = 1'b0;
-                D_addr  = {c_addr[31:4], 4'h0};
-                D_in    = `DATA_BITS'h0;
-                D_type  = `CACHE_WORD;
-            end
-            NOUSE   : begin
-                D_req   = 1'b0;
-                D_write = 1'b0;
-                D_addr  = c_addr;
-                D_in    = `DATA_BITS'h0;
-                D_type  = `CACHE_WORD;
-            end
-            default : begin
-                D_req   = 1'b0;
-                D_write = 1'b0;
-                D_addr  = `ADDR_BITS'h0;
-                D_in    = `DATA_BITS'h0;
-                D_type  = c_type;
-            end
+            WMISS   : D_req = ~|cnt;
+            WHIT    : D_req = ~|cnt;
+            RMISS   : D_req = ~flag;
+            NOUSE   : D_req = 1'b0;
+            default : D_req = 1'b0;
         endcase
     end
 // }}}
-
 
 // {{{
     data_array_wrapper DA(
