@@ -98,7 +98,7 @@ module B_ch (
                     valid_s0_i};
     always_comb begin
         ids_s   = `AXI_IDS_BITS'h0;
-        resp_s  = 1'b0;
+        resp_s  = `AXI_RESP_BITS'b0;
         valid_s = 1'b0;
         case(slave)
             `AXI_SLAVE0        : {ids_s, resp_s, valid_s} = {ids_s0_i, resp_s0_i, valid_s0_i};

@@ -23,12 +23,12 @@ module CPU (
     output       [`ADDR_BITS-1:0] dm_addr_o,
     output       [`DATA_BITS-1:0] dm_data_o,
     output logic [`TYPE_BITS-1:0] cputype_o,
+    input                         wait0_i,
+    output logic                  req0_o,
+    output logic                  read0_o, //write1_o,
     input                         wait1_i,
     output logic                  req1_o,
-    output logic                  read1_o, //write1_o,
-    input                         wait2_i,
-    output logic                  req2_o,
-    output logic                  read2_o, write2_o,
+    output logic                  read1_o, write1_o,
     // 2021.11.23
     // Interrupt
     input int_taken_i
@@ -59,18 +59,23 @@ module CPU (
     logic csr_stall;
     logic csr_wfi, csr_mret, csr_int;
 
-    assign cpuwait = wait1_i | wait2_i;
+    assign cpuwait = wait0_i | wait1_i;
 
     // assign write1_o = 1'b0;
-    assign read1_o = 1'b1;
+    assign read0_o = 1'b1;
+    assign req1_o = dm_clear ? 1'b0 : (read1_o | write1_o);
     always_ff @(posedge clk or posedge rst) begin
-        req1_o   <= rst ? 1'b1 : (cpuwait ? 1'b0 : 1'b1);
-        dm_clear <= rst ? 1'b0 : (wait1_i & ~wait2_i ? 1'b1 : 1'b0);
+        if (rst) begin
+            req0_o   <= 1'b1;
+            dm_clear <= 1'b0;
+        end
+        else begin
+            req0_o <= cpuwait ? 1'b0 : 1'b1;
+            dm_clear <= (wait0_i & ~wait1_i) ? 1'b1 : 1'b0;
+        end
     end
 
-    assign req2_o = dm_clear ? 1'b0 : (read2_o | write2_o);
-
-
+    
 
     assign ifid_en   = ~cpuwait & ~csr_stall;
     assign idexe_en  = ~cpuwait & ~csr_stall;
@@ -122,10 +127,10 @@ module CPU (
         .exe_pc_aluout_i   (exe_pc_aluout  ),
         .exe_zero_flag_i   (exe_zero_flag  ),
         // CSR
-        .csr_int_i   (csr_int  ),
-        .csr_mret_i  (csr_mret ),
-        .csr_pc_i    (csr_pc   ),
-        .csr_retpc_i (csr_retpc)
+        .csr_int_i         (csr_int        ),
+        .csr_mret_i        (csr_mret       ),
+        .csr_pc_i          (csr_pc         ),
+        .csr_retpc_i       (csr_retpc      )
 
     );
     ID_S i_id (
@@ -195,8 +200,8 @@ module CPU (
         .dm_addr_o  (dm_addr_o        ),
         .dm_sw_o    (dm_data_o        ),
         .dm_web_o   (web_o            ),
-        .dm_rd_o    (read2_o          ),
-        .dm_wr_o    (write2_o         ),
+        .dm_rd_o    (read1_o          ),
+        .dm_wr_o    (write1_o         ),
         .cputype_o  (cputype_o        )
     );
     WB_S i_wb (
@@ -235,7 +240,7 @@ module CPU (
         .exe_rd_addr_i     (exe_rd_addr    ),
         .stall_o           (stall          ),
         .flush_o           (flush          ),
-        .csr_wfi_i       (csr_wfi      ),
+        .csr_wfi_i         (csr_wfi      ),
         .csr_mret_i        (csr_mret       ),
         .csr_int_i         (csr_int        )
         

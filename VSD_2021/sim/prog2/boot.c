@@ -30,21 +30,13 @@ void boot() {
 }
 */
 
-void setDMA(int *source,int *dest,int length) {
+void setDMA(int *source, int *dest, int quantity) {
     volatile int *_dma_i_start = (int *) 0x40000000;
-    int tmpSource = (int)source;
-    int tmpdest = (int)dest;
-    while(length){
-        int x = length >= 255 ? 255: length;
-        length -= x;
-        *(_dma_i_start+0) = tmpSource;  
-        *(_dma_i_start+1) = tmpdest;
-        *(_dma_i_start+2) = x;
-        *(_dma_i_start+3) = 1;  // Enable DMA
-        asm("wfi");
-        tmpSource = tmpSource + (x << 2) + 4;
-        tmpdest = tmpdest + (x << 2 ) + 4;
-    }
+    *(_dma_i_start+0) = (int)source;  
+    *(_dma_i_start+1) = (int)dest;
+    *(_dma_i_start+2) = (int)quantity;
+    *(_dma_i_start+3) = 1;  // Enable DMA
+    asm("wfi");
 }
 
 void boot() {

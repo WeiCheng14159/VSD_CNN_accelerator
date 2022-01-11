@@ -22,7 +22,7 @@ module L1C_inst(
     input I_wait,
     // CPU wrapper to core
     output logic [`DATA_BITS-1:0] core_out,
-    output core_wait,
+    output logic core_wait,
     // CPU wrapper to Mem
     output logic I_req,
     output logic [`DATA_BITS-1:0] I_addr,
@@ -43,17 +43,15 @@ module L1C_inst(
     logic [`CACHE_LINE_BITS-1:0] valid;
 
 //--------------- complete this part by yourself -----------------//
-    parameter INIT  = 3'h0,
-              CHK   = 3'h1,
-              RMISS = 3'h4,
-              FIN   = 3'h5;
-    logic [2:0] STATE, NEXT;
+    parameter INIT  = 2'h0,
+              CHK   = 2'h1,
+              RMISS = 2'h2,
+              FIN   = 2'h3;
+    logic [1:0] STATE, NEXT;
     // Sample
-    logic [`DATA_BITS      -1:0] c_addr, c_in;
-    logic [`CACHE_TYPE_BITS-1:0] c_type;
-    logic [`CACHE_DATA_BITS-1:0] da_in;
-    logic [`DATA_BITS      -1:0] read_data;
-    logic [`CACHE_DATA_BITS-1:0] r_data;
+    logic [`ADDR_BITS-1:0] c_addr;
+    // Read
+    logic [`DATA_BITS-1:0] read_data;
     // Other
     logic [2:0] cnt;
     logic hit;
@@ -61,16 +59,7 @@ module L1C_inst(
 
 // {{{ Sample
     always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            c_addr  <= `DATA_BITS'h0;
-            c_in    <= `DATA_BITS'h0;
-            c_type  <= `CACHE_TYPE_BITS'h0;
-        end
-        else if (STATE == INIT) begin
-            c_addr  <= core_addr;
-            c_in    <= core_in;
-            c_type  <= core_type;
-        end
+        c_addr <= rst ? `ADDR_BITS'h0 : (STATE == INIT) ? core_addr : c_addr;
     end
 // }}}
 // {{{ counter, flag
@@ -78,9 +67,7 @@ module L1C_inst(
     always_ff @(posedge clk or posedge rst) begin
         if (rst)                 cnt <= 3'h0;
         else if (STATE == RMISS) cnt <= flag ? 3'h0 : (~I_wait ? (cnt + 3'h1) : cnt);
-        else                     cnt <= 3'h0;
     end
-
 // }}}
 // {{{ STATE
     always_ff @(posedge clk or posedge rst) begin
@@ -89,47 +76,38 @@ module L1C_inst(
     always_comb begin
         case (STATE)
             INIT    : begin
-                casez ({core_req, core_write, valid[index]})
-                    3'b0??  : NEXT = INIT;
-                    3'b100  : NEXT = RMISS;
-                    default : NEXT = CHK;   // valid
+                case ({core_req, valid[index]})
+                    2'b11   : NEXT = CHK;
+                    2'b10   : NEXT = RMISS;
+                    default : NEXT = INIT;   // valid
                 endcase
             end
-            CHK     : NEXT = hit ? FIN : RMISS;
+            CHK     : NEXT = hit  ? FIN : RMISS;
             RMISS   : NEXT = flag ? FIN : RMISS;
-            FIN     : NEXT = INIT;
-            default : NEXT = INIT;
+            default : NEXT = INIT;  // FIN
         endcase
     end
 // }}}
 
 // {{{ index, offset, hit, valid
     assign index = (STATE == INIT) ? core_addr[9:4] : c_addr[9:4];
+    assign hit   = (STATE == CHK) && (TA_out == c_addr[`DATA_BITS-1:`CACHE_ADDR_BITS]) && valid[index];
     always_ff @(posedge clk or posedge rst) begin
         if (rst)                 valid <= `CACHE_LINE_BITS'h0;
         else if (STATE == RMISS) valid[index] <= 1'b1;
     end
-    always_comb begin
-        case (STATE)
-            INIT    : hit = valid[core_addr[`CACHE_ADDR_BITS-1:4]] & (TA_out == core_addr[31:10]);
-            CHK     : hit = TA_out == c_addr[31:10];
-            default : hit = 1'b0; // WMISS, RMISS, FIN
-        endcase
-    end
+
 // }}}
 // {{{ tag_array_wrapper
-    assign TA_in = STATE == INIT ? core_addr[`DATA_BITS-1:`CACHE_ADDR_BITS] : c_addr[`DATA_BITS-1:`CACHE_ADDR_BITS];
-    always_comb begin
-        case (STATE)
-            INIT    : {TA_write, TA_read} = 2'b11;
-            CHK     : {TA_write, TA_read} = 2'b11;
-            RMISS   : {TA_write, TA_read} = {|cnt, 1'b0}; 
-            default : {TA_write, TA_read} = 2'b10;  // WHIT, WMISS, FIN
-        endcase
+    assign TA_in   = (STATE == INIT) ? core_addr[`DATA_BITS-1:`CACHE_ADDR_BITS] : c_addr[`DATA_BITS-1:`CACHE_ADDR_BITS];
+    assign TA_read = (STATE == INIT) || (STATE == CHK);
+    always_ff @(posedge clk or posedge rst) begin
+        TA_write <= rst ? 1'b1 : ~cnt[1];
     end
+
 // }}}
 // {{{ data_array_wrapper (DA_read, DA_write, DA_in)
-    assign DA_read = (STATE == CHK) & hit;
+    assign DA_read = (STATE == CHK) && hit;
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             DA_write <= `CACHE_WRITE_BITS'hffff;
@@ -137,20 +115,31 @@ module L1C_inst(
         end
         else if (STATE == RMISS) begin
             DA_write <= &cnt[1:0] ? `CACHE_WRITE_BITS'h0 : `CACHE_WRITE_BITS'hffff;
-            DA_in[{cnt[1:0], 5'h0}+:32] <= I_out;
+            DA_in[127:96] <= I_out;
+            DA_in[ 95:64] <= DA_in[127:96];
+            DA_in[ 63:32] <= DA_in[ 95:64];
+            DA_in[ 31: 0] <= DA_in[ 63:32];
         end
-        else begin
-            DA_write <= `CACHE_WRITE_BITS'hffff;
-            DA_in    <= `CACHE_DATA_BITS'h0;
-        end
+
     end
     // read hit, miss
-    assign r_data = (STATE == RMISS) & flag ? DA_in : DA_out;
-    assign read_data = r_data[{core_addr[3:2], 5'b0}+:32];
+    always_comb begin
+        case (STATE)
+            CHK     : read_data = DA_out[{c_addr[3:2], 5'b0}+:32];
+            RMISS   : read_data = DA_in[{c_addr[3:2], 5'b0}+:32];
+            default : read_data = `DATA_BITS'h0;
+        endcase
+    end
 // }}}
 
 // {{{ CPU
-    assign core_wait = (STATE == INIT) ? core_req : (STATE == FIN) ? 1'b0 : 1'b1;
+    always_comb begin
+        case (STATE)
+            INIT    : core_wait = core_req;
+            FIN     : core_wait = 1'b0;
+            default : core_wait = 1'b1;
+        endcase
+    end
     always_ff @(posedge clk or posedge rst) begin
         if (rst)                 core_out <= `DATA_BITS'h0;
         else if (STATE == CHK)   core_out <= read_data;
@@ -158,7 +147,7 @@ module L1C_inst(
     end
 // }}}
 // {{{ CPU_wrapper
-    assign I_req   = (STATE == RMISS) & ~flag;
+    assign I_req   = (STATE == RMISS) && ~flag;
     assign I_write = 1'b0;
     assign I_in    = `DATA_BITS'h0;
     assign I_type  = `CACHE_WORD;
@@ -174,7 +163,6 @@ module L1C_inst(
         .OE(DA_read),
         .CS(1'b1)
     );
-
     tag_array_wrapper  TA(
         .A(index),
         .DO(TA_out),

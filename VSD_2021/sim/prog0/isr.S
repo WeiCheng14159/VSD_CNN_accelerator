@@ -5,3 +5,5 @@
 dmaisr_entry:
     nop
     mret
+    nop
+    nop

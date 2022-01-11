@@ -164,17 +164,17 @@ module DMA_master (
     );
 // }}}
 
-    always_ff @(posedge clk) begin
-        if (wrfin)
-            $display("==================================================");
-        if (whns)
-            $display("%h", fifo_dataout);
-    end
-    always_comb begin
-        if (dma_en_i)
-            $display("src: %h, dst: %h\n--------------------------------------------------", src_addr_i, dst_addr_i);
+    // always_ff @(posedge clk) begin
+    //     if (wrfin)
+    //         $display("==================================================");
+    //     if (whns)
+    //         $display("%h", fifo_dataout);
+    // end
+    // always_comb begin
+    //     if (dma_en_i)
+    //         $display("src: %h, dst: %h\n--------------------------------------------------", src_addr_i, dst_addr_i);
         
-    end
+    // end
 
 
 endmodule
