@@ -249,7 +249,7 @@ module top_tb;
     err = 0;
     num = 2000;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
-
+      slice = i / `INOUT_BLOCK_WORD_SIZE;
       if (slice == 0)
         out = i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
       else if (slice == 1)
