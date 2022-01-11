@@ -44,7 +44,7 @@ module top_tb;
   logic fin;
   logic start;
 
-  logic [7:0] GOLDEN[200000:0];
+  logic signed [7:0] GOLDEN[200000:0];
   logic [31:0] param[3:0];
   logic [31:0] in_data[200000:0];
   logic [31:0] w8[0:1];
@@ -52,7 +52,7 @@ module top_tb;
   logic [31:0] bias[200000:0];
 
   // GOLDEN
-  logic [7:0] out;
+  logic signed [7:0] out;
 
   // Interface
   sp_ram_intf param_intf ();
@@ -288,11 +288,11 @@ module top_tb;
     num = 2000;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
       out = output_mem.content[i][7:0];
-      if (out !== GOLDEN[i]) begin
+      if (out === GOLDEN[i] | (out+1) === GOLDEN[i] | (out-1) === GOLDEN[i]) begin
+        $display("DM[%4d] = %h, pass", i, out);
+      end else begin
         $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
         err = err + 1;
-      end else begin
-        $display("DM[%4d] = %h, pass", i, out);
       end
     end
     // for (i = 0; i < num; i = i + 1) begin
@@ -310,11 +310,11 @@ module top_tb;
     //   else if(slice == 5)
     //     out = i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
       
-    //   if (out !== GOLDEN[i]) begin
+    //   if (out === GOLDEN[i] | (out+1) === GOLDEN[i] | (out-1) === GOLDEN[i]) begin
+    //     $display("DM[%4d] = %h, pass", i, out);
+    //   end else begin
     //     $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
     //     err = err + 1;
-    //   end else begin
-    //     $display("DM[%4d] = %h, pass", i, out);
     //   end
     // end
     result(err, num);
