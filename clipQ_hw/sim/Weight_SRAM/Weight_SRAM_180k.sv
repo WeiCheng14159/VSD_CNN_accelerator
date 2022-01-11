@@ -44,7 +44,7 @@ module Weight_SRAM_180k (
 
   genvar g;
   generate
-    for (g = 0; g < 5; g = g + 1) begin : i_SRAM
+    for (g = 0; g < 5; g = g + 1) begin : SRAM_blk
       logic       _CS;
       logic       _OE;
       logic       _WEB;
@@ -62,7 +62,7 @@ module Weight_SRAM_180k (
           .DI (DI),
           .DO (_DO[g])
       );
-    end : i_SRAM
+    end : SRAM_blk
   endgenerate
 
 endmodule
