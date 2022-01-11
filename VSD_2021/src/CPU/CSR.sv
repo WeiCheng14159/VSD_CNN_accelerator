@@ -1,13 +1,14 @@
 `include "../../include/CPU_def.svh"
 
 module CSR (
-    input                         clk, rst,
-    inf_EX_CSR.CSR2EX             csr2ex,
-    input                         csr_en_i,
-    input                         int_taken_i,
-    output logic [`ADDR_BITS-1:0] csr_pc_o, csr_retpc_o,
-    output logic                  wfi_o, mret_o, int_o,
-    output logic                  stall_o
+    input                           clk, rst,
+    inf_EX_CSR.CSR2EX               csr2ex,
+    input                           csr_en_i,
+    input                           int_taken_i,
+    input        [`INT_ID_BITS-1:0] int_id_i,
+    output logic [`ADDR_BITS  -1:0] csr_pc_o, csr_retpc_o,
+    output logic                    wfi_o, mret_o, int_o,
+    output logic                    stall_o
 );
 
     logic [`DATA_BITS-1:0] mstatus_r;

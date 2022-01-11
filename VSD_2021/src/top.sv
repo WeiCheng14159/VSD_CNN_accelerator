@@ -42,9 +42,11 @@ module top (
     inf_Slave  slave4();
     inf_Slave  slave5();
     // interrupt
-    logic int_taken;
-    logic int_sctrl;
-    logic int_dma;
+    logic [`INT_BITS-1:0] interrupt;
+    // logic int_taken;
+    // logic int_sctrl;
+    // logic int_dma;
+    assign interrupt[1] = 1'b0;
 
 logic latch_rst;
 always_ff @(posedge clk or posedge rst) begin
@@ -74,12 +76,12 @@ end
         .axi2s5_o (slave5.AXI2Sout )
     );
 
-    assign int_taken = int_sctrl | int_dma;
+    // assign int_taken = int_sctrl | int_dma;
 
     CPU_wrapper cpu_wrapper (
         .clk         (clk             ),
         .rst         (~latch_rst      ),
-        .int_taken_i (int_taken       ),
+        .interrupt_i (interrupt       ),
         .m02axi_i    (master0.M2AXIin ),
         .m02axi_o    (master0.M2AXIout),
         .m12axi_i    (master1.M2AXIin ),
@@ -144,7 +146,7 @@ end
         .m2axi_o (master2.M2AXIout),
         .s2axi_i (slave5.S2AXIin  ),
         .s2axi_o (slave5.S2AXIout ),
-        .int_o   (int_dma         )
+        .int_o   (interrupt[0]    )
     );
 
 endmodule

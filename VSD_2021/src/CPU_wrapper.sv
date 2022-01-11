@@ -7,11 +7,11 @@
 
 module CPU_wrapper (
     input clk, rst,
-    input int_taken_i,
     inf_Master.M2AXIin  m02axi_i,
     inf_Master.M2AXIout m02axi_o,
     inf_Master.M2AXIin  m12axi_i,
-    inf_Master.M2AXIout m12axi_o
+    inf_Master.M2AXIout m12axi_o,
+    input [`INT_BITS-1:0] interrupt_i
 );
 
     logic [`TYPE_BITS-1:0] cputype;
@@ -88,7 +88,7 @@ module CPU_wrapper (
         .read1_o     (cpuread_1  ),
         .write1_o    (cpuwrite_1 ),
         .cputype_o   (cputype    ),
-        .int_taken_i (int_taken_i)
+        .interrupt_i (interrupt_i)
 
     );
     // }}}
