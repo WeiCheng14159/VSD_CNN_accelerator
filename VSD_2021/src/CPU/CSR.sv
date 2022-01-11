@@ -7,8 +7,7 @@ module CSR (
     input                         int_taken_i,
     output logic [`ADDR_BITS-1:0] csr_pc_o, csr_retpc_o,
     output logic                  wfi_o, mret_o, int_o,
-    output logic                  stall_o,
-    input cpuwait_i
+    output logic                  stall_o
 );
 
     logic [`DATA_BITS-1:0] mstatus_r;
@@ -50,7 +49,7 @@ module CSR (
 
 
     // pc
-    assign csr_pc_o    = mtvec_r;
+    assign csr_pc_o    = {mtvec_r[`DATA_BITS-1:2], 2'h0};
     assign csr_retpc_o = mepc_r;
 
 
@@ -67,7 +66,8 @@ module CSR (
         if (rst) begin
             mstatus_r <= `DATA_BITS'h0;
             mie_r     <= `DATA_BITS'h0;
-            mtvec_r   <= `DATA_BITS'h1_0000;
+            // mtvec_r   <= `DATA_BITS'h1_0000;
+            mtvec_r   <= `DATA_BITS'h1000;
             mepc_r    <= `DATA_BITS'h0;
             mip_r     <= `DATA_BITS'h0;
 
@@ -84,7 +84,6 @@ module CSR (
             mip_r[`MEIP] <= mie_r[`MEIE] | mip_r[`MEIP];
         end
         else if (csr_en & int_o) begin
-        // else if (csr_en & int_taken_i) begin
             mstatus_r[`MPP]  <= mip_r[`MEIP] ? 2'b11 : mstatus_r[`MPP];
             mstatus_r[`MPIE] <= mip_r[`MEIP] ? mstatus_r[`MIE] : mstatus_r[`MPIE];
             mstatus_r[`MIE]  <= mip_r[`MEIP] ? 1'b0 : mstatus_r[`MIE];
