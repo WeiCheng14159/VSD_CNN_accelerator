@@ -569,10 +569,18 @@ module  conv(
 			output_wdata <= 8'b0;
 		else if((CurrentState == write_state) & (counter == 3'h1))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))begin
-				if(sum[15])
-					output_wdata <= sum[12:5] + 1'b1;
-				else
-					output_wdata <= sum[12:5];
+				if(sum[15])begin
+					if(~&sum[15:12])
+						output_wdata <= 8'h80;
+					else 
+						output_wdata <= sum[12:5] + 1'b1;
+				end
+				else begin
+					if(|sum[15:12])
+						output_wdata <= 8'h7f;
+					else
+						output_wdata <= sum[12:5];
+				end
 			end
 			else if(cha_counter == 5'b0)
 				output_wdata <= bias[15:0] + partial_sum[0];
@@ -581,10 +589,18 @@ module  conv(
 			else if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == (num_channel - 1'b1)))
 				output_wdata <= output_rdata + partial_sum[0];
 			else if(cha_counter == (num_channel - 1'b1))begin
-				if(sum[15])
-					output_wdata <= {sum[15],sum[11:5]} + 1'b1;
-				else
-					output_wdata <= sum[12:5];
+				if(sum[15])begin
+					if(~&sum[15:12])
+						output_wdata <= 8'h80;
+					else 
+						output_wdata <= sum[12:5] + 1'b1;
+				end
+				else begin
+					if(|sum[15:12])
+						output_wdata <= 8'h7f;
+					else
+						output_wdata <= sum[12:5];
+				end
 			end
 			else 
 				output_wdata <= output_rdata + partial_sum[0];
