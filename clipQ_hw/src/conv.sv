@@ -26,15 +26,15 @@ module  conv(
 
 	output	logic			input_en,
 	output	logic	[31:0]	input_addr,
-	input			[ 7:0]	input_rdata,
+	input			[15:0]	input_rdata,
 	output	logic	[ 3:0]	input_write,
-	output	logic	[ 7:0]	input_wdata,
+	output	logic	[15:0]	input_wdata,
 
 	output	logic			output_en,
 	output	logic	[31:0]	output_addr,
-	input			[ 7:0]	output_rdata,
+	input			[15:0]	output_rdata,
 	output	logic	[ 3:0]	output_write,
-	output	logic	[ 7:0]	output_wdata,
+	output	logic	[15:0]	output_wdata,
 
 	input			[31:0]	w8,
 
@@ -61,8 +61,8 @@ module  conv(
 	logic 	[ 2:0]	counter;
 	logic 	[ 4:0]	row_counter;
 	logic 	[ 4:0]	col_counter;
-	logic 	[ 4:0]	cha_counter;
-	logic 	[ 4:0]	ker_counter;
+	logic 	[ 9:0]	cha_counter;
+	logic 	[ 9:0]	ker_counter;
 	logic 	[ 3:0]	index;
 	integer 		i;
 
@@ -81,13 +81,13 @@ module  conv(
 	assign param_wdata = 32'b0;
 	assign bias_wdata = 32'b0;
 	assign weight_wdata = 18'b0;
-	assign input_wdata = 8'b0;
+	assign input_wdata = 16'b0;
 
 	assign input_size = num_row * num_row * num_channel;
 	assign input_2D_size = num_row * num_row;
 	assign kernel_size = 32'h3;
 
-	assign sum = bias[15:0] + partial_sum[0];
+	assign sum = output_rdata + partial_sum[0];
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
@@ -188,10 +188,10 @@ module  conv(
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			cha_counter <= 5'b0;
+			cha_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 1'b1)) & (col_counter == (num_row - 1'b1)))begin
 			if(cha_counter == (num_channel - 1'b1))
-				cha_counter <= 5'b0;
+				cha_counter <= 10'b0;
 			else
 				cha_counter <= cha_counter + 1'b1;
 		end
@@ -199,10 +199,10 @@ module  conv(
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			ker_counter <= 5'b0;
+			ker_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 1'b1)) & (col_counter == (num_row - 1'b1)) & (cha_counter == (num_channel - 1'b1)))begin
 			if(ker_counter == (num_kernel - 1'b1))
-				ker_counter <= 5'b0;
+				ker_counter <= 10'b0;
 			else
 				ker_counter <= ker_counter + 1'b1;
 		end
@@ -456,7 +456,7 @@ module  conv(
 			else if(row_counter == (num_row - 1'b1))begin
 				if(col_counter == 5'b0)
 					input_addr <= input_addr - (4 * num_row);
-				else if(col_counter == (num_row - 3'h4))
+				else if(col_counter == (num_row - 1'b1))
 					input_addr <= input_addr + (4 * num_row);
 			end
 			else if(col_counter == 5'b0)begin
@@ -523,7 +523,7 @@ module  conv(
 				end
 			end
 			else
-				data[index] <= input_rdata;
+				data[index] <= input_rdata[7:0];
 		end
 	end
 	//load input
@@ -536,6 +536,8 @@ module  conv(
 			output_en <= 1'b0;
 		else if(CurrentState == calculate_state)
 			output_en <= 1'b1;
+		else if((CurrentState == write_state) & (counter == 3'h1))
+			output_en <= 1'b1;
 		else
 			output_en <= 1'b0;
 	end
@@ -545,11 +547,11 @@ module  conv(
 			output_addr <= 32'b0;
 		else if((CurrentState == write_state) & (counter == 3'h2))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))
-				output_addr <= output_addr + 1'b1;
+				output_addr <= output_addr + 3'h4;
 			else if((row_counter == 5'b0) & (col_counter == 5'b0))
-				output_addr <= output_addr - input_2D_size + 1'b1;
+				output_addr <= output_addr - (4 * input_2D_size) + 3'h4;
 			else 
-				output_addr <= output_addr + 1'b1;
+				output_addr <= output_addr + 3'h4;
 		end
 	end
 
@@ -566,11 +568,26 @@ module  conv(
 		if(~rst)
 			output_wdata <= 8'b0;
 		else if((CurrentState == write_state) & (counter == 3'h1))begin
-			if(cha_counter == 5'b0)
-				//output_wdata <= bias[12:5] + partial_sum[0][12:5];
-				output_wdata <= sum[12:5];
+			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b0))begin
+				if(sum[15])
+					output_wdata <= sum[12:5] + 1'b1;
+				else
+					output_wdata <= sum[12:5];
+			end
+			else if(cha_counter == 5'b0)
+				output_wdata <= bias[15:0] + partial_sum[0];
+			else if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 5'b1))
+				output_wdata <= bias[15:0] + partial_sum[0];
+			else if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == (num_channel - 1'b1)))
+				output_wdata <= output_rdata + partial_sum[0];
+			else if(cha_counter == (num_channel - 1'b1))begin
+				if(sum[15])
+					output_wdata <= {sum[15],sum[11:5]} + 1'b1;
+				else
+					output_wdata <= sum[12:5];
+			end
 			else 
-				output_wdata <= output_rdata + partial_sum[0][12:5];
+				output_wdata <= output_rdata + partial_sum[0];
 		end
 	end
 
