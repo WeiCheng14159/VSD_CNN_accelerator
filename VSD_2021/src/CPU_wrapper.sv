@@ -14,7 +14,7 @@ module CPU_wrapper (
     inf_Master.M2AXIout m12axi_o
 );
 
-    logic [`TYPE_BITS-1 :0] cputype;
+    logic [`TYPE_BITS-1:0] cputype;
     logic [`WEB_BITS -1:0] cpuweb_1;
     logic [`ADDR_BITS-1:0] cpuaddr_1;
     logic [`DATA_BITS-1:0] crdata_1;
@@ -29,7 +29,7 @@ module CPU_wrapper (
     logic [`TYPE_BITS-1:0] ctype_m1;
     logic cwrite_m1;
     logic creq_m1;
-    logic sctrl_rd_m1;
+    logic arlenone_m1;
     // M0 to inst cache
     logic [`DATA_BITS-1:0] rdata_m1;
     logic wait_m1;
@@ -39,7 +39,7 @@ module CPU_wrapper (
     assign cpuwdata_1  = `DATA_BITS'h0;
     assign req_read1   = cpureq_1 & cpuread_1;
     assign req_write1  = cpureq_1 & cpuwrite_1;
-    assign sctrl_rd_m1 = 1'b0;
+    assign arlenone_m1 = 1'b0;
 
     logic [`WEB_BITS -1:0] cpuweb_2;
     logic [`ADDR_BITS-1:0] cpuaddr_2;
@@ -55,7 +55,7 @@ module CPU_wrapper (
     logic [`TYPE_BITS-1:0] ctype_m2;
     logic cwrite_m2;
     logic creq_m2;
-    logic sctrl_rd_m2;
+    logic arlenone_m2;
     // M1 to inst cache
     logic [`DATA_BITS-1:0] rdata_m2;
     logic wait_m2;
@@ -139,7 +139,7 @@ module CPU_wrapper (
         .D_in       (cwdata_m2 ),
         .D_type     (ctype_m2  ),
 
-        .sctrl_rd_o (sctrl_rd_m2)
+        .arlenone_o (arlenone_m2)
     );
 
     Master M0 (
@@ -149,7 +149,7 @@ module CPU_wrapper (
         .m2axi_o   (m02axi_o  ),
         .creq_i    (creq_m1   ),
         
-        .sctrl_rd_i (sctrl_rd_m1),
+        .arlenone_i (arlenone_m1),
         .cwrite_i  (cwrite_m1 ),
         .cwtype_i  (ctype_m1  ),
         .cdatain_i (cwdata_m1 ),
@@ -163,7 +163,7 @@ module CPU_wrapper (
         .m2axi_i   (m12axi_i  ),
         .m2axi_o   (m12axi_o  ),
         .creq_i    (creq_m2   ),
-        .sctrl_rd_i (sctrl_rd_m2),
+        .arlenone_i (arlenone_m2),
         .cwrite_i  (cwrite_m2 ),
         .cwtype_i  (ctype_m2  ),
         .cdatain_i (cwdata_m2 ),
