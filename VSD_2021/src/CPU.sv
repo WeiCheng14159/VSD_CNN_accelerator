@@ -11,6 +11,7 @@
 `include "./CPU/ID_S.sv"
 `include "./CPU/EXE_S.sv"
 `include "./CPU/CSR.sv"
+`include "./CPU/PLIC.sv"
 `include "./CPU/MEM_S.sv"
 `include "./CPU/WB_S.sv"
 
@@ -31,7 +32,7 @@ module CPU (
     output logic                  read1_o, write1_o,
     // 2021.11.23
     // Interrupt
-    input int_taken_i
+    input        [`INT_BITS-1:0] interrupt_i
 );
 
     inf_IF_ID  inf_IF_ID();
@@ -58,10 +59,11 @@ module CPU (
     logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
     logic csr_stall;
     logic csr_wfi, csr_mret, csr_int;
+    logic [`INT_ID_BITS-1:0] int_id;
+    logic int_taken;
 
+    //
     assign cpuwait = wait0_i | wait1_i;
-
-    // assign write1_o = 1'b0;
     assign read0_o = 1'b1;
     assign req1_o = dm_clear ? 1'b0 : (read1_o | write1_o);
     always_ff @(posedge clk or posedge rst) begin
@@ -74,8 +76,6 @@ module CPU (
             dm_clear <= (wait0_i & ~wait1_i) ? 1'b1 : 1'b0;
         end
     end
-
-    
 
     assign ifid_en   = ~cpuwait & ~csr_stall;
     assign idexe_en  = ~cpuwait & ~csr_stall;
@@ -171,12 +171,21 @@ module CPU (
         .dm_rd_o       (exe_dm_rd        )
     );
 
+    PLIC i_plic (
+        .clk         (clk        ),
+        .rst         (rst        ),
+        .interrupt_i (interrupt_i),
+        .int_taken_o (int_taken  ),
+        .int_id_o    (int_id     )
+    );
+
     CSR i_csr (
         .clk         (clk              ),
         .rst         (rst              ),
         .csr2ex      (inf_EX_CSR.CSR2EX),
         .csr_en_i    (csr_en           ),
-        .int_taken_i (int_taken_i      ),
+        .int_taken_i (int_taken        ),
+        .int_id_i    (int_id           ),
         .csr_pc_o    (csr_pc           ),
         .csr_retpc_o (csr_retpc        ),
         .wfi_o       (csr_wfi          ),
@@ -240,7 +249,7 @@ module CPU (
         .exe_rd_addr_i     (exe_rd_addr    ),
         .stall_o           (stall          ),
         .flush_o           (flush          ),
-        .csr_wfi_i         (csr_wfi      ),
+        .csr_wfi_i         (csr_wfi        ),
         .csr_mret_i        (csr_mret       ),
         .csr_int_i         (csr_int        )
         
