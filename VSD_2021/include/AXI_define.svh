@@ -49,7 +49,7 @@
     `define AXI_RESP_SLVERR 2'h2
     `define AXI_RESP_DECERR 2'h3
 
-    `define AXI_LEN_BITS 4
+    `define AXI_LEN_BITS 8
     `define AXI_LEN_ONE  `AXI_LEN_BITS'h0
 	`define AXI_LEN_FOUR `AXI_LEN_BITS'h3
 

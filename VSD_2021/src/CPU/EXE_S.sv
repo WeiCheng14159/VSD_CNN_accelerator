@@ -45,7 +45,7 @@ module EXE_S (
 // {{{ Aluctrl
     always @(*) begin
         case (ex2id_i.aluop)
-            `R_ALUOP   : begin
+            `R_ALUOP     : begin
                 case (ex2id_i.func3)
                     3'b000  : begin
                         case (ex2id_i.func7[5])
@@ -68,8 +68,8 @@ module EXE_S (
                     default : aluctrl = `IDLE;
                 endcase
             end 
-            `ADD_ALUOP : aluctrl = `ADD;
-            `I_ALUOP   : begin
+            `ADD_ALUOP   : aluctrl = `ADD;
+            `I_ALUOP     : begin
                 case (ex2id_i.func3)
                     3'b000  : aluctrl = `ADD;
                     3'b010  : aluctrl = `SLT;
@@ -87,7 +87,7 @@ module EXE_S (
                     default : aluctrl = `IDLE;
                 endcase
             end
-            `BEQ_ALUOP : begin
+            `BEQ_ALUOP   : begin
                 case (ex2id_i.func3)
                     3'b000  : aluctrl = `BEQ;
                     3'b001  : aluctrl = `BNE; 
@@ -98,8 +98,9 @@ module EXE_S (
                     default : aluctrl = `IDLE;
                 endcase
             end
-            `LUI_ALUOP : aluctrl = `IMM;
-            default    : aluctrl = `IDLE;
+            `AUIPC_ALUOP : aluctrl = `PCADDIMM;
+            `LUI_ALUOP   : aluctrl = `IMM;
+            default      : aluctrl = `IDLE;
         endcase
     end
 // }}}
@@ -126,25 +127,26 @@ module EXE_S (
     assign zero_flag_o = ~|aluout;
     always @(*) begin
         case (aluctrl)
-            `ADD    : aluout = alu1 + alu2; 
-            `SUB    : aluout = alu1 - alu2;
-            `SLL    : aluout = alu1 << alu2[4:0];   
-            `SLT    : aluout = {31'h0, (signalu1 < signalu2)};
-            `SLTU   : aluout = {31'h0, (alu1 < alu2)};
-            `XOR    : aluout = alu1 ^ alu2;
-            `SRL    : aluout = alu1 >> alu2[4:0];
-            `SRA    : aluout = signalu1 >>> alu2[4:0];
-            `OR     : aluout = alu1 | alu2;
-            `AND    : aluout = alu1 & alu2;
-            `SLLI   : aluout = alu1 << shamt;
-            `SRLI   : aluout = alu1 >> shamt;
-            `SRAI   : aluout = signalu1 >>> shamt;
-            `IMM    : aluout = ex2id_i.imm;
-            `BEQ    : aluout = {31'h0, (alu1 == alu2)};  // 1: pc + imm; 0: pc + 4
-            `BNE    : aluout = {31'h0, (alu1 != alu2)};  // 1: pc + imm; 0: pc + 4
-            `BGE    : aluout = {31'h0, (signalu1 >= signalu2)};
-            `BGEU   : aluout = {31'h0, (alu1 >= alu2)};
-            default : aluout = `DATA_BITS'h0;
+            `ADD      : aluout = alu1 + alu2; 
+            `SUB      : aluout = alu1 - alu2;
+            `SLL      : aluout = alu1 << alu2[4:0];   
+            `SLT      : aluout = {31'h0, (signalu1 < signalu2)};
+            `SLTU     : aluout = {31'h0, (alu1 < alu2)};
+            `XOR      : aluout = alu1 ^ alu2;
+            `SRL      : aluout = alu1 >> alu2[4:0];
+            `SRA      : aluout = signalu1 >>> alu2[4:0];
+            `OR       : aluout = alu1 | alu2;
+            `AND      : aluout = alu1 & alu2;
+            `SLLI     : aluout = alu1 << shamt;
+            `SRLI     : aluout = alu1 >> shamt;
+            `SRAI     : aluout = signalu1 >>> shamt;
+            `IMM      : aluout = ex2id_i.imm;
+            `PCADDIMM : aluout = pc_imm_o;
+            `BEQ      : aluout = {31'h0, (alu1 == alu2)};  // 1: pc + imm; 0: pc + 4
+            `BNE      : aluout = {31'h0, (alu1 != alu2)};  // 1: pc + imm; 0: pc + 4
+            `BGE      : aluout = {31'h0, (signalu1 >= signalu2)};
+            `BGEU     : aluout = {31'h0, (alu1 >= alu2)};
+            default   : aluout = `DATA_BITS'h0;
         endcase
     end
 // }}}
