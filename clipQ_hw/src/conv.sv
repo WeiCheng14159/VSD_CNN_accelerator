@@ -239,7 +239,7 @@ module  conv(
 		if(~rst)
 			bias_intf.addr <= 32'b0;
 		else if((CurrentState == load_bias_state) & (counter == 1'b0))
-			bias_intf.addr <= bias_intf.addr + 3'h4;
+			bias_intf.addr <= bias_intf.addr + 3'h1;
 	end
 
 	always_ff @(posedge clk or negedge rst) begin
