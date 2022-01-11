@@ -1,11 +1,11 @@
 `include "Bias_SRAM/SRAM_32b_384w_2k.sv"
-`include "ram_intf.sv"
+`include "sp_ram_intf.sv"
 
 // One 2kB SRAM
 
 module Bias_SRAM_2k (
     input logic         clk,
-    ram_intf.memory mem
+    sp_ram_intf.memory mem
 );
 
   logic         CK;
