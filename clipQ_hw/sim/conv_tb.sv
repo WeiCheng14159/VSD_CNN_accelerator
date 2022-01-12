@@ -1,4 +1,4 @@
-`timescale 1ns / 10ps
+`timescale 1ns / 1ns
 `define CYCLE 8.0 // Cycle time
 `define MAX 3000000 // Max cycle number
 
