@@ -38,6 +38,7 @@ module top_tb;
   logic rst;
   logic fin;
   logic start;
+  logic [1:0] kernel_size;
 
   logic signed [7:0] GOLDEN[200000:0];
   logic [31:0] param[3:0];
@@ -58,7 +59,7 @@ module top_tb;
 
   integer gf, i, num, slice;
   integer err, ret;
-  string prog_path;
+  string prog_path, layer_num;
   always #(`CYCLE / 2) clk = ~clk;
 
   conv TOP (
@@ -67,6 +68,7 @@ module top_tb;
       .w8(w8[0]),
       .start(start),
       .finish(fin),
+      .kernel_size(kernel_size),
       .param_intf(param_intf),
       .bias_intf(bias_intf),
       .weight_intf(weight_intf),
@@ -106,6 +108,12 @@ module top_tb;
     #1 rst = 0;
     #(`CYCLE) rst = 1;
     ret = $value$plusargs("prog_path=%s", prog_path);
+
+    layer_num = prog_path[prog_path.len()-1];
+    if (layer_num == "0" || layer_num == "3" || layer_num == "6")
+      kernel_size = 2'h3;
+    else  // kernel = 1x1
+      kernel_size = 2'h1;
 
     // Parameter
     $readmemh({prog_path, "/param.hex"}, param);
@@ -247,7 +255,7 @@ module top_tb;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    num = 2000;  // Check first 2000 data by default
+    num = 2;  // Check first 2000 data by default
     for (i = 0; i < num; i = i + 1) begin
       slice = i / `INOUT_BLOCK_WORD_SIZE;
       if (slice == 0)
