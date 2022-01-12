@@ -1,4 +1,3 @@
-`timescale 1ns / 1ns
 `define CYCLE 8.0 // Cycle time
 `define MAX 300000000 // Max cycle number
 
@@ -21,6 +20,7 @@
 `include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
 `include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
+`timescale 1ns / 1ns
 `endif
 
 `include "InOut_SRAM/InOut_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB)
@@ -30,8 +30,6 @@
 `include "Bias_SRAM/Bias_SRAM_2k.sv"  // Bias SRAM (2KB)
 `include "Param_SRAM/Param_SRAM_16B.sv"  // Param SRAM (16B)
 import conv_acc_pkg::*;
-
-`timescale 1ns / 10ps
 
 module top_tb;
 
@@ -270,7 +268,7 @@ module top_tb;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    num = 2000;  // Check first 2000 data by default
+    // num = 2000;  // Check first 2000 data by default
     check(0, num, err);
     result(err, num);
     $finish;
