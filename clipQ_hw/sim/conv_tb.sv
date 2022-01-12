@@ -268,7 +268,7 @@ module top_tb;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    // num = 2000;  // Check first 2000 data by default
+    num = 2000;  // Check first 2000 data by default
     check(0, num, err);
     result(err, num);
     $finish;
