@@ -29,6 +29,7 @@
 `define WEIGHT_BLOCK_WORD_SIZE 16384
 `include "Bias_SRAM/Bias_SRAM_2k.sv"  // Bias SRAM (2KB)
 `include "Param_SRAM/Param_SRAM_16B.sv"  // Param SRAM (16B)
+import conv_acc_pkg::*;
 
 `timescale 1ns / 10ps
 
@@ -38,7 +39,7 @@ module top_tb;
   logic rst;
   logic fin;
   logic start;
-  logic [1:0] kernel_size;
+  conv_acc_mode_t conv_acc_mode;
 
   logic signed [7:0] GOLDEN[200000:0];
   logic [31:0] param[3:0];
@@ -59,7 +60,7 @@ module top_tb;
 
   integer gf, i, num, slice;
   integer err, ret;
-  string prog_path, layer_num;
+  string prog_path, layer, layer_num;
   always #(`CYCLE / 2) clk = ~clk;
 
   conv TOP (
@@ -68,7 +69,7 @@ module top_tb;
       .w8(w8[0]),
       .start(start),
       .finish(fin),
-      .kernel_size(kernel_size),
+      .mode(conv_acc_mode),
       .param_intf(param_intf),
       .bias_intf(bias_intf),
       .weight_intf(weight_intf),
@@ -109,11 +110,21 @@ module top_tb;
     #(`CYCLE) rst = 1;
     ret = $value$plusargs("prog_path=%s", prog_path);
 
+    layer = prog_path.substr(prog_path.len()-5, prog_path.len()-2);
     layer_num = prog_path[prog_path.len()-1];
-    if (layer_num == "0" || layer_num == "3" || layer_num == "6")
-      kernel_size = 2'h3;
-    else  // kernel = 1x1
-      kernel_size = 2'h1;
+    if(layer == "conv") begin
+      if (layer_num == "0" | layer_num == "3" | layer_num == "6") 
+        conv_acc_mode = CONV_3x3_MODE;
+      else
+        conv_acc_mode = CONV_1x1_MODE;
+    end else if(layer == "pool") begin
+      if(layer_num == "0" | layer_num == "1" | layer_num == "2") 
+        conv_acc_mode = MAX_POOL_MODE;
+      else
+        conv_acc_mode = IDLE_MODE;
+    end else begin
+      conv_acc_mode = IDLE_MODE; // Noting 
+    end    
 
     // Parameter
     $readmemh({prog_path, "/param.hex"}, param);
