@@ -1,3 +1,4 @@
+`timescale 1ns / 1ns
 `define CYCLE 8.0 // Cycle time
 `define MAX 300000000 // Max cycle number
 
@@ -20,7 +21,6 @@
 `include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
 `include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
-`timescale 1ns / 1ns
 `endif
 
 `include "InOut_SRAM/InOut_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB)
