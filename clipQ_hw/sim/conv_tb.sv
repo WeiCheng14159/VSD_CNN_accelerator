@@ -260,36 +260,25 @@ module top_tb;
       num = num + 1;
     end
     $fclose(gf);
+  end 
 
+  initial begin
     #20 start = 1;
     #(`CYCLE) start = 0;
     wait (fin);
     #(`CYCLE * 2) #20 $display("\nDone\n");
     err = 0;
-    num = 2;  // Check first 2000 data by default
-    for (i = 0; i < num; i = i + 1) begin
-      slice = i / `INOUT_BLOCK_WORD_SIZE;
-      if (slice == 0)
-        out = i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-      else if (slice == 1)
-        out = i_Output_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-      else if (slice == 2)
-        out = i_Output_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-      else if (slice == 3)
-        out = i_Output_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-      else if (slice == 4)
-        out = i_Output_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-      else if (slice == 5)
-        out = i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
-
-      if (out === GOLDEN[i] | (out+1) === GOLDEN[i] | (out-1) === GOLDEN[i]) begin
-        $display("DM[%4d] = %h, pass", i, out);
-      end else begin
-        $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
-        err = err + 1;
-      end
-    end
+    // num = 2000;  // Check first 2000 data by default
+    check(0, num, err);
     result(err, num);
+    $finish;
+  end
+
+  initial begin
+    #(`CYCLE * `MAX)
+    check(0, num, err);
+    result(err, num);
+    $display("SIM_END not finish!!!");
     $finish;
   end
 
@@ -322,7 +311,36 @@ module top_tb;
     // $fsdbDumpvars("+struct", "+mda", i_Weight_SRAM_180k);
     // $fsdbDumpvars("+struct", "+mda", i_Bias_SRAM_2k);
 `endif
-  end
+  end 
+
+  task check (input integer word_begin, input integer word_end, output integer err_cnt);
+    begin
+      err_cnt = 0;
+      for (i = word_begin; i < word_end; i = i + 1) begin
+        slice = i / `INOUT_BLOCK_WORD_SIZE;
+        if (slice == 0)
+          out = i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+        else if (slice == 1)
+          out = i_Output_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+        else if (slice == 2)
+          out = i_Output_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+        else if (slice == 3)
+          out = i_Output_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+        else if (slice == 4)
+          out = i_Output_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+        else if (slice == 5)
+          out = i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+
+        if (out === GOLDEN[i] | (out+1) === GOLDEN[i] | (out-1) === GOLDEN[i]) begin
+          $display("DM[%4d] = %h, pass", i, out);
+        end else begin
+          $display("DM[%4d] = %h, expect = %h", i, out, GOLDEN[i]);
+          err_cnt = err_cnt + 1;
+        end
+      end
+    end
+  endtask
+
 
   task result;
     input integer err;
