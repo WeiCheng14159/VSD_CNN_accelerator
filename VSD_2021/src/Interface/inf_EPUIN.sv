@@ -18,5 +18,5 @@ interface inf_EPUIN;
         // input web,
         input wdata
     );
-
+endinterface: inf_EPUIN
 `endif
