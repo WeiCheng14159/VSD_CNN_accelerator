@@ -24,7 +24,6 @@ module DMA (
     end
     assign int_o = dma_fin | latch_fin;
     
-
     // output 
     // assign int_o = 0;
     // assign m2axi_o.arid    = `AXI_ID_BITS'h0;

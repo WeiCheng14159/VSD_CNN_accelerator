@@ -9,7 +9,7 @@ config_rtlds -rule  -disable -tag { IDN_NR_SVKY ARY_MS_DRNG IDN_NR_AMKY IDN_NR_C
 config_rtlds -rule  -disable -tag { REG_NR_RWRC }
 # vsd2018_constrain //
 
-analyze -sv +incdir+../include+../src/AHB ../src/top.sv
+analyze -sv +incdir+../include+../src/AXI ../src/top.sv
 elaborate -bbox true -top top
 
 # Setup clock and reset

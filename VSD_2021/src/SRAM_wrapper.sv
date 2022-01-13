@@ -8,11 +8,8 @@ module SRAM_wrapper(
     inf_Slave.S2AXIout s2axi_o
 );
 
-    parameter IDLE  = 3'h0,
-              R_CH  = 3'h1,
-              W_CH  = 3'h2,
-              B_CH  = 3'h3;
-    logic [2:0] STATE, NEXT;
+    localparam IDLE  = 2'h0, R_CH  = 2'h1, W_CH  = 2'h2, B_CH  = 2'h3;
+    logic [1:0] STATE, NEXT;
     // Handshake
     logic awhns, arhns, whns, rhns, bhns;
     logic rdfin, wrfin;
@@ -37,8 +34,8 @@ module SRAM_wrapper(
     logic [`AXI_STRB_BITS -1:0] wstrb;
     logic [`AXI_BURST_BITS-1:0] burst_r;
     logic rvalid;
-
     logic [`AXI_LEN_BITS-1:0] cnt;
+
     assign rdfin = s2axi_o.rlast & rhns;
     assign wrfin = s2axi_i.wlast & whns;
     assign awhns = s2axi_i.awvalid & s2axi_o.awready;
@@ -72,8 +69,8 @@ module SRAM_wrapper(
             awlen    <= `AXI_LEN_BITS'h0;
             wstrb    <= `AXI_STRB_BITS'h0;
             burst_r  <= `AXI_BURST_BITS'h0;
-            rvalid   <= 1'b0;
-            rdata    <= `AXI_DATA_BITS'h0;
+            // rvalid   <= 1'b0;
+            // rdata    <= `AXI_DATA_BITS'h0;
         end
         else begin
             // raddr    <= arhns ? s2axi_i.araddr[15:2] : raddr;
@@ -87,8 +84,8 @@ module SRAM_wrapper(
             awlen    <= awhns ? s2axi_i.awlen : awlen;
             wstrb    <= awhns ? s2axi_i.wstrb : wstrb;
             burst_r  <= awhns ? s2axi_i.awburst : arhns ? s2axi_i.arburst : burst_r;
-            rvalid   <= s2axi_o.rvalid;
-            rdata    <= (s2axi_o.rvalid & ~rvalid) ? DO : rdata;
+            // rvalid   <= s2axi_o.rvalid;
+            // rdata    <= (s2axi_o.rvalid & ~rvalid) ? DO : rdata;
         end
     end
 // }}}
@@ -135,62 +132,36 @@ module SRAM_wrapper(
     assign s2axi_o.rid = ids_r;
     assign s2axi_o.bid = ids_r;
     always_comb begin
+        s2axi_o.awready = 1'b0;
+        s2axi_o.arready = 1'b0;
+        s2axi_o.wready  = 1'b0;
         case (STATE)
-            IDLE    : begin
-                s2axi_o.awready = 1'b1;
-                s2axi_o.arready = ~s2axi_i.awvalid;
-                s2axi_o.wready  = 1'b0;
-            end
-            W_CH    : begin
-                s2axi_o.awready = 1'b0;
-                s2axi_o.arready = 1'b0;
-                s2axi_o.wready  = 1'b1;
-            end
-            B_CH    : begin
-                s2axi_o.awready = bhns;
-                s2axi_o.arready = 1'b0;
-                s2axi_o.wready  = 1'b0;
-            end
-            R_CH    : begin
-                s2axi_o.awready = rhns;
-                s2axi_o.arready = 1'b0;
-                s2axi_o.wready  = 1'b0;
-            end
-            default : begin
-                s2axi_o.awready = 1'b0;
-                s2axi_o.arready = 1'b0;
-                s2axi_o.wready  = 1'b0;
-            end
+            IDLE : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = {1'b1, ~s2axi_i.awvalid, 1'b0};
+            R_CH : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = {rhns, 2'b0};
+            W_CH : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b1;
+            B_CH : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = {bhns, 2'b0};
         endcase
     end
     always_comb begin
+        s2axi_o.rvalid = 1'b0;
+        s2axi_o.bvalid = 1'b0;
         case (STATE)
-            B_CH    : begin
-                s2axi_o.rvalid = 1'b0;
-                s2axi_o.bvalid = 1'b1;
-            end
-            R_CH    : begin
-                s2axi_o.rvalid = 1'b1;
-                s2axi_o.bvalid = 1'b0;
-            end
-            default : begin
-                s2axi_o.rvalid = 1'b0;
-                s2axi_o.bvalid = 1'b0;
-            end
+            B_CH : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b1;
+            R_CH : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b10;
         endcase
     end
 // }}}
 // {{{ SRAM
-    assign A_off = ~|cnt[1:0] ? (rhns ? cnt[1:0] + 2'h1 : cnt[1:0]) : cnt[1:0] + 2'h1;
+    // assign A_off = ~|cnt[1:0] ? (rhns ? cnt[1:0] + 2'h1 : cnt[1:0]) : cnt[1:0] + 2'h1;
     assign WEB = whns ? wweb : 4'hf;
     assign DI  = s2axi_i.wdata;
     always_ff @(posedge clk or negedge rst) begin
         if (~rst)               sram_a_r <= {SRAM_A_BITS{1'b0}};
         else if (awhns)         sram_a_r <= s2axi_i.awaddr[15:2];
-        else if (arhns)         sram_a_r <= s2axi_i.araddr[15:2];
+        else if (arhns)         sram_a_r <= s2axi_i.araddr[15:2] + {{(SRAM_A_BITS-1){1'b0}}, 1'b1};
         else if (wrfin | rdfin) sram_a_r <= {SRAM_A_BITS{1'b0}};
         else if (whns | rhns)   sram_a_r <= sram_a_r + {{(SRAM_A_BITS-1){1'b0}}, 1'b1};
-        else if (~bhns)         sram_a_r <= sram_a_r;
+        // else if (~bhns)         sram_a_r <= sram_a_r;
     end
 
     always_comb begin
@@ -213,7 +184,7 @@ module SRAM_wrapper(
     always_comb begin
         case (STATE)
             IDLE    : A = awhns ? s2axi_i.awaddr[15:2] : s2axi_i.araddr[15:2];
-            R_CH    : A = addr_r + {12'h0, A_off};
+            R_CH    : A = sram_a_r; //addr_r + {12'h0, A_off};
             W_CH    : A = sram_a_r;
             B_CH    : A = ~bhns ? addr_r : (awhns ? s2axi_i.awaddr[15:2] : s2axi_i.araddr[15:2]);
             default : A = 14'h0;
