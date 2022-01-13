@@ -3,6 +3,7 @@
 `include "conv_1x1.sv"
 `include "max_pool.sv"
 `include "bus_switcher.sv"
+`include "sp_ram_intf.sv"
 
 module conv
   import conv_acc_pkg::*;
