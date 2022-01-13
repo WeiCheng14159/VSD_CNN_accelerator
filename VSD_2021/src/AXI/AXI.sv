@@ -27,7 +27,9 @@ module AXI(
     inf_Slave.AXI2Sin   axi2s4_i,
     inf_Slave.AXI2Sout  axi2s4_o,
     inf_Slave.AXI2Sin   axi2s5_i,
-    inf_Slave.AXI2Sout  axi2s5_o
+    inf_Slave.AXI2Sout  axi2s5_o,
+    inf_Slave.AXI2Sin   axi2s6_i,
+    inf_Slave.AXI2Sout  axi2s6_o
 );
     //---------- you should put your design here ----------//
 
@@ -138,6 +140,14 @@ logic RREADY_SD;
         .burst_s5_o (axi2s5_o.arburst),
         .valid_s5_o (axi2s5_o.arvalid),
         .ready_s5_i (axi2s5_i.arready),
+        // S6
+        .id_s6_o    (axi2s6_o.arid   ),
+        .addr_s6_o  (axi2s6_o.araddr ),
+        .len_s6_o   (axi2s6_o.arlen  ),
+        .size_s6_o  (axi2s6_o.arsize ),
+        .burst_s6_o (axi2s6_o.arburst),
+        .valid_s6_o (axi2s6_o.arvalid),
+        .ready_s6_i (axi2s6_i.arready),
         // SD
         .id_sd_o    (ARID_SD   ),
         .addr_sd_o  (ARADDR_SD ),
@@ -214,6 +224,13 @@ logic RREADY_SD;
         .last_s5_i  (axi2s5_i.rlast ),
         .valid_s5_i (axi2s5_i.rvalid),
         .ready_s5_o (axi2s5_o.rready),
+        // S6
+        .id_s6_i    (axi2s6_i.rid   ),
+        .data_s6_i  (axi2s6_i.rdata ),
+        .resp_s6_i  (axi2s6_i.rresp ),
+        .last_s6_i  (axi2s6_i.rlast ),
+        .valid_s6_i (axi2s6_i.rvalid),
+        .ready_s6_o (axi2s6_o.rready),
         // SD
         .id_sd_i    (RID_SD   ),
         .data_sd_i  (RDATA_SD ),
@@ -290,6 +307,14 @@ logic RREADY_SD;
         .burst_s5_o (axi2s5_o.awburst),
         .valid_s5_o (axi2s5_o.awvalid),
         .ready_s5_i (axi2s5_i.awready),
+        // S6
+        .id_s6_o    (axi2s6_o.awid   ),
+        .addr_s6_o  (axi2s6_o.awaddr ),
+        .len_s6_o   (axi2s6_o.awlen  ),
+        .size_s6_o  (axi2s6_o.awsize ),
+        .burst_s6_o (axi2s6_o.awburst),
+        .valid_s6_o (axi2s6_o.awvalid),
+        .ready_s6_i (axi2s6_i.awready),
         // SD
         .id_sd_o    (AWID_SD   ),
         .addr_sd_o  (AWADDR_SD ),
@@ -351,6 +376,12 @@ logic RREADY_SD;
         .last_s5_o  (axi2s5_o.wlast ),
         .valid_s5_o (axi2s5_o.wvalid),
         .ready_s5_i (axi2s5_i.wready),
+        // s6
+        .data_s6_o  (axi2s6_o.wdata ),
+        .strb_s6_o  (axi2s6_o.wstrb ),
+        .last_s6_o  (axi2s6_o.wlast ),
+        .valid_s6_o (axi2s6_o.wvalid),
+        .ready_s6_i (axi2s6_i.wready),
         // SD
         .data_sd_o  (WDATA_SD ),
         .strb_sd_o  (WSTRB_SD ),
@@ -364,6 +395,7 @@ logic RREADY_SD;
         .awvalid_s3_i(axi2s3_o.awvalid),
         .awvalid_s4_i(axi2s4_o.awvalid),
         .awvalid_s5_i(axi2s5_o.awvalid),
+        .awvalid_s6_i(axi2s6_o.awvalid),
         .awvalid_sd_i(AWVALID_SD)
     );
 
@@ -410,6 +442,11 @@ logic RREADY_SD;
         .resp_s5_i  (axi2s5_i.bresp ),
         .valid_s5_i (axi2s5_i.bvalid),
         .ready_s5_o (axi2s5_o.bready),
+        // S6
+        .ids_s6_i   (axi2s6_i.bid   ),
+        .resp_s6_i  (axi2s6_i.bresp ),
+        .valid_s6_i (axi2s6_i.bvalid),
+        .ready_s6_o (axi2s6_o.bready),
         // SD
         .ids_sd_i   (BID_SD   ),
         .resp_sd_i  (BRESP_SD ),
@@ -450,6 +487,5 @@ logic RREADY_SD;
         .rvalid_o  (RVALID_SD ),
         .rready_i  (RREADY_SD )
     );
-
 
 endmodule

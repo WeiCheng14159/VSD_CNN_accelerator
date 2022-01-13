@@ -50,6 +50,12 @@ module W_ch (
     output logic                      last_s5_o,
     output logic                      valid_s5_o,
     input                             ready_s5_i,
+    // S6
+    output logic [`AXI_DATA_BITS-1:0] data_s6_o,
+    output logic [`AXI_STRB_BITS-1:0] strb_s6_o,
+    output logic                      last_s6_o,
+    output logic                      valid_s6_o,
+    input                             ready_s6_i,
     // SD
     output logic [`AXI_DATA_BITS-1:0] data_sd_o,
     output logic [`AXI_STRB_BITS-1:0] strb_sd_o,
@@ -63,6 +69,7 @@ module W_ch (
     input                             awvalid_s3_i,
     input                             awvalid_s4_i,
     input                             awvalid_s5_i,
+    input                             awvalid_s6_i,
     input                             awvalid_sd_i
 );
     logic [`AXI_SLAVE_BITS-1:0] slave;
@@ -100,6 +107,7 @@ module W_ch (
 // }}}
 // {{{ Slave
     assign awvalidin_s = {awvalid_sd_i,
+                          awvalid_s6_i,
                           awvalid_s5_i,
                           awvalid_s4_i,
                           awvalid_s3_i,
@@ -114,6 +122,8 @@ module W_ch (
             `AXI_SLAVE2        : ready_s = ready_s2_i;
             `AXI_SLAVE3        : ready_s = ready_s3_i;
             `AXI_SLAVE4        : ready_s = ready_s4_i;
+            `AXI_SLAVE5        : ready_s = ready_s5_i;
+            `AXI_SLAVE6        : ready_s = ready_s6_i;
             `AXI_DEFAULT_SLAVE : ready_s = ready_sd_i;
             default            : ready_s = 1'b1;
         endcase
@@ -123,12 +133,13 @@ module W_ch (
         if (~rst)
             wvalid_s <= `AXI_SLAVE_BITS'b0;
         else begin
-            for (i = 0; i < `AXI_SLAVE_BITS; i = i + 1)
+            for (i = 0; i < `AXI_SLAVE_BITS; i++)
                 wvalid_s[i] <=  awvalidin_s[i] ? awvalidin_s[i] : free ? 1'b0 : wvalid_s[i];
         end
     end
 
     assign {valid_sd_o,
+            valid_s6_o,
             valid_s5_o,
             valid_s4_o,
             valid_s3_o,
@@ -160,6 +171,10 @@ module W_ch (
     assign data_s5_o = data_m;
     assign strb_s5_o = valid_s5_o ? strb_m : `AXI_STRB_BITS'hf;
     assign last_s5_o = last_m;
+    // S6
+    assign data_s6_o = data_m;
+    assign strb_s6_o = valid_s6_o ? strb_m : `AXI_STRB_BITS'hf;
+    assign last_s6_o = last_m;
     // SD
     assign data_sd_o = data_m;
     assign strb_sd_o = valid_sd_o ? strb_m : `AXI_STRB_BITS'hf;

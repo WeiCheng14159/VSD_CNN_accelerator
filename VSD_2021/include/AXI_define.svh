@@ -3,6 +3,7 @@
 
     `define AXI_ADDR_BITS 32
     `define AXI_DATA_BITS 32
+    
     // define MASTER
     `define AXI_MASTER_NUM     3
     `define AXI_MASTER_BITS    4
@@ -12,14 +13,16 @@
     `define AXI_MASTER2        `AXI_MASTER_BITS'h3
 
     // define SLAVE
-    `define AXI_SLAVE_BITS    7
+    `define AXI_SLAVE_BITS    8
     `define AXI_SLAVE0        `AXI_SLAVE_BITS'b1
     `define AXI_SLAVE1        `AXI_SLAVE_BITS'b10
     `define AXI_SLAVE2        `AXI_SLAVE_BITS'b100
     `define AXI_SLAVE3        `AXI_SLAVE_BITS'b1000
     `define AXI_SLAVE4        `AXI_SLAVE_BITS'b10000
     `define AXI_SLAVE5        `AXI_SLAVE_BITS'b100000
-    `define AXI_DEFAULT_SLAVE `AXI_SLAVE_BITS'b1000000
+    `define AXI_SLAVE6        `AXI_SLAVE_BITS'b1000000
+    `define AXI_DEFAULT_SLAVE `AXI_SLAVE_BITS'b10000000
+    `define d                 `AXI_SLAVE_BITS-1
 
     `define AXI_ID_BITS   4
     `define AXI_IDS_BITS  8

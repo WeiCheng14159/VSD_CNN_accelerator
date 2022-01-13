@@ -50,17 +50,18 @@ module DMA_master (
 
 
 // {{{ STATE
-    logic start;
+    // logic start;
 
-    always_ff @(posedge clk or posedge rst) begin
-        start <= rst ? 1'b0 : dma_en_i;
-    end
+    // always_ff @(posedge clk or posedge rst) begin
+    //     start <= rst ? 1'b0 : dma_en_i;
+    // end
     always_ff @(posedge clk or posedge rst) begin
         STATE <= rst ? IDLE : NEXT;
     end
     always_comb begin
         case (STATE)
-            IDLE    : NEXT = start       ? CHECK : IDLE;
+            // IDLE    : NEXT = start       ? CHECK : IDLE;
+            IDLE    : NEXT = dma_en_i    ? CHECK : IDLE;
             CHECK   : NEXT = |rem_qty_r  ? AR_CH : FIN;
             AR_CH   : NEXT = arhns       ? AW_CH : AR_CH;
             AW_CH   : NEXT = awhns       ? BUSY  : AW_CH;

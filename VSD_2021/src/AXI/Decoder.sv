@@ -11,6 +11,7 @@ module Decoder (
     input                             ready_s3_i,
     input                             ready_s4_i,
     input                             ready_s5_i,
+    input                             ready_s6_i,
     input                             ready_sd_i,
     output logic                      valid_s0_o,
     output logic                      valid_s1_o,
@@ -18,6 +19,7 @@ module Decoder (
     output logic                      valid_s3_o,
     output logic                      valid_s4_o,
     output logic                      valid_s5_o,
+    output logic                      valid_s6_o,
     output logic                      valid_sd_o,
     output logic                      readys_o
 );
@@ -27,6 +29,7 @@ module Decoder (
 
     assign readys_o = validm_i & ready_s;
     assign {valid_sd_o,
+            valid_s6_o,
             valid_s5_o,
             valid_s4_o,
             valid_s3_o,
@@ -66,9 +69,14 @@ module Decoder (
             ready_s    = ready_s5_i;
             valid_s[5] = validm_i;
         end
-        else begin
-            ready_s    = ready_sd_i;
+        // EPU
+        else if (addr_i > `AXI_ADDR_BITS'h4fff_ffff && addr_i < `AXI_ADDR_BITS'h8fff_ffff) begin
+            ready_s    = ready_s6_i;
             valid_s[6] = validm_i;
+        end
+        else begin
+            ready_s     = ready_sd_i;
+            valid_s[`d] = validm_i;
         end
     end
 

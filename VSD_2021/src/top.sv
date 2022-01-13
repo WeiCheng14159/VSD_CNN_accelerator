@@ -2,13 +2,14 @@
 `include "../include/AXI_define.svh"
 `include "./Interface/inf_Slave.sv"
 `include "./Interface/inf_Master.sv"
+`include "./AXI/AXI.sv"
 `include "./CPU_wrapper.sv"
 `include "./SRAM_wrapper.sv"
 `include "./ROM_wrapper.sv"
 `include "./SCtrl_wrapper.sv"
 `include "./DRAM_wrapper.sv"
-`include "./AXI/AXI.sv"
 `include "./DMA.sv"
+`include "./EPU_wrapper.sv"
 
 module top (
     input clk, rst,
@@ -31,7 +32,6 @@ module top (
     output logic [`DATA_BITS -1:0] DRAM_D
 );
 
-
     inf_Master master0();
     inf_Master master1();
     inf_Master master2();
@@ -41,6 +41,8 @@ module top (
     inf_Slave  slave3();
     inf_Slave  slave4();
     inf_Slave  slave5();
+    inf_Slave  slave6();
+
     // interrupt
     logic [`INT_BITS-1:0] interrupt;
     // logic int_taken;
@@ -54,29 +56,30 @@ always_ff @(posedge clk or posedge rst) begin
 end
 
     AXI AXI (
-        .ACLK     (clk             ),
-        .ARESETn  (~latch_rst      ),
-        .axi2m0_i (master0.AXI2Min ),
-        .axi2m0_o (master0.AXI2Mout),
-        .axi2m1_i (master1.AXI2Min ),
-        .axi2m1_o (master1.AXI2Mout),
-        .axi2m2_i (master2.AXI2Min ),
-        .axi2m2_o (master2.AXI2Mout),
-        .axi2s0_i (slave0.AXI2Sin  ),
-        .axi2s0_o (slave0.AXI2Sout ),
-        .axi2s1_i (slave1.AXI2Sin  ),
-        .axi2s1_o (slave1.AXI2Sout ),
-        .axi2s2_i (slave2.AXI2Sin  ),
-        .axi2s2_o (slave2.AXI2Sout ),
-        .axi2s3_i (slave3.AXI2Sin  ),
-        .axi2s3_o (slave3.AXI2Sout ),
-        .axi2s4_i (slave4.AXI2Sin  ),
-        .axi2s4_o (slave4.AXI2Sout ),
-        .axi2s5_i (slave5.AXI2Sin  ),
-        .axi2s5_o (slave5.AXI2Sout )
-    );
+        .ACLK      (clk              ),
+        .ARESETn   (~latch_rst       ),
+        .axi2m0_i  (master0.AXI2Min  ),
+        .axi2m0_o  (master0.AXI2Mout ),
+        .axi2m1_i  (master1.AXI2Min  ),
+        .axi2m1_o  (master1.AXI2Mout ),
+        .axi2m2_i  (master2.AXI2Min  ),
+        .axi2m2_o  (master2.AXI2Mout ),
+        .axi2s0_i  (slave0.AXI2Sin   ),
+        .axi2s0_o  (slave0.AXI2Sout  ),
+        .axi2s1_i  (slave1.AXI2Sin   ),
+        .axi2s1_o  (slave1.AXI2Sout  ),
+        .axi2s2_i  (slave2.AXI2Sin   ),
+        .axi2s2_o  (slave2.AXI2Sout  ),
+        .axi2s3_i  (slave3.AXI2Sin   ),
+        .axi2s3_o  (slave3.AXI2Sout  ),
+        .axi2s4_i  (slave4.AXI2Sin   ),
+        .axi2s4_o  (slave4.AXI2Sout  ),
+        .axi2s5_i  (slave5.AXI2Sin   ),
+        .axi2s5_o  (slave5.AXI2Sout  ),
+        .axi2s6_i  (slave6.AXI2Sin   ),
+        .axi2s6_o  (slave6.AXI2Sout  )
 
-    // assign int_taken = int_sctrl | int_dma;
+    );
 
     CPU_wrapper cpu_wrapper (
         .clk         (clk             ),
@@ -147,6 +150,13 @@ end
         .s2axi_i (slave5.S2AXIin  ),
         .s2axi_o (slave5.S2AXIout ),
         .int_o   (interrupt[0]    )
+    );
+
+    EPU_wrapper epu_wrapper (
+        .clk     (clk              ),
+        .rst     (latch_rst        ),
+        .s2axi_i (slave6.S2AXIin   ),
+        .s2axi_o (slave6.S2AXIout  )
     );
 
 endmodule
