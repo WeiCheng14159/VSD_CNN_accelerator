@@ -3,35 +3,35 @@
 module bus_switcher
   import conv_acc_pkg::*;
 (
-    input conv_acc_mode_t mode,
+    input  conv_acc_mode_t     mode,
     // External bus
-    input logic         clk,
-    sp_ram_intf.compute param_o,
-    sp_ram_intf.compute bias_o,
-    sp_ram_intf.compute weight_o,
-    sp_ram_intf.compute input_o,
-    sp_ram_intf.compute output_o,
+    input  logic               clk,
+           sp_ram_intf.compute param_o,
+           sp_ram_intf.compute bias_o,
+           sp_ram_intf.compute weight_o,
+           sp_ram_intf.compute input_o,
+           sp_ram_intf.compute output_o,
     // For 3x3 conv unit
-    output logic       gated_conv_3x3_clk,
-    sp_ram_intf.memory param_conv_3x3_i,
-    sp_ram_intf.memory bias_conv_3x3_i,
-    sp_ram_intf.memory weight_conv_3x3_i,
-    sp_ram_intf.memory input_conv_3x3_i,
-    sp_ram_intf.memory output_conv_3x3_i,
+    output logic               gated_conv_3x3_clk,
+           sp_ram_intf.memory  param_conv_3x3_i,
+           sp_ram_intf.memory  bias_conv_3x3_i,
+           sp_ram_intf.memory  weight_conv_3x3_i,
+           sp_ram_intf.memory  input_conv_3x3_i,
+           sp_ram_intf.memory  output_conv_3x3_i,
     // For 1x1 conv unit
-    output logic       gated_conv_1x1_clk,
-    sp_ram_intf.memory param_conv_1x1_i,
-    sp_ram_intf.memory bias_conv_1x1_i,
-    sp_ram_intf.memory weight_conv_1x1_i,
-    sp_ram_intf.memory input_conv_1x1_i,
-    sp_ram_intf.memory output_conv_1x1_i,
+    output logic               gated_conv_1x1_clk,
+           sp_ram_intf.memory  param_conv_1x1_i,
+           sp_ram_intf.memory  bias_conv_1x1_i,
+           sp_ram_intf.memory  weight_conv_1x1_i,
+           sp_ram_intf.memory  input_conv_1x1_i,
+           sp_ram_intf.memory  output_conv_1x1_i,
     // For max pooling unit
-    output logic       gated_maxpool_clk,
-    sp_ram_intf.memory param_maxpool_i,
-    sp_ram_intf.memory bias_maxpool_i,
-    sp_ram_intf.memory weight_maxpool_i,
-    sp_ram_intf.memory input_maxpool_i,
-    sp_ram_intf.memory output_maxpool_i
+    output logic               gated_maxpool_clk,
+           sp_ram_intf.memory  param_maxpool_i,
+           sp_ram_intf.memory  bias_maxpool_i,
+           sp_ram_intf.memory  weight_maxpool_i,
+           sp_ram_intf.memory  input_maxpool_i,
+           sp_ram_intf.memory  output_maxpool_i
 );
 
   logic conv_3x3_enb, conv_1x1_enb, maxpool_enb;
@@ -79,7 +79,7 @@ module bus_switcher
   always_comb begin
     bias_conv_1x1_i.R_data = 0;
     bias_conv_3x3_i.R_data = 0;
-    bias_maxpool_i.R_data  = 0;  
+    bias_maxpool_i.R_data  = 0;
     if (conv_1x1_enb) begin
       bias_conv_1x1_i.R_data = bias_o.R_data;
       bias_o.cs              = bias_conv_1x1_i.cs;
@@ -114,7 +114,7 @@ module bus_switcher
   always_comb begin
     weight_conv_1x1_i.R_data = 0;
     weight_conv_3x3_i.R_data = 0;
-    weight_maxpool_i.R_data  = 0;    
+    weight_maxpool_i.R_data  = 0;
     if (conv_1x1_enb) begin
       weight_conv_1x1_i.R_data = weight_o.R_data;
       weight_o.cs              = weight_conv_1x1_i.cs;
@@ -215,22 +215,22 @@ module bus_switcher
     end
   end
 
-  CG i_CG_conv_3x3(
-    .CK(clk),
-    .EN(conv_3x3_enb),
-    .CKEN(gated_conv_3x3_clk)
-  );
+  // CG i_CG_conv_3x3(
+  //   .CK(clk),
+  //   .EN(conv_3x3_enb),
+  //   .CKEN(gated_conv_3x3_clk)
+  // );
 
-  CG i_CG_conv_1x1(
-    .CK(clk),
-    .EN(conv_1x1_enb),
-    .CKEN(gated_conv_1x1_clk)
-  );
+  // CG i_CG_conv_1x1(
+  //   .CK(clk),
+  //   .EN(conv_1x1_enb),
+  //   .CKEN(gated_conv_1x1_clk)
+  // );
 
-  CG i_CG_maxpool(
-    .CK(clk),
-    .EN(maxpool_enb),
-    .CKEN(gated_maxpool_clk)
-  );
+  // CG i_CG_maxpool(
+  //   .CK(clk),
+  //   .EN(maxpool_enb),
+  //   .CKEN(gated_maxpool_clk)
+  // );
 
 endmodule
