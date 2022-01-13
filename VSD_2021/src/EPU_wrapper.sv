@@ -197,7 +197,7 @@ module EPU_wrapper (
 // {{{ I/O transpose 
     // Input  : 5000_0000 ~ 5000_ffff  mode (0: input, 1: output)
     // Output : 6000_0000 ~ 6000_ffff  mode (0: output, 1: input)
-    // AP     : 8000_0000 ~ 8fff_ffff  mode (0: idle, 1: activate)
+    // CONV   : 8000_0000 ~ 8fff_ffff  mode (0: idle, 1: activate)
 
     always_ff @(posedge clk or negedge rst) begin
         if (~rst)

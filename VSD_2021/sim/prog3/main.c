@@ -44,5 +44,8 @@ int main(void) {
 		tmp = 0;
 		}
 	}
+    
+    setCONV();
+
 	return 0;
 }
