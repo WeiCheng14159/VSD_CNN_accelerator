@@ -7,11 +7,11 @@ _TEST_SIZE = DEFINED(_TEST_SIZE) ? _TEST_SIZE : 0x1000;
  * Define memory layout
  ****************************************************************************/
 MEMORY {
-  rom    : ORIGIN = 0x00000000, LENGTH = 0x00004000
-  imem   : ORIGIN = 0x00010000, LENGTH = 0x00010000
-  dmem   : ORIGIN = 0x00020000, LENGTH = 0x00010000
-  dram_i : ORIGIN = 0x20000000, LENGTH = 0x00400000
-  dram_d : ORIGIN = 0x20400000, LENGTH = 0x00400000
+  rom : ORIGIN = 0x00000000, LENGTH = 0x00002000
+  imem : ORIGIN = 0x00010000, LENGTH = 0x00010000
+  dmem : ORIGIN = 0x00020000, LENGTH = 0x00010000
+  dram_i : ORIGIN = 0x20000000, LENGTH = 0x00100000
+  dram_d : ORIGIN = 0x20100000, LENGTH = 0x00100000
 }
 
 /* Specify the default entry point to the program */
@@ -25,11 +25,12 @@ SECTIONS {
   .text0 : {
     setup.o(.text);
     boot.o(.text);
+    . = 0x00001000;
+    isr.o(.text);
   } > rom
 
   .text1 : {
     _imem_start = .;
-    isr.o(.text);
     *(.text);
     *(.text.*);
   } > imem AT > dram_i
