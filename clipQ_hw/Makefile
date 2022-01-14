@@ -62,7 +62,7 @@ rtl0: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer0 \
+	+prog_path=../data/conv0 \
 
 rtl1: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -71,7 +71,7 @@ rtl1: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer1 \
+	+prog_path=../data/conv1 \
 
 rtl2: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -80,7 +80,7 @@ rtl2: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer2 \
+	+prog_path=../data/conv2 \
 
 
 rtl3: $(BUILD)
@@ -90,7 +90,7 @@ rtl3: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer3 \
+	+prog_path=../data/conv3 \
 
 
 rtl4: $(BUILD)
@@ -100,7 +100,7 @@ rtl4: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer4 \
+	+prog_path=../data/conv4 \
 
 rtl5: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -109,7 +109,7 @@ rtl5: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer5 \
+	+prog_path=../data/conv5 \
 
 rtl6: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -118,7 +118,7 @@ rtl6: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer6 \
+	+prog_path=../data/conv6 \
 
 rtl7: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -127,7 +127,7 @@ rtl7: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer7 \
+	+prog_path=../data/conv7 \
 
 rtl8: $(BUILD)
 	cd $(BUILD_DIR); \
@@ -136,7 +136,35 @@ rtl8: $(BUILD)
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer8 \
+	+prog_path=../data/conv8 \
+
+# Run RTL simulation
+pool0: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool0 \
+
+pool1: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool1 \
+
+pool2: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool2 \
 
 # Run synthesize with Design Compiler
 synthesize: $(BUILD) syn_init
@@ -154,7 +182,7 @@ syn0: $(BUILD) syn_init
 	+nc64bit \
 	+access+r \
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/layer0 \
+	+prog_path=../data/conv0 \
 
 # Remove all files
 clean:
