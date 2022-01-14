@@ -1,4 +1,3 @@
-
 `include "conv_acc.svh"
 
 module conv_1x1(
