@@ -77,14 +77,16 @@ class QConv2d(nn.Module):
         x = self.conv(x)
 
         if self.w:
-            # for write output.hex
-            if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
-                out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
             # for write bias.hex
             if not os.path.exists('./H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1)):
                 fileW32(self.conv.bias.data, './H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1), 10)
 
         x = self.relu(x)
+
+        if self.w:
+            # for write output.hex
+            if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
+                out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
 
         return x
 
