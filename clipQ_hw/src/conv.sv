@@ -643,7 +643,7 @@ module  conv(
 	always_comb begin
 		case(CurrentState)
 			idle_state:begin
-				param_intf.cs = 1'b1;
+				param_intf.cs = 1'b0;
 				bias_intf.cs = 1'b0;
 				weight_intf.cs = 1'b0;
 				input_intf.cs = 1'b0;
