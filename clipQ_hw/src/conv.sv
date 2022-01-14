@@ -3,6 +3,7 @@
 `include "conv_1x1.sv"
 `include "max_pool.sv"
 `include "bus_switcher.sv"
+`include "sp_ram_intf.sv"
 
 module conv
   import conv_acc_pkg::*;
@@ -101,7 +102,7 @@ module conv
 
   conv_1x1 i_conv_1x1 (
       .rst(rst),
-      .clk(clk), // gated_conv_1x1_clk
+      .clk(clk),  // gated_conv_1x1_clk
       .w8(w8),
       .start(start_conv_1x1),
       .finish(finish_conv_1x1),
@@ -114,7 +115,7 @@ module conv
 
   conv_3x3 i_conv_3x3 (
       .rst(rst),
-      .clk(clk), // gated_conv_3x3_clk
+      .clk(clk),  // gated_conv_3x3_clk
       .w8(w8),
       .start(start_conv_3x3),
       .finish(finish_conv_3x3),
@@ -126,7 +127,7 @@ module conv
   );
 
   max_pool i_max_pool (
-      .clk(clk), // gated_maxpool_clk
+      .clk(clk),  // gated_maxpool_clk
       .rst(rst),
       .start(start_maxpool),
       .finish(finish_maxpool),
