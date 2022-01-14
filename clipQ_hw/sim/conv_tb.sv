@@ -29,6 +29,7 @@
 `define WEIGHT_BLOCK_WORD_SIZE 16384
 `include "Bias_SRAM/Bias_SRAM_2k.sv"  // Bias SRAM (2KB)
 `include "Param_SRAM/Param_SRAM_16B.sv"  // Param SRAM (16B)
+`include "sp_ram_intf.sv"
 import conv_acc_pkg::*;
 
 module top_tb;
