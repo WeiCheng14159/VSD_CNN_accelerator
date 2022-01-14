@@ -119,11 +119,12 @@ module L1C_data (
                 endcase
             end
             CHK     : begin
-                case ({c_write, hit})
-                    2'b11 : NEXT = WHIT;
-                    2'b10 : NEXT = WMISS;
-                    2'b01 : NEXT = FIN;   // RHIT
-                    2'b00 : NEXT = RMISS;
+                casez ({c_write, hit, ~cacheable})
+                    3'b11?  : NEXT = WHIT;
+                    3'b10?  : NEXT = WMISS;
+                    3'b001  : NEXT = NOUSE;
+                    3'b010  : NEXT = FIN;
+                    default : NEXT = RMISS;
                 endcase
             end
             WHIT    : NEXT = flag ? FIN : WHIT;
