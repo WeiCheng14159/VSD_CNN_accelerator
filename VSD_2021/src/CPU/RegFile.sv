@@ -7,6 +7,7 @@ module RegFile (
     input  [`DATA_BITS-1:0] rd_data_i,
     output [`DATA_BITS-1:0] rs1_data_o, rs2_data_o
 );
+
     logic [`DATA_BITS-1:0] x [0:`REG_NUMS-1];
     integer i;
     always @(posedge clk or posedge rst) begin
@@ -18,12 +19,9 @@ module RegFile (
         else if (wb_reg_wr_i && |rd_addr_i)
             x[rd_addr_i] <= rd_data_i;
     end
+    
     assign rs1_data_o = x[rs1_addr_i];
     assign rs2_data_o = x[rs2_addr_i];
-
-    logic [31:0] a4, a5;
-    assign a4 = x[14];
-    assign a5 = x[15];
 
 endmodule
 
