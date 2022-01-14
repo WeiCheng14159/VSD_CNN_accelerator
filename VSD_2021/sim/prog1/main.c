@@ -12,11 +12,12 @@ void copy () {
   for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
     *(copy_addr + i) = sensor_addr[i];
   }
+  // setDMA(sensor_addr, copy_addr, 64);
   copy_addr += sensor_size; // Update copy address
   copy_count++;    // Increase copy count
   sensor_addr[0x80] = 1; // Enable sctrl_clear
   sensor_addr[0x80] = 0; // Disable sctrl_clear
-  if (copy_count == 4) {
+  if (copy_count == 8) {
     asm("li t6, 0x80");
     asm("csrc mstatus, t6"); // Disable MPIE of mstatus
   }
@@ -53,22 +54,23 @@ int main(void) {
   asm("csrsi mstatus, 0x8"); // MIE of mstatus
 
   // Enable Local Interrupt
-  asm("li t6, 0x800");
-  asm("csrs mie, t6"); // MEIE of mie 
+  //asm("li t6, 0x800");
+  //asm("csrs mie, t6"); // MEIE of mie 
+  asm("csrsi mie, 0x800"); // MEIE of mie 
 
   // Enable Sensor Controller
   sensor_addr[0x40] = 1; // Enable sctrl_en
 
-  while (sort_count != 4) {
-    if (sort_count == copy_count) { // Sensor controller isn't ready
+  while (sort_count != 2) {
+    while (sort_count == copy_count / 4) { // Sensor controller isn't ready
       // Wait for interrupt of sensor controller
       asm("wfi");
       // Because there is only one interrupt source, we don't need to poll interrupt source
     }
 
     // Start sorting
-    sort(sort_addr, sensor_size);
-    sort_addr += sensor_size;
+    sort(sort_addr, sensor_size * 4);
+    sort_addr += sensor_size * 4;
     sort_count++;
   }
 

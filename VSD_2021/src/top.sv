@@ -48,7 +48,7 @@ module top (
     // logic int_taken;
     // logic int_sctrl;
     // logic int_dma;
-    assign interrupt[1] = 1'b0;
+    assign interrupt[2] = 1'b0;
 
 logic latch_rst;
 always_ff @(posedge clk or posedge rst) begin
@@ -124,7 +124,7 @@ end
         .sensor_ready_i (sensor_ready    ),
         .sensor_out_i   (sensor_out      ),
         .sensor_en_o    (sensor_en       ),
-        .sctrl_int_o    (int_sctrl       )
+        .sctrl_int_o    (interrupt[1]    )
     );
 
     DRAM_wrapper dram_wrapper (

@@ -20,7 +20,7 @@ module DMA (
     logic dma_fin, latch_fin;
 
     always_ff @(posedge clk or posedge rst) begin
-        latch_fin <= rst ? 1'b0 : dma_fin ? 1'b1 : dma_en ? 1'b0 : latch_fin;
+        latch_fin <= rst ? 1'b0 : dma_fin ? 1'b1 : dma_en ? 1'b0 : latch_fin ? 1'b0 : latch_fin;
     end
     assign int_o = dma_fin | latch_fin;
     
