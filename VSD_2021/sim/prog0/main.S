@@ -694,13 +694,13 @@ csrrw:
   sw t1, 0(s0)  # t1 = 0x800 (mie)
   addi s0, s0, 4   
   # mtvec 
-  #li t0, 0x000e50f0
-  #csrrw x0, mtvec, t0 # mtvec = 0x10000
-  #csrrw t2, mtvec, x0 # mtvec = 0x10000  t2 = 0x10000
-  #csrrw t3, mtvec, x0 # mtvec = 0x10000  t3 = 0x10000
-  #add t1, t2, t3  
-  #sw t1, 0(s0)  # t1 = 0x20000 (mtvec)
-  #addi s0, s0, 4   
+  li t0, 0x000e50f0
+  csrrw x0, mtvec, t0 # mtvec = 0x10000
+  csrrw t2, mtvec, x0 # mtvec = 0x10000  t2 = 0x10000
+  csrrw t3, mtvec, x0 # mtvec = 0x10000  t3 = 0x10000
+  add t1, t2, t3  
+  sw t1, 0(s0)  # t1 = 0x20000 (mtvec)
+  addi s0, s0, 4   
   # mepc  
   li t0, 0x000e50f0
   csrrw x0, mepc, t0 # mepc = 0x000e50f0
@@ -726,10 +726,10 @@ csrrwi:
   addi s0, s0, 4   
   
   # mtvec 
-  #csrrwi x0, mtvec, 0x0 # mtvec = 0x10000
-  #csrrw t1, mtvec, x0 # mtvec = 0x10000  t1 = 0x10000
-  #sw t1, 0(s0)  # t1 = 0x0010000 (mtvec)
-  #addi s0, s0, 4   
+  csrrwi x0, mtvec, 0x0 # mtvec = 0x10000
+  csrrw t1, mtvec, x0 # mtvec = 0x10000  t1 = 0x10000
+  sw t1, 0(s0)  # t1 = 0x0010000 (mtvec)
+  addi s0, s0, 4   
   
   # mepc  
   csrrwi x0, mepc, 0x10 # mepc = 0x10
