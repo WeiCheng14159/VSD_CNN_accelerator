@@ -138,6 +138,34 @@ rtl8: $(BUILD)
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
 	+prog_path=../data/conv8 \
 
+# Run RTL simulation
+pool0: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool0 \
+
+pool1: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool1 \
+
+pool2: $(BUILD)
+	cd $(BUILD_DIR); \
+	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+	+nc64bit \
+	+access+r \
+	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+	+prog_path=../data/pool2 \
+
 # Run synthesize with Design Compiler
 synthesize: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
