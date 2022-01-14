@@ -18,7 +18,7 @@ module EPU_wrapper (
     // output logic       epuint_o
 );
 
-/* 
+// /* 
     assign s2axi_o.rlast = 1'b1;
     assign s2axi_o.rresp = `AXI_RESP_OKAY;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
@@ -28,7 +28,8 @@ module EPU_wrapper (
     assign {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b0;
     assign {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
 
-*/
+// */
+/*
     localparam IDLE = 2'h0, R_CH = 2'h1, W_CH = 2'h2, B_CH = 2'h3;
     logic [1:0] STATE, NEXT;
     // Handshake
@@ -215,7 +216,7 @@ module EPU_wrapper (
     sp_ram_intf weight_intf();
     sp_ram_intf input_intf();
     sp_ram_intf output_intf();
-/*
+
     Input_wrapper input_wrapper (
         .clk          (clk              ),
         .rst          (rst              ),

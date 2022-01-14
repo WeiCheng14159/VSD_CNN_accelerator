@@ -70,6 +70,8 @@ module CSR (
     assign mret_o = csr2ex.mret;
     assign csr_en = csr_en_i & ~stall_o;
 
+
+
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             mstatus_r <= `DATA_BITS'h0;
