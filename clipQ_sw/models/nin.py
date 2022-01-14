@@ -77,14 +77,16 @@ class QConv2d(nn.Module):
         x = self.conv(x)
 
         if self.w:
-            # for write output.hex
-            if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
-                out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
             # for write bias.hex
             if not os.path.exists('./H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1)):
                 fileW32(self.conv.bias.data, './H_data/conv{:d}/Bias32.hex'.format(int(self.layer)-1), 10)
 
         x = self.relu(x)
+
+        if self.w:
+            # for write output.hex
+            if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
+                out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
 
         return x
 
@@ -102,14 +104,14 @@ class QMaxPool2d(nn.Module):
         if self.w:
             # for write input.hex
             if not os.path.exists('./H_data/pool{:d}/In8.hex'.format(int(self.layer))):
-                ch_fileW8(x[0], './H_data/pool{:d}/In8.hex'.format(int(self.layer)), 5)
+                out_ch_fileW8(x[0], './H_data/pool{:d}/In8.hex'.format(int(self.layer)), 5)
 
         x = self.MaxPool(x)
 
         if self.w:
             # for write Output.hex
             if not os.path.exists('./H_data/pool{:d}/Out8.hex'.format(int(self.layer))):
-                ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)), 5)
+                out_ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)), 5)
         return x
 
 
