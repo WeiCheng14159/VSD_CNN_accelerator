@@ -1,7 +1,7 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include "Param_SRAM/Param_SRAM_16B.sv"  // Param SRAM (16B)
+`include ".EPU/Param_SRAM_16B.sv"  // Param SRAM (16B)
 `include "ConvAcc.svh"
 
 module Param_wrapper (
