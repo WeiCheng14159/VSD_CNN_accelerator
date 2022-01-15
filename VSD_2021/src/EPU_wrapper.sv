@@ -31,7 +31,7 @@ module EPU_wrapper (
     logic awhns, arhns, whns, rhns, bhns;
     logic rdfin, wrfin;
     // Sample
-    logic [-1:0] addr_r;
+    logic [`AXI_ADDR_BITS -1:0] addr_r;
     logic [`AXI_IDS_BITS  -1:0] ids_r;
     logic [`AXI_LEN_BITS  -1:0] len_r;
     logic [`AXI_STRB_BITS -1:0] wstrb_r;
