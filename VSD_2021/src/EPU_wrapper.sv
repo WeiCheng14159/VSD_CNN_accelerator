@@ -13,10 +13,10 @@
 
 
 module EPU_wrapper (
-    input clk, rst,
+    input logic        clk, rst,
+    output logic       epuint_o,
     inf_Slave.S2AXIin  s2axi_i,
     inf_Slave.S2AXIout s2axi_o
-    // output logic       epuint_o
 );
 
     localparam IDLE = 2'h0, R_CH = 2'h1, W_CH = 2'h2, B_CH = 2'h3;
@@ -51,6 +51,8 @@ module EPU_wrapper (
     assign whns = s2axi_i.wvalid & s2axi_o.wready;
     assign rhns = s2axi_o.rvalid & s2axi_i.rready;
     assign bhns = s2axi_o.bvalid & s2axi_i.bready;
+    // Interrupt
+    assign epuint_o = conv_fin;
 
 // {{{ Sample
     always_ff @(posedge clk or negedge rst) begin
