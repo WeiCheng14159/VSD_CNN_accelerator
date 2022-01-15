@@ -25,7 +25,8 @@ SECTIONS {
   .text0 : {
     setup.o(.text);
     boot.o(.text);
-
+    . = 0x00001000;
+    isr0.o(.text);
   } > rom
 
   .text1 : {

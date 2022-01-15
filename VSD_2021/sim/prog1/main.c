@@ -12,7 +12,7 @@ void copy () {
   for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
     *(copy_addr + i) = sensor_addr[i];
   }
-  // setDMA(sensor_addr, copy_addr, 64);
+  // setDMA(sensor_addr, copy_addr, sensor_size);
   copy_addr += sensor_size; // Update copy address
   copy_count++;    // Increase copy count
   sensor_addr[0x80] = 1; // Enable sctrl_clear
@@ -25,7 +25,7 @@ void copy () {
 }
 
 /*****************************************************************
- * Function: void sort(int *, unsigned int)                                    *
+ * Function: void sort(int *, unsigned int)                      *
  * Description: Sorting data                                     *
  *****************************************************************/
 void sort(int *array, unsigned int size) {
@@ -65,7 +65,7 @@ int main(void) {
       asm("wfi");
       // Because there is only one interrupt source, we don't need to poll interrupt source
     }
-
+    // asm("wfi");
     // Start sorting
     sort(sort_addr, sensor_size * 4);
     sort_addr += sensor_size * 4;

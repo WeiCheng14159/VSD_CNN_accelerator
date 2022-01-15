@@ -30,7 +30,7 @@ module L1C_data (
     output logic [`DATA_BITS      -1:0] D_in,
     output logic [`CACHE_TYPE_BITS-1:0] D_type,
     // 
-    output logic arlenone_o
+    output logic                        arlenone_o
 );
 
     logic [`CACHE_IDX_BITS  -1:0] index;
@@ -111,7 +111,7 @@ module L1C_data (
             // INIT    : NEXT = core_req ? CHK : INIT;
             INIT    : begin
                 casez ({core_req, core_write, valid[index], ~cacheable})
-                    4'b1001 : NEXT = NOUSE;
+                    // 4'b1001 : NEXT = CHK;
                     4'b110? : NEXT = WMISS;
                     4'b1000 : NEXT = RMISS;
                     4'b0??? : NEXT = INIT;
@@ -210,8 +210,6 @@ module L1C_data (
         end
     end
     // read hit, miss
-    // assign r_data = (STATE == RMISS) & flag ? DA_in : DA_out;
-    // assign read_data = r_data[{core_addr[3:2], 5'b0}+:32];
     always_comb begin
         case (STATE)
             CHK     : read_data = DA_out[{c_addr[3:2], 5'b0}+:32];
@@ -231,15 +229,15 @@ module L1C_data (
     end
 // }}}
 // {{{ CPU_wrapper
-    always_ff @(posedge clk or posedge rst) begin
-        arlenone_o <= rst ? 1'b0 : (STATE == CHK) ? (~c_write && ~hit && ~cacheable) : arlenone_o;
-    end
+
+    assign arlenone_o = ~cacheable;
     assign D_addr  = (STATE == RMISS) ? {c_addr[`DATA_BITS-1:4], 4'h0} : c_addr;
     assign D_type  = c_write ? c_type : `CACHE_WORD;
     assign D_in    = c_write ? c_in   : `DATA_BITS'h0;
     assign D_write = c_write;
     always_comb begin
         case (STATE)
+            CHK     : D_req = ~c_write && ~hit && ~cacheable;
             WMISS   : D_req = ~|cnt;
             WHIT    : D_req = ~|cnt;
             RMISS   : D_req = ~flag;
