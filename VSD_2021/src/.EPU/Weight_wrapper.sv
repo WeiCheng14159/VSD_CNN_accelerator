@@ -1,7 +1,7 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include "Weight_SRAM/Weight_SRAM_180k.sv"  // Weight SRAM (180 KB)
+`include ".EPU/Weight_SRAM_180k.sv"  // Weight SRAM (180 KB)
 `include "ConvAcc.svh"
 
 module Weight_wrapper (

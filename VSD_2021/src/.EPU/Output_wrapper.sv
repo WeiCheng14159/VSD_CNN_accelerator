@@ -2,7 +2,7 @@
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
 `include "../Interface/sp_ram_intf.sv"
-`include "InOut_SRAM/InOut_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB)
+`include ".EPU/InOut_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB)
 `include "ConvAcc.svh"
 
 module Output_wrapper (

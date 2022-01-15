@@ -1,7 +1,7 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include "Bias_SRAM/Bias_SRAM_2k.sv"  
+`include ".EPU/Bias_SRAM_2k.sv"  
 
 module Bias_wrapper (
     input  logic                               clk,
