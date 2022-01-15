@@ -58,6 +58,7 @@ module Input_wrapper (
   always_comb begin
     bus2EPU.R_data = 0;
     rdata_o = 0;
+    rvalid_o = 1'b0;
     if (curr_state == EPU_RW) begin
       bus2EPU.R_data     = in_buff_bus.R_data;
       in_buff_bus.cs     = bus2EPU.cs;
@@ -67,6 +68,7 @@ module Input_wrapper (
       in_buff_bus.W_data = bus2EPU.W_data;
     end else if (curr_state == WRAPPER_R) begin
       rdata_o            = in_buff_bus.R_data;
+      rvalid_o           = 1'b1;
       in_buff_bus.cs     = epuin_i.CS;
       in_buff_bus.oe     = epuin_i.OE;
       in_buff_bus.addr   = epuin_i.addr;

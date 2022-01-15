@@ -30,6 +30,8 @@ module Bias_wrapper (
       .mem(bias_buff_bus)
   );
 
+  assign rvalid_o = 1'b0; // Bias wrapper is write only to EPU wrapper
+
   always_ff @(posedge clk, posedge rst) begin
     if (rst) curr_state <= IDLE;
     else curr_state <= next_state;
