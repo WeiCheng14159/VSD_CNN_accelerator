@@ -1,7 +1,7 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "ConvAcc.svh"
-`include ".EPU/ConvAcc.sv"
+`include "EPU/ConvAcc.sv"
 
 module ConvAcc_wrapper (
     input logic               clk,

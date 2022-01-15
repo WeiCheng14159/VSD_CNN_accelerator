@@ -3,13 +3,13 @@
 `include "./Interface/inf_Slave.sv"
 `include "./Interface/inf_EPUIN.sv"
 `include "./Interface/sp_ram_intf.sv"
-`include ".EPU/Input_wrapper.sv"
-`include ".EPU/Output_wrapper.sv"
-`include ".EPU/Bias_wrapper.sv"
-`include ".EPU/Weight_wrapper.sv"
-`include ".EPU/ConvAcc_wrapper.sv"
-`include ".EPU/InOut_switcher.sv"
-`include ".EPU/Param_wrapper.sv"
+`include "EPU/Input_wrapper.sv"
+`include "EPU/Output_wrapper.sv"
+`include "EPU/Bias_wrapper.sv"
+`include "EPU/Weight_wrapper.sv"
+`include "EPU/ConvAcc_wrapper.sv"
+`include "EPU/InOut_switcher.sv"
+`include "EPU/Param_wrapper.sv"
 
 
 module EPU_wrapper (
