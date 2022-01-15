@@ -52,11 +52,11 @@
 	`define MEIE  11
 
 	// Interrupt
-	`define INT_BITS     2
+	`define INT_BITS     3
 	`define INT_ID_BITS  2
 	`define INT_DMA      `INT_ID_BITS'h1
 	`define INT_SCTRL    `INT_ID_BITS'h2
-	`define INT_CONV     `INT_ID_BITS'h2
+	`define INT_CONV     `INT_ID_BITS'h3
 
 	// Register file
 	`define REG_NUMS      32

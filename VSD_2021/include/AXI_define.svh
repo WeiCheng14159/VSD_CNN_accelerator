@@ -14,6 +14,7 @@
 
     // define SLAVE
     `define AXI_SLAVE_BITS    8
+    // `define AXI_SLAVE_BITS    7
     `define AXI_SLAVE0        `AXI_SLAVE_BITS'b1
     `define AXI_SLAVE1        `AXI_SLAVE_BITS'b10
     `define AXI_SLAVE2        `AXI_SLAVE_BITS'b100
@@ -21,6 +22,7 @@
     `define AXI_SLAVE4        `AXI_SLAVE_BITS'b10000
     `define AXI_SLAVE5        `AXI_SLAVE_BITS'b100000
     `define AXI_SLAVE6        `AXI_SLAVE_BITS'b1000000
+    // `define AXI_DEFAULT_SLAVE `AXI_SLAVE_BITS'b1000000
     `define AXI_DEFAULT_SLAVE `AXI_SLAVE_BITS'b10000000
     `define d                 `AXI_SLAVE_BITS-1
 
