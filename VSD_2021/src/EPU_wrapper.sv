@@ -19,18 +19,6 @@ module EPU_wrapper (
     // output logic       epuint_o
 );
 
-/* 
-    assign s2axi_o.rlast = 1'b1;
-    assign s2axi_o.rresp = `AXI_RESP_OKAY;
-    assign s2axi_o.bresp = `AXI_RESP_OKAY;
-    assign s2axi_o.rdata = `AXI_DATA_BITS'h0; 
-    assign s2axi_o.rid   = `AXI_IDS_BITS'h0;
-    assign s2axi_o.bid   = `AXI_IDS_BITS'h0;
-    assign {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b0;
-    assign {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
-
-*/
-
     localparam IDLE = 2'h0, R_CH = 2'h1, W_CH = 2'h2, B_CH = 2'h3;
     logic [1:0] STATE, NEXT;
     // Handshake
@@ -51,7 +39,7 @@ module EPU_wrapper (
     logic [`DATA_BITS-1:0] in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
     logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
     logic in_trans, out_trans;
-    logic conv_start, conv_fin, conv_rst;
+    logic conv_start, conv_fin;
     logic  [`DATA_BITS-1:0] conv_w8;
     logic [3:0] conv_mode;
 
@@ -205,40 +193,28 @@ module EPU_wrapper (
 
 // }}}
 
-// {{{ I/O transpose 
-    // Input  : 5000_0000 ~ 5000_ffff  mode (0: input, 1: output)
-    // Output : 6000_0000 ~ 6000_ffff  mode (0: output, 1: input)
-    
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst)
-            {in_trans, out_trans} <= 2'b0;
-        else if (addr_r > `AXI_ADDR_BITS'h4fff_ffff && addr_r < `AXI_ADDR_BITS'h5001_0000)
-            in_trans <= s2axi_i.wdata[0];
-        else if (addr_r > `AXI_ADDR_BITS'h5fff_ffff && addr_r < `AXI_ADDR_BITS'h6001_0000)
-            out_trans <= s2axi_i.wdata[0];
-        else
-            {in_trans, out_trans} <= {in_trans, out_trans};
-    end
-// }}}
-    
 // {{{ ConvAcc control
-    // ConvAcc: 8000_0000 ~ 8fff_ffff  control registers 
+    // ConvAcc: 8000_0000 EPU W8
+    //          8000_0004 [  0] EPU start
+    //                    [4:1] EPU mode
+    //                    [  5] Input buffer transpose
+    //                    [  6] Output buffer transpose
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
-            {conv_start, conv_rst} <= 2'b0;
-            conv_w8 <= 32'h0; conv_mode <= 4'h0;
+            {in_trans, out_trans, conv_start} <= 3'b0;
+            conv_w8 <= 32'h0; 
+            conv_mode <= 4'h0;
         end else if (enb[5]) begin
             if (addr_r == `AXI_ADDR_BITS'h8000_0000)
                 conv_w8 <= s2axi_i.wdata;
-            else if (addr_r == `AXI_ADDR_BITS'h8000_0004)
-                conv_mode <= s2axi_i.wdata[3:0];
-            else if (addr_r == `AXI_ADDR_BITS'h8000_0008)
-                conv_rst <= s2axi_i.wdata[0];
-            else if (addr_r == `AXI_ADDR_BITS'h8000_000C)
-                conv_start <= s2axi_i.wdata[0];
+            else if (addr_r == `AXI_ADDR_BITS'h8000_0004) begin
+                {in_trans, out_trans, conv_start} <= {s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]};
+                conv_mode <= s2axi_i.wdata[4:1];
+            end
         end else begin
-            {conv_start, conv_rst} <= {conv_start, conv_rst};
-            conv_w8 <= conv_w8; conv_mode <= conv_mode;
+            {in_trans, out_trans, conv_start} <= {in_trans, out_trans, conv_start};
+            conv_w8 <= conv_w8; 
+            conv_mode <= conv_mode;
         end
     end
 // }}}
@@ -322,7 +298,7 @@ module EPU_wrapper (
     
     ConvAcc_wrapper i_ConvAcc_wrapper (
         .clk            (clk                    ),
-        .rst            (rst | conv_rst         ),
+        .rst            (rst                    ),
         .start_i        (conv_start             ),
         .mode_i         (conv_mode              ),
         .weight_w8_i    (conv_w8                ),
