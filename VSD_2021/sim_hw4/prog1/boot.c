@@ -60,18 +60,11 @@ void boot() {
     setDMA(&_dram_i_start, &_imem_start, quantity);
     quantity = (&__sdata_end - &__sdata_start );
     setDMA(&__sdata_paddr_start, &__sdata_start, quantity);
-    // quantity = (&__data_end - &__data_start);
-    // setDMA(&__data_paddr_start, &__data_start, quantity);
+    quantity = (&__data_end - &__data_start);
+    setDMA(&__data_paddr_start, &__data_start, quantity);
 
-    int i;
-    int len ;
-
-    len = (&__data_end) - (&__data_start) + 1;
-    for(i = 0; i < len; i++)
-        (&__data_start)[i] = (&__data_paddr_start)[i];
-
-    asm("li t6, 0x80");
-    asm("csrc mstatus, t6"); // Disable MPIE of mstatus
+    // asm("li t6, 0x80");
+    // asm("csrc mstatus, t6"); // Disable MPIE of mstatus
 
 }
 // */
