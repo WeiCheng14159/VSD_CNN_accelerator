@@ -1,4 +1,4 @@
-`include "sp_ram_intf.sv"
+`include "Interface/sp_ram_intf.sv"
 
 module Param_SRAM_16B (
     input logic         clk,
