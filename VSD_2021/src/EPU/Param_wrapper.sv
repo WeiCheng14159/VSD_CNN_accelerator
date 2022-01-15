@@ -1,10 +1,10 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include ".EPU/Weight_SRAM_180k.sv"  // Weight SRAM (180 KB)
+`include "EPU/Param_SRAM_16B.sv"  // Param SRAM (16B)
 `include "ConvAcc.svh"
 
-module Weight_wrapper (
+module Param_wrapper (
     input  logic                               clk,
     input  logic                               rst,
     input  logic                               enb_i,
@@ -21,14 +21,14 @@ module Weight_wrapper (
     EPU_RW    = 3'h1,
     // WRAPPER_R = 3'h2,
     WRAPPER_W = 3'h3
-  } weight_wrapper_state_t;
+  } param_wrapper_state_t;
 
-  weight_wrapper_state_t curr_state, next_state;
-  sp_ram_intf weight_buff_bus ();
+  param_wrapper_state_t curr_state, next_state;
+  sp_ram_intf param_buff_bus ();
 
-  Weight_SRAM_180k i_Weight_SRAM_180k (
+  Param_SRAM_16B i_Param_SRAM_16B (
       .clk(clk),
-      .mem(weight_buff_bus)
+      .mem(param_buff_bus)
   );
 
   always_ff @(posedge clk, posedge rst) begin
@@ -55,32 +55,32 @@ module Weight_wrapper (
     bus2EPU.R_data = 0;
     rdata_o = 0;
     if (curr_state == EPU_RW) begin
-      bus2EPU.R_data     = weight_buff_bus.R_data;
-      weight_buff_bus.cs     = bus2EPU.cs;
-      weight_buff_bus.oe     = bus2EPU.oe;
-      weight_buff_bus.addr   = bus2EPU.addr;
-      weight_buff_bus.W_req  = bus2EPU.W_req;
-      weight_buff_bus.W_data = bus2EPU.W_data;
+      bus2EPU.R_data     = param_buff_bus.R_data;
+      param_buff_bus.cs     = bus2EPU.cs;
+      param_buff_bus.oe     = bus2EPU.oe;
+      param_buff_bus.addr   = bus2EPU.addr;
+      param_buff_bus.W_req  = bus2EPU.W_req;
+      param_buff_bus.W_data = bus2EPU.W_data;
     // end else if (curr_state == WRAPPER_R) begin
-    //   rdata_o            = weight_buff_bus.R_data;
-    //   weight_buff_bus.cs     = epuin_i.CS;
-    //   weight_buff_bus.oe     = epuin_i.OE;
-    //   weight_buff_bus.addr   = epuin_i.addr;
-    //   weight_buff_bus.W_req  = `WRITE_DIS;
-    //   weight_buff_bus.W_data = 0;
+    //   rdata_o            = param_buff_bus.R_data;
+    //   param_buff_bus.cs     = epuin_i.CS;
+    //   param_buff_bus.oe     = epuin_i.OE;
+    //   param_buff_bus.addr   = epuin_i.addr;
+    //   param_buff_bus.W_req  = `WRITE_DIS;
+    //   param_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
       rdata_o            = 0;
-      weight_buff_bus.cs     = epuin_i.CS;
-      weight_buff_bus.oe     = epuin_i.OE;
-      weight_buff_bus.addr   = epuin_i.addr;
-      weight_buff_bus.W_req  = `WRITE_ENB;
-      weight_buff_bus.W_data = epuin_i.wdata;
+      param_buff_bus.cs     = epuin_i.CS;
+      param_buff_bus.oe     = epuin_i.OE;
+      param_buff_bus.addr   = epuin_i.addr;
+      param_buff_bus.W_req  = `WRITE_ENB;
+      param_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      weight_buff_bus.cs     = 1'b0;
-      weight_buff_bus.oe     = 1'b0;
-      weight_buff_bus.addr   = 0;
-      weight_buff_bus.W_req  = `WRITE_DIS;
-      weight_buff_bus.W_data = 0;
+      param_buff_bus.cs     = 1'b0;
+      param_buff_bus.oe     = 1'b0;
+      param_buff_bus.addr   = 0;
+      param_buff_bus.W_req  = `WRITE_DIS;
+      param_buff_bus.W_data = 0;
     end
   end
 

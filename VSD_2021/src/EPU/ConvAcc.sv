@@ -1,7 +1,7 @@
-`include ".EPU/Conv_3x3.sv"
-`include ".EPU/Conv_1x1.sv"
-`include ".EPU/Max_pool.sv"
-`include ".EPU/Conv_bus_switcher.sv"
+`include "EPU/Conv_3x3.sv"
+`include "EPU/Conv_1x1.sv"
+`include "EPU/Max_pool.sv"
+`include "EPU/Conv_bus_switcher.sv"
 `include "Interface/sp_ram_intf.sv"
 
 module ConvAcc
