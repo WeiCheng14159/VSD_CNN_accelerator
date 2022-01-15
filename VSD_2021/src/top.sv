@@ -48,8 +48,8 @@ module top (
     // logic int_taken;
     logic int_sctrl;
     logic int_dma;
-    logic epu_int;
-    assign interrupt = {1'b0,
+    logic int_epu;
+    assign interrupt = {int_epu,
                         int_sctrl,
                         int_dma};
 
