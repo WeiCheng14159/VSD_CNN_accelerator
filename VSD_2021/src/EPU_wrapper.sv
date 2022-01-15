@@ -39,8 +39,18 @@ module EPU_wrapper (
     // rlast
     logic [`AXI_LEN_BITS-1:0] cnt_r;
     // SRAM enable
-    logic [5:0] enb;
-    // 
+    localparam IN_SEL_B = 0, OUT_SEL_B = 1, WEIGHT_SEL_B = 2, BIAS_SEL_B = 3, PARAM_SEL_B = 4, EPU_CTRL_SEL_B = 5;
+    typedef enum logic [EPU_CTRL_SEL_B:0] {
+        SEL_NO          = 0,
+        IN_SEL          = 1 << IN_SEL_B, 
+        OUT_SEL         = 1 << OUT_SEL_B, 
+        WEIGHT_SEL      = 1 << WEIGHT_SEL_B, 
+        BIAS_SEL        = 1 << BIAS_SEL_B, 
+        PARAM_SEL       = 1 << PARAM_SEL_B, 
+        EPU_CTRL_SEL    = 1 << EPU_CTRL_SEL_B
+    } buffer_sel_t;
+
+    buffer_sel_t buffer_sel;
     inf_EPUIN EPUIN();
     logic [`DATA_BITS-1:0] in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
     logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
@@ -128,12 +138,12 @@ module EPU_wrapper (
     assign s2axi_o.bvalid = STATE == B_CH;
     assign s2axi_o.wready = STATE == W_CH;
     always_comb begin
-        case (enb)
-            5'b00001 : s2axi_o.rdata = in_rdata;
-            5'b00010 : s2axi_o.rdata = out_rdata;
-            5'b00100 : s2axi_o.rdata = bias_rdata;
-            5'b01000 : s2axi_o.rdata = weight_rdata;
-            5'b10000 : s2axi_o.rdata = param_rdata;
+        case (buffer_sel)
+            IN_SEL : s2axi_o.rdata = in_rdata;
+            OUT_SEL : s2axi_o.rdata = out_rdata;
+            WEIGHT_SEL : s2axi_o.rdata = weight_rdata;
+            BIAS_SEL : s2axi_o.rdata = bias_rdata;
+            PARAM_SEL : s2axi_o.rdata = param_rdata;
             default : s2axi_o.rdata = `DATA_BITS'h0;
         endcase
     end
@@ -148,14 +158,17 @@ module EPU_wrapper (
     end
 
     always_comb begin
-        case ({{STATE == R_CH}, enb})
-            6'b100001 : s2axi_o.rvalid = in_rvalid;
-            6'b100010 : s2axi_o.rvalid = out_rvalid;
-            6'b100100 : s2axi_o.rvalid = bias_rvalid;
-            6'b101000 : s2axi_o.rvalid = weight_rvalid;
-            6'b110000 : s2axi_o.rvalid = param_rvalid;
-            default  : s2axi_o.rvalid = 1'b0;
-        endcase
+        s2axi_o.rvalid = 1'b0;
+        if(STATE == R_CH) begin
+            case (buffer_sel)
+                IN_SEL : s2axi_o.rvalid = in_rvalid;
+                OUT_SEL : s2axi_o.rvalid = out_rvalid;
+                WEIGHT_SEL : s2axi_o.rvalid = weight_rvalid;
+                BIAS_SEL : s2axi_o.rvalid = bias_rvalid;
+                PARAM_SEL : s2axi_o.rvalid = param_rvalid;
+                default  : s2axi_o.rvalid = 1'b0;
+            endcase    
+        end
     end
 
 // }}}
@@ -180,21 +193,21 @@ module EPU_wrapper (
     // ConvAcc : 8000_0000 ~ 8fff_ffff
 
     always_comb begin
-        enb = 5'b0;
+        buffer_sel = SEL_NO;
         if (addr_r > `AXI_ADDR_BITS'h5000_ffff && addr_r < `AXI_ADDR_BITS'h6000_0000)
-            enb[0] = 1'b1;
+            buffer_sel = IN_SEL;
         else if (addr_r > `AXI_ADDR_BITS'h6000_ffff && addr_r < `AXI_ADDR_BITS'h7000_0000)
-            enb[1] = 1'b1;
+            buffer_sel = OUT_SEL;
         else if (addr_r > `AXI_ADDR_BITS'h6fff_ffff && addr_r < `AXI_ADDR_BITS'h7100_0000)
-            enb[2] = 1'b1;
+            buffer_sel = WEIGHT_SEL;
         else if (addr_r > `AXI_ADDR_BITS'h70ff_ffff && addr_r < `AXI_ADDR_BITS'h7200_0000)
-            enb[3] = 1'b1;
+            buffer_sel = BIAS_SEL;
         else if (addr_r > `AXI_ADDR_BITS'h71ff_ffff && addr_r < `AXI_ADDR_BITS'h7300_0000)
-            enb[4] = 1'b1;
+            buffer_sel = PARAM_SEL;
         else if (addr_r > `AXI_ADDR_BITS'h7fff_ffff && addr_r < `AXI_ADDR_BITS'h9000_0000)
-            enb[5] = 1'b1;
+            buffer_sel = EPU_CTRL_SEL;
         else 
-            enb = 5'b0;
+            buffer_sel = SEL_NO;
     end
     always_comb begin
         case (STATE)
@@ -219,7 +232,7 @@ module EPU_wrapper (
             {in_trans, out_trans, conv_start} <= 3'b0;
             conv_w8 <= 32'h0; 
             conv_mode <= 4'h0;
-        end else if (enb[5]) begin
+        end else if (buffer_sel == EPU_CTRL_SEL) begin
             if (addr_r == `AXI_ADDR_BITS'h8000_0000)
                 conv_w8 <= s2axi_i.wdata;
             else if (addr_r == `AXI_ADDR_BITS'h8000_0004) begin
@@ -245,7 +258,7 @@ module EPU_wrapper (
     Input_wrapper i_Input_wrapper (
         .clk          (clk              ),
         .rst          (rst              ),
-        .enb_i        (enb[0]           ),
+        .enb_i        (buffer_sel[IN_SEL_B]),
         // Connection to EPU wrapper (to AXI)       
         .epuin_i      (EPUIN.EPUin      ),
         .rvalid_o     (in_rvalid        ),
@@ -257,7 +270,7 @@ module EPU_wrapper (
     Output_wrapper i_Output_wrapper (
         .clk           (clk               ),
         .rst           (rst               ),
-        .enb_i         (enb[1]            ),
+        .enb_i         (buffer_sel[OUT_SEL_B]),
         // Connection to EPU wrapper (to AXI)         
         .epuin_i       (EPUIN.EPUin       ),
         .rvalid_o      (out_rvalid        ),
@@ -269,7 +282,7 @@ module EPU_wrapper (
     Weight_wrapper i_Weight_wrapper (
         .clk           (clk             ),
         .rst           (rst             ),
-        .enb_i         (enb[2]          ),
+        .enb_i         (buffer_sel[WEIGHT_SEL_B]),
         // Connection to EPU wrapper (to AXI)          
         .epuin_i       (EPUIN.EPUin     ),
         .rvalid_o      (weight_rvalid   ),
@@ -281,7 +294,7 @@ module EPU_wrapper (
     Bias_wrapper i_Bias_wrapper (
         .clk         (clk             ),
         .rst         (rst             ),
-        .enb_i       (enb[3]          ),
+        .enb_i       (buffer_sel[BIAS_SEL_B]),
         // Connection to EPU wrapper (to AXI)          
         .epuin_i     (EPUIN.EPUin     ),
         .rvalid_o    (bias_rvalid     ),
@@ -293,7 +306,7 @@ module EPU_wrapper (
     Param_wrapper i_Param_wrapper (
         .clk         (clk             ),
         .rst         (rst             ),
-        .enb_i       (enb[4]          ),
+        .enb_i       (buffer_sel[PARAM_SEL_B]),
         // Connection to EPU wrapper (to AXI)          
         .epuin_i     (EPUIN.EPUin     ),
         .rvalid_o    (param_rvalid    ),
