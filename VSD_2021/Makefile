@@ -37,13 +37,8 @@ $(syn_dir):
 $(pr_dir):
 	mkdir -p $(pr_dir))
 
-# AXI simulation
-vip_b: clean | $(bld_dir)
-	cd $(bld_dir); \
-	jg ../script/jg_bridge.tcl
-
 # RTL simulation
-rtl_all: clean rtl0 rtl1 rtl2
+rtl_all: clean rtl0 rtl1
 
 rtl0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
@@ -58,7 +53,7 @@ rtl0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+nc64bit \
+  +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
 rtl1: | $(bld_dir)
@@ -74,43 +69,11 @@ rtl1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-	+nc64bit \
+  +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
-rtl2: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog2/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+prog2$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-	+access+r \
-	+nc64bit \
-	+prog_path=$(root_dir)/$(sim_dir)/prog2
-
-rtl3: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog3/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+prog3$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-	+access+r \
-	+nc64bit \
-	+prog_path=$(root_dir)/$(sim_dir)/prog3
-
 # Post-Synthesis simulation
-syn_all: clean syn0 syn1 syn2
+syn_all: clean syn0 syn1
 
 syn0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
@@ -126,7 +89,7 @@ syn0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-    +nc64bit \
+	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
 syn1: | $(bld_dir)
@@ -143,44 +106,11 @@ syn1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
-syn2: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog2/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+SYN+prog2$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-    +nc64bit \
-	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog2
-
-syn3: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog3/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
-	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+SYN+prog3$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-	+access+r \
-    +nc64bit\
-	+prog_path=$(root_dir)/$(sim_dir)/prog3
-
 # Post-Layout simulation
-pr_all: clean pr0 pr1 pr2
+pr_all: clean pr0 pr1
 
 pr0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
@@ -196,6 +126,7 @@ pr0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
 pr1: | $(bld_dir)
@@ -212,39 +143,8 @@ pr1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
-
-pr2: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog2/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	-sdf_file $(root_dir)/$(pr_dir)/top_pr.sdf \
-	+incdir+$(root_dir)/$(pr_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+PR+prog2$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog2
-
-pr3: | $(bld_dir)
-	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
-		echo "Cycle time shouldn't exceed 20"; \
-		exit 1; \
-	fi; \
-	make -C $(sim_dir)/prog3/; \
-	cd $(bld_dir); \
-	irun $(root_dir)/$(sim_dir)/top_tb.sv \
-	-sdf_file $(root_dir)/$(pr_dir)/top_pr.sdf \
-	+incdir+$(root_dir)/$(pr_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
-	+define+PR+prog3$(FSDB_DEF) \
-	-define CYCLE=$(CYCLE) \
-	-define MAX=$(MAX) \
-	+access+r \
-	+prog_path=$(root_dir)/$(sim_dir)/prog3
 
 # Utilities
 nWave: | $(bld_dir)
@@ -263,7 +163,7 @@ dv: | $(bld_dir) $(syn_dir)
 synthesize: | $(bld_dir) $(syn_dir)
 	cp script/synopsys_dc.setup $(bld_dir)/.synopsys_dc.setup; \
 	cd $(bld_dir); \
-	dc_shell -no_home_init -f ../script/synthesis.tcl
+	dc_shell -gui -no_home_init -f ../script/synthesis.tcl
 
 innovus: | $(bld_dir) $(pr_dir)
 	cd $(bld_dir); \
@@ -349,4 +249,3 @@ clean:
 	rm -rf $(sim_dir)/prog*/result*.txt; \
 	make -C $(sim_dir)/prog0/ clean; \
 	make -C $(sim_dir)/prog1/ clean; \
-	make -C $(sim_dir)/prog2/ clean; \

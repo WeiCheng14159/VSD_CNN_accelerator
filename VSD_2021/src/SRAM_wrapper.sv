@@ -191,6 +191,18 @@ module SRAM_wrapper(
         endcase
     end
 // }}}
+
+    // logic [31:0] a;
+    // always_ff @(posedge clk or negedge rst) begin
+    //     if (~rst) a <= 32'h0;
+    //     else if (awhns) a<= s2axi_i.awaddr;
+    // end
+
+    // always_ff @(posedge clk) begin
+    //     if (whns && (a[31:16] == 16'h1))
+    //         $display("%h", DI);
+    // end
+
 // {{{ i_SRAM
     SRAM i_SRAM (
         .A0   (A[0]  ),

@@ -4,7 +4,6 @@ read_file -autoread -top top {../src ../include ../src/AXI}
 current_design top
 link
 uniquify
-set_fix_multiple_port_nets -all -buffer_constants [get_designs *]
 
 source ../script/DC.sdc
 
@@ -32,4 +31,3 @@ write_sdc -version 2.1 top.sdc
 report_timing > ../syn/timing.log
 report_area -h > ../syn/area.log
 
-exit
