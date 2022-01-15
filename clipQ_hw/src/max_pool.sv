@@ -14,8 +14,8 @@ module  max_pool(
 	sp_ram_intf.compute output_intf
 );
 
-	logic	[31:0]	num_row;
-	logic	[31:0]	num_channel;
+	logic	[5:0]	num_row;
+	logic	[7:0]	num_channel;
 	logic	[31:0]	kernel_size;
 	logic	[ 9:0]	num_input;
 	logic 	[31:0]	output_size;
