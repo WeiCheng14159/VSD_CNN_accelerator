@@ -1,5 +1,5 @@
 `include "Bias_SRAM/SRAM_32b_384w_2k.sv"
-`include "sp_ram_intf.sv"
+`include "Interface/sp_ram_intf.sv"
 
 // One 2kB SRAM
 

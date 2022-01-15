@@ -1,5 +1,7 @@
+`ifndef INOUT_SRAM_384k_SV
+`define INOUT_SRAM_384k_SV
 `include "InOut_SRAM/SRAM_16b_32768w_64k.sv"
-`include "sp_ram_intf.sv"
+`include "Interface/sp_ram_intf.sv"
 
 // Combine six 64kB SRAM into 384kB SRAM
 
@@ -67,3 +69,5 @@ module InOut_SRAM_384k (
   endgenerate
 
 endmodule
+
+`endif
