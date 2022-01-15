@@ -1,5 +1,5 @@
-// prog0
-/*
+// prog1
+// /*
 void boot() {
 	extern unsigned int _dram_i_start;   // instruction start address in DRAM
 	extern unsigned int _dram_i_end;     // instruction end address in DRAM
@@ -28,27 +28,8 @@ void boot() {
 	for(i = 0; i < len; i++)
 		(&__data_start)[i] = (&__data_paddr_start)[i];
 }
-*/
-// /*
-
-// void setDMA(int *source,int *dest,int quantity) {
-//     volatile int *_dma_i_start = (int *) 0x40000000;
-//     int tmpSource = (int)source;
-//     int tmpdest = (int)dest;
-//     // int tmplen = (int)quantity;
-//     while(quantity) {
-//         int x = quantity >= 255 ? 255: quantity;
-//         quantity -= x;
-//         *(_dma_i_start+0) = tmpSource;  
-//         *(_dma_i_start+1) = tmpdest;
-//         *(_dma_i_start+2) = x;
-//         *(_dma_i_start+3) = 1;  // Enable DMA
-//         asm("wfi");   
-//         tmpSource = tmpSource + (x << 2) + 4;
-//         tmpdest = tmpdest + (x << 2 ) + 4;
-//     }
-// }
-
+// */
+/*
 void setDMA(int *source, int *dest, int quantity) {
     volatile int *_dma_i_start = (int *) 0x40000000;
     *(_dma_i_start+0) = (int)source;  
@@ -59,15 +40,18 @@ void setDMA(int *source, int *dest, int quantity) {
 }
 
 void boot() {
-    extern int _dram_i_start; 
-    extern int _dram_i_end; 
-    extern int _imem_start;
-    extern int __sdata_paddr_start;
-    extern int __sdata_start;
-    extern int __sdata_end;
-    extern int __data_paddr_start;
-    extern int __data_start;
-    extern int __data_end;
+    extern unsigned int _dram_i_start;
+    extern unsigned int _dram_i_end;
+    extern unsigned int _imem_start;
+
+    extern unsigned int __sdata_start;
+    extern unsigned int __sdata_end;
+    extern unsigned int __sdata_paddr_start;
+
+    extern unsigned int __data_start;
+    extern unsigned int __data_end;
+    extern unsigned int __data_paddr_start;
+
 
     // Enable Global Interrupt
     asm("csrsi mstatus, 0x8"); // MIE of mstatus
@@ -83,4 +67,4 @@ void boot() {
     setDMA(&__data_paddr_start, &__data_start, quantity);
 
 }
-// */
+*/

@@ -5,19 +5,16 @@
 
 module SCtrl_wrapper(
     input clk, rst,
-    inf_Slave.S2AXIin  s2axi_i,
-    inf_Slave.S2AXIout s2axi_o,
+    inf_Slave.S2AXIin             s2axi_i,
+    inf_Slave.S2AXIout            s2axi_o,
     input                         sensor_ready_i,
     input        [`DATA_BITS-1:0] sensor_out_i,
     output logic                  sensor_en_o,
     output logic                  sctrl_int_o
 );
 
-    parameter IDLE  = 3'h0,
-                W_CH  = 3'h1,
-                B_CH  = 3'h2,
-                R_CH  = 3'h3;
-    logic [2:0] STATE, NEXT;
+    localparam IDLE = 2'h0, W_CH = 2'h1, B_CH = 2'h2, R_CH = 2'h3;
+    logic [1:0] STATE, NEXT;
     // Handshake
     logic awhns, arhns, whns, rhns, bhns;
     logic rdfin, wrfin;
@@ -33,7 +30,7 @@ module SCtrl_wrapper(
     logic [`AXI_LEN_BITS  -1:0] alen; //arlen, awlen;
     logic [`AXI_BURST_BITS-1:0] burst;
     logic rvalid;
-
+    // arlen, awlen
     logic [`AXI_LEN_BITS-1:0] cnt;
 
 // {{{ Handshake
@@ -65,7 +62,6 @@ module SCtrl_wrapper(
             alen   <= `AXI_LEN_BITS'h0;
             burst  <= `AXI_BURST_BITS'h0;
             rvalid <= 1'b0;
-            //rdata  <= `AXI_DATA_BITS'h0;
         end
         else begin
             addr   <= awhns ? s2axi_i.awaddr  : arhns ? s2axi_i.araddr : addr;
@@ -73,7 +69,6 @@ module SCtrl_wrapper(
             alen   <= awhns ? s2axi_i.awlen   : arhns ? s2axi_i.arlen : alen;
             burst  <= awhns ? s2axi_i.awburst : arhns ? s2axi_i.arburst : burst;
             rvalid <= s2axi_o.rvalid;
-            //rdata  <= (s2axi_o.rvalid & ~rvalid) ? sctrl_out : rdata;
         end
     end
 // {{{ STATE

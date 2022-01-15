@@ -1,5 +1,5 @@
 // prog1
-// /*
+/*
 void boot() {
 	extern unsigned int _dram_i_start;   // instruction start address in DRAM
 	extern unsigned int _dram_i_end;     // instruction end address in DRAM
@@ -28,8 +28,8 @@ void boot() {
 	for(i = 0; i < len; i++)
 		(&__data_start)[i] = (&__data_paddr_start)[i];
 }
-// */
-/*
+*/
+// /*
 void setDMA(int *source, int *dest, int quantity) {
     volatile int *_dma_i_start = (int *) 0x40000000;
     *(_dma_i_start+0) = (int)source;  
@@ -55,13 +55,30 @@ void boot() {
     // Enable Local Interrupt
     asm("li t6, 0x800");
     asm("csrs mie, t6"); // MEIE of mie
+    int quantity;
+    quantity = (&_dram_i_end - &_dram_i_start);
+    setDMA(&_dram_i_start, &_imem_start, quantity);
+    // quantity = (&__sdata_end - &__sdata_start );
+    // setDMA(&__sdata_paddr_start, &__sdata_start, quantity);
+    // quantity = (&__data_end - &__data_start);
+    // setDMA(&__data_paddr_start, &__data_start, quantity);
 
-    int quantity = (&_dram_i_end - &_dram_i_start);
-    setDMA(&_dram_i_start,&_imem_start,quantity);
+    int i;
+    int len ;
+    // setDMA(0, 0, 0);
+    // len = (&_dram_i_end) - (&_dram_i_start) + 1;
+    // for(i = 0; i < len; i++)
+    //     (&_imem_start)[i] = (&_dram_i_start)[i];
+
+
     quantity = (&__sdata_end - &__sdata_start );
     setDMA(&__sdata_paddr_start, &__sdata_start, quantity);
-    quantity = (&__data_end - &__data_start);
-    setDMA(&__data_paddr_start, &__data_start, quantity);
+    len = (&__data_end) - (&__data_start) + 1;
+    for(i = 0; i < len; i++)
+        (&__data_start)[i] = (&__data_paddr_start)[i];
+
+    asm("li t6, 0x80");
+    asm("csrc mstatus, t6"); // Disable MPIE of mstatus
 
 }
-*/
+// */

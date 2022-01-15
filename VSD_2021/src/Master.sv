@@ -103,7 +103,8 @@ module Master(
     end
 // }}}	
 
-    assign req_rd = (creq_i & ~cwrite_i) | arlenone_i;
+    // assign req_rd = (creq_i & ~cwrite_i) | arlenone_i;
+    assign req_rd = creq_i && ~cwrite_i;
     assign req_wr = creq_i & cwrite_i;
 
     logic [2:0] validout;
