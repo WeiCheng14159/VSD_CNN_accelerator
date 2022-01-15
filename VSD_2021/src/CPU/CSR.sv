@@ -54,6 +54,7 @@ module CSR (
     always_comb begin
         case (int_id_i)
             `INT_DMA   : csr_pc_o = `ADDR_BITS'h1_000;
+            `INT_EPU   : csr_pc_o = `ADDR_BITS'h1_000;
             `INT_SCTRL : csr_pc_o = {mtvec_r[`DATA_BITS-1:2], 2'h0};
             default    : csr_pc_o = `ADDR_BITS'h0;
         endcase
