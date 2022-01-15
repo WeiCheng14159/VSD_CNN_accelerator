@@ -40,7 +40,7 @@ module Decoder (
     always_comb begin
         valid_s = `AXI_SLAVE_BITS'b0;
         // ROM
-        if (addr_i >= `AXI_ADDR_BITS'h0 && addr_i < `AXI_ADDR_BITS'h2000) begin
+        if (addr_i >= `AXI_ADDR_BITS'h0 && addr_i < `AXI_ADDR_BITS'h4000) begin
             ready_s    = ready_s0_i;
             valid_s[0] = validm_i;
         end
