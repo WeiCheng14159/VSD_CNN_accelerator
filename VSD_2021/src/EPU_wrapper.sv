@@ -62,8 +62,8 @@ module EPU_wrapper (
     assign epuint_o = conv_fin;
 
 // {{{ Sample
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst) begin
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
             addr_r  <= `AXI_ADDR_BITS'h0;
             ids_r   <= `AXI_IDS_BITS'h0;
             len_r   <= `AXI_LEN_BITS'h0;
@@ -81,8 +81,8 @@ module EPU_wrapper (
 // }}}
 
 // {{{ STATE
-    always_ff@(posedge clk or negedge rst) begin
-        STATE <= ~rst ? IDLE : NEXT;
+    always_ff@(posedge clk or posedge rst) begin
+        STATE <= rst ? IDLE : NEXT;
     end
     always_comb begin
         case(STATE)
@@ -102,8 +102,8 @@ module EPU_wrapper (
 // }}}
 
 // {{{ Counter
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst)
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)
             cnt_r <= `AXI_LEN_BITS'h0;	
         else begin
             case (STATE)
@@ -157,8 +157,8 @@ module EPU_wrapper (
 
 
 // {{{ SRAM
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst)               EPUIN.addr <= {`EPU_ADDR_BITS{1'b0}};
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)               EPUIN.addr <= {`EPU_ADDR_BITS{1'b0}};
         else if (awhns)         EPUIN.addr <= s2axi_i.awaddr;
         else if (arhns)         EPUIN.addr <= s2axi_i.araddr + `EPU_ADDR_BITS'h1;//{{(`EPU_ADDR_BITS-1){1'b0}}, 1'b1};
         else if (wrfin | rdfin) EPUIN.addr <= {`EPU_ADDR_BITS{1'b0}};
@@ -209,8 +209,8 @@ module EPU_wrapper (
     //                    [4:1] EPU mode
     //                    [  5] Input buffer transpose
     //                    [  6] Output buffer transpose
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst) begin
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
             {in_trans, out_trans, conv_start} <= 3'b0;
             conv_w8 <= 32'h0; 
             conv_mode <= 4'h0;
