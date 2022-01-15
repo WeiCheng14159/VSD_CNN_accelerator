@@ -173,7 +173,7 @@ module DMA_master (
     // end
     // always_comb begin
     //     if (dma_en_i)
-    //         $display("src: %h, dst: %h\n--------------------------------------------------", src_addr_i, dst_addr_i);
+    //         $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
         
     // end
 
