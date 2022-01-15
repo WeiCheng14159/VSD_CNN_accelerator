@@ -29,9 +29,9 @@ parameter 	IDLE	 = 3'd0,
 			FIN		 = 3'd7;
 
 //parameter storage
-logic [31:0] num_row;
-logic [31:0] num_CH;
-logic [31:0] num_K;
+logic [5:0] num_row;
+logic [8:0] num_CH;
+logic [8:0] num_K;
 logic [31:0] w8_tmp;
 
 //bias
@@ -55,7 +55,7 @@ logic [15:0] output_wdata;
 
 //input size
 logic [31:0] total_elm;
-logic [31:0] input_2D_size;
+logic [10:0] input_2D_size;
 logic [31:0] input_size;
 
 //input number
