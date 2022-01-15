@@ -3,12 +3,13 @@
 `include "./Interface/inf_Slave.sv"
 `include "./Interface/inf_EPUIN.sv"
 `include "./Interface/sp_ram_intf.sv"
-// `include "./EPU/Input_wrapper.sv"
-// `include "./EPU/Output_wrapper.sv"
-// `include "./EPU/Bias_wrapper.sv"
-// `include "./EPU/Weight_wrapper.sv"
-// `include "./EPU/CONV_wrapper.sv"
-
+`include ".EPU/Input_wrapper.sv"
+`include ".EPU/Output_wrapper.sv"
+`include ".EPU/Bias_wrapper.sv"
+`include ".EPU/Weight_wrapper.sv"
+`include ".EPU/ConvAcc_wrapper.sv"
+`include ".EPU/InOut_switcher.sv"
+`include ".EPU/Param_wrapper.sv"
 
 
 module EPU_wrapper (
@@ -43,13 +44,15 @@ module EPU_wrapper (
     // rlast
     logic [`AXI_LEN_BITS-1:0] cnt_r;
     // SRAM enable
-    logic [3:0] enb;
+    logic [5:0] enb;
     // 
     inf_EPUIN EPUIN();
-    logic [`DATA_BITS-1:0] in_rdata, out_rdata, bias_rdata, weight_rdata;
-    logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid;
+    logic [`DATA_BITS-1:0] in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
+    logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
     logic in_trans, out_trans;
-    logic conv_start, conv_fin;
+    logic conv_start, conv_fin, conv_rst;
+    logic  [`DATA_BITS-1:0] conv_w8;
+    logic [3:0] conv_mode;
 
     // Handshake
     assign EPUIN.rdfin = s2axi_o.rlast & rhns;
@@ -121,10 +124,11 @@ module EPU_wrapper (
     assign s2axi_o.wready = STATE == W_CH;
     always_comb begin
         case (enb)
-            4'b0001 : s2axi_o.rdata = in_rdata;
-            4'b0010 : s2axi_o.rdata = out_rdata;
-            4'b0100 : s2axi_o.rdata = bias_rdata;
-            4'b1000 : s2axi_o.rdata = weight_rdata;
+            5'b00001 : s2axi_o.rdata = in_rdata;
+            5'b00010 : s2axi_o.rdata = out_rdata;
+            5'b00100 : s2axi_o.rdata = bias_rdata;
+            5'b01000 : s2axi_o.rdata = weight_rdata;
+            5'b10000 : s2axi_o.rdata = param_rdata;
             default : s2axi_o.rdata = `DATA_BITS'h0;
         endcase
     end
@@ -141,10 +145,11 @@ module EPU_wrapper (
     assign r_ch = STATE == R_CH;
     always_comb begin
         case ({r_ch, enb})
-            5'b10001 : s2axi_o.rvalid = in_rvalid;
-            5'b10010 : s2axi_o.rvalid = out_rvalid;
-            5'b10100 : s2axi_o.rvalid = bias_rvalid;
-            5'b11000 : s2axi_o.rvalid = weight_rvalid;
+            6'b100001 : s2axi_o.rvalid = in_rvalid;
+            6'b100010 : s2axi_o.rvalid = out_rvalid;
+            6'b100100 : s2axi_o.rvalid = bias_rvalid;
+            6'b101000 : s2axi_o.rvalid = weight_rvalid;
+            6'b110000 : s2axi_o.rvalid = param_rvalid;
             default  : s2axi_o.rvalid = 1'b0;
         endcase
     end
@@ -165,22 +170,27 @@ module EPU_wrapper (
     //          5001_0000 ~ 5fff_ffff
     // Output : 6000_0000 ~ 6000_ffff
     //          6001_0000 ~ 6fff_ffff
-    // Bias   : 7000_0000 ~ 73ff_ffff
-    // Weight : 7400_0000 ~ 7fff_ffff
-    // AP     : 8000_0000 ~ 8fff_ffff
+    // Weight  : 7000_0000 ~ 70ff_ffff
+    // Bias    : 7100_0000 ~ 71ff_ffff
+    // Param   : 7200_0000 ~ 72ff_ffff
+    // ConvAcc : 8000_0000 ~ 8fff_ffff
 
     always_comb begin
-        enb = 4'b0;
+        enb = 5'b0;
         if (addr_r > `AXI_ADDR_BITS'h5000_ffff && addr_r < `AXI_ADDR_BITS'h6000_0000)
             enb[0] = 1'b1;
         else if (addr_r > `AXI_ADDR_BITS'h6000_ffff && addr_r < `AXI_ADDR_BITS'h7000_0000)
             enb[1] = 1'b1;
-        else if (addr_r > `AXI_ADDR_BITS'h6fff_ffff && addr_r < `AXI_ADDR_BITS'h7400_0000)
+        else if (addr_r > `AXI_ADDR_BITS'h6fff_ffff && addr_r < `AXI_ADDR_BITS'h7100_0000)
             enb[2] = 1'b1;
-        else if (addr_r > `AXI_ADDR_BITS'h73ff_ffff && addr_r < `AXI_ADDR_BITS'h8000_0000)
+        else if (addr_r > `AXI_ADDR_BITS'h70ff_ffff && addr_r < `AXI_ADDR_BITS'h7200_0000)
             enb[3] = 1'b1;
+        else if (addr_r > `AXI_ADDR_BITS'h71ff_ffff && addr_r < `AXI_ADDR_BITS'h7300_0000)
+            enb[4] = 1'b1;
+        else if (addr_r > `AXI_ADDR_BITS'h7fff_ffff && addr_r < `AXI_ADDR_BITS'h9000_0000)
+            enb[5] = 1'b1;
         else 
-            enb = 4'b0;
+            enb = 5'b0;
     end
     always_comb begin
         case (STATE)
@@ -197,86 +207,121 @@ module EPU_wrapper (
 // {{{ I/O transpose 
     // Input  : 5000_0000 ~ 5000_ffff  mode (0: input, 1: output)
     // Output : 6000_0000 ~ 6000_ffff  mode (0: output, 1: input)
-    // CONV   : 8000_0000 ~ 8fff_ffff  mode (0: idle, 1: activate)
+    // ConvAcc: 8000_0000 ~ 8fff_ffff  control registers 
 
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)
-            {in_trans, out_trans, conv_start} <= 3'b0;
-        else if (addr_r > `AXI_ADDR_BITS'h4fff_ffff && addr_r < `AXI_ADDR_BITS'h5001_0000)
+        if (~rst) begin
+            {in_trans, out_trans, conv_start, conv_rst} <= 4'b0;
+            conv_w8 <= 32'h0; conv_w8 <= 32'h0; conv_mode <= 4'h0;
+        end else if (addr_r > `AXI_ADDR_BITS'h4fff_ffff && addr_r < `AXI_ADDR_BITS'h5001_0000)
             in_trans <= s2axi_i.wdata[0];
         else if (addr_r > `AXI_ADDR_BITS'h5fff_ffff && addr_r < `AXI_ADDR_BITS'h6001_0000)
             out_trans <= s2axi_i.wdata[0];
-        else if (addr_r > `AXI_ADDR_BITS'h7fff_ffff && addr_r < `AXI_ADDR_BITS'h9000_0000)
-            conv_start <= s2axi_i.wdata[0];
+        else if (enb[5]) begin
+            if (addr_r == `AXI_ADDR_BITS'h8000_0000)
+                conv_w8 <= s2axi_i.wdata;
+            else if (addr_r == `AXI_ADDR_BITS'h8000_0004)
+                conv_mode <= s2axi_i.wdata[3:0];
+            else if (addr_r == `AXI_ADDR_BITS'h8000_0008)
+                conv_rst <= s2axi_i.wdata[0];
+            else if (addr_r == `AXI_ADDR_BITS'h8000_000C)
+                conv_start <= s2axi_i.wdata[0];
+        end
     end
 // }}}
+    
+    sp_ram_intf param_bus2EPU();
+    sp_ram_intf bias_bus2EPU();
+    sp_ram_intf weight_bus2EPU();
+    sp_ram_intf in_bus2EPU();
+    sp_ram_intf out_bus2EPU();
+    sp_ram_intf EPU_in_bus();
+    sp_ram_intf EPU_out_bus();
 
-    sp_ram_intf bias_intf();
-    sp_ram_intf weight_intf();
-    sp_ram_intf input_intf();
-    sp_ram_intf output_intf();
-/*
-    Input_wrapper input_wrapper (
+    Input_wrapper i_Input_wrapper (
         .clk          (clk              ),
         .rst          (rst              ),
         .enb_i        (enb[0]           ),
-        .mode_i       (in_trans         ),
-        // EPU          
+        // Connection to EPU wrapper (to AXI)       
         .epuin_i      (EPUIN.EPUin      ),
         .rvalid_o     (in_rvalid        ),
         .rdata_o      (in_rdata         ),
-        // CONV
-        .input_intf_o (input_intf.memory)
+        // Connection to EPU
+        .bus2EPU      (in_bus2EPU       )
     );
-    Output_wrapper output_wrapper (
+
+    Output_wrapper i_Output_wrapper (
         .clk           (clk               ),
         .rst           (rst               ),
         .enb_i         (enb[1]            ),
-        .mode_i        (out_trans         ),
-        // EPU            
+        // Connection to EPU wrapper (to AXI)         
         .epuin_i       (EPUIN.EPUin       ),
         .rvalid_o      (out_rvalid        ),
         .rdata_o       (out_rdata         ),
-        // CONV            
-        .output_intf_o (output_intf.memory)
+        // Connection to EPU           
+        .bus2EPU       (out_bus2EPU       )
     );
-    Bias_wrapper bias_wrapper (
+
+    Weight_wrapper i_Weight_wrapper (
+        .clk           (clk             ),
+        .rst           (rst             ),
+        .enb_i         (enb[2]          ),
+        // Connection to EPU wrapper (to AXI)          
+        .epuin_i       (EPUIN.EPUin     ),
+        .rvalid_o      (weight_rvalid   ),
+        .rdata_o       (weight_rdata    ),
+        // Connection to EPU 
+        .bus2EPU       (weight_bus2EPU  )
+    );
+    
+    Bias_wrapper i_Bias_wrapper (
         .clk         (clk             ),
         .rst         (rst             ),
-        .enb_i       (enb[2]          ),
-        // EPU        
+        .enb_i       (enb[3]          ),
+        // Connection to EPU wrapper (to AXI)          
         .epuin_i     (EPUIN.EPUin     ),
         .rvalid_o    (bias_rvalid     ),
         .rdata_o     (bias_rdata      ),
-        // CONV   
-        .bias_intf_o (bias_intf.memory)
-    );
-    Weight_wrapper weight_wrapper (
-        .clk           (clk               ),
-        .rst           (rst               ),
-        .enb_i         (enb[3]            ),
-        // EPU          
-        .epuin_i       (EPUIN.EPUin       ),
-        .rvalid_o      (weight_rvalid     ),
-        .rdata_o       (weight_rdata      ),
-        // CONV          
-        .weight_intf_o (weight_intf.memory)
+        // Connection to EPU 
+        .bus2EPU     (bias_bus2EPU    )
     );
     
-    CONV_wrapper conv_wrapper (
-        .clk         (clk                ),
-        .rst         (rst                ),
-        .start_i     (conv_start         ),
-        // EPU
-        .epuin_i     (EPUIN.EPUin        ),
-        // CONV
-        .param_intf  (param_intf.compute ),
-        .bias_intf   (bias_intf.compute  ),
-        .weight_intf (weight_intf.compute),
-        .input_intf  (input_intf.compute ),
-        .output_intf (output_intf.compute),
-        .finish_o    (conv_fin           )
+    Param_wrapper i_Param_wrapper (
+        .clk         (clk             ),
+        .rst         (rst             ),
+        .enb_i       (enb[4]          ),
+        // Connection to EPU wrapper (to AXI)          
+        .epuin_i     (EPUIN.EPUin     ),
+        .rvalid_o    (param_rvalid    ),
+        .rdata_o     (param_rdata     ),
+        // Connection to EPU 
+        .bus2EPU     (param_bus2EPU   )
     );
 
-*/
+    InOut_switcher i_InOut_switcher(
+        .in_trans_i    (in_trans          ),
+        .out_trans_i   (out_trans         ),
+        .from_in_buff_i(in_bus2EPU        ),
+        .from_out_buff_i(out_bus2EPU      ),
+        .to_EPU_in_buff_o(EPU_in_bus      ),
+        .to_EPU_out_buff_o(EPU_out_bus    )
+    );
+    
+    ConvAcc_wrapper i_ConvAcc_wrapper (
+        .clk            (clk                    ),
+        .rst            (rst | conv_rst         ),
+        .start_i        (conv_start             ),
+        .mode_i         (conv_mode              ),
+        .weight_w8_i    (conv_w8                ),
+        .finish_o       (conv_fin               ),
+        // Connection to EPU wrapper (to AXI)   
+        .epuin_i        (EPUIN.EPUin            ),
+        // Connection to buffer wrappers    
+        .param_intf     (param_bus2EPU          ),
+        .bias_intf      (bias_bus2EPU           ),
+        .weight_intf    (weight_bus2EPU         ),
+        .input_intf     (EPU_in_bus             ),
+        .output_intf    (EPU_out_bus            )
+    );
+
 endmodule
