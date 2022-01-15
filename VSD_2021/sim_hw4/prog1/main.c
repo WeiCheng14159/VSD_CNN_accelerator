@@ -2,22 +2,24 @@ unsigned int *copy_addr; // = &_test_start;
 unsigned int copy_count = 0;
 const unsigned int sensor_size = 64;
 volatile unsigned int *sensor_addr = (int *) 0x10000000;
+extern void setDMA(unsigned int *source, unsigned int *dest, unsigned int quantity);
+  
 /*****************************************************************
  * Function: void copy()                                         *
  * Description: Part of interrupt service routine (ISR).         *
  *              Copy data from sensor controller to data memory. *
  *****************************************************************/
 void copy () {
-  // int i;
-  // for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
-  //   *(copy_addr + i) = sensor_addr[i];
-  // }
-  // setDMA(copy_addr, sensor_addr, sensor_size);
+  int i;
+  for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
+    *(copy_addr + i) = sensor_addr[i];
+  }
+  // setDMA(sensor_addr, 0x20000, sensor_size);
   copy_addr += sensor_size; // Update copy address
   copy_count++;    // Increase copy count
   sensor_addr[0x80] = 1; // Enable sctrl_clear
   sensor_addr[0x80] = 0; // Disable sctrl_clear
-  if (copy_count == 4) {
+  if (copy_count == 8) {
     asm("li t6, 0x80");
     asm("csrc mstatus, t6"); // Disable MPIE of mstatus
   }
@@ -25,7 +27,7 @@ void copy () {
 }
 
 /*****************************************************************
- * Function: void sort(int *, unsigned int)                                    *
+ * Function: void sort(int *, unsigned int)                      *
  * Description: Sorting data                                     *
  *****************************************************************/
 void sort(int *array, unsigned int size) {
@@ -52,7 +54,6 @@ int main(void) {
 
   // // Enable Global Interrupt
   // asm("csrsi mstatus, 0x8"); // MIE of mstatus
-
   // // Enable Local Interrupt
   // asm("li t6, 0x800");
   // asm("csrs mie, t6"); // MEIE of mie 
@@ -60,16 +61,15 @@ int main(void) {
   // Enable Sensor Controller
   sensor_addr[0x40] = 1; // Enable sctrl_en
 
-  while (sort_count != 4) {
-    if (sort_count == copy_count) { // Sensor controller isn't ready
+  while (sort_count != 2) {
+    while (sort_count == copy_count / 4) { // Sensor controller isn't ready
       // Wait for interrupt of sensor controller
       asm("wfi");
       // Because there is only one interrupt source, we don't need to poll interrupt source
     }
-
     // Start sorting
-    sort(sort_addr, sensor_size);
-    sort_addr += sensor_size;
+    sort(sort_addr, sensor_size * 4);
+    sort_addr += sensor_size * 4;
     sort_count++;
   }
 

@@ -1,12 +1,12 @@
 #####CLK PERIOD CAN BE ADJUSTED UP TO 20.0 IF SYNTHESIS GOES WRONG#####
-create_clock -name clk -period  8.0 [get_ports clk]
+create_clock -name clk -period 20.0 [get_ports clk]
 set_clock_uncertainty  0.1  [all_clocks]
 
-#####REMEMBER TO SET THIS MAX DELAY TO 1/2 CLK PERIOD#####
-set_input_delay  -max  4.0   -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
-set_input_delay  -min  0.0   -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
-set_output_delay -max  5.0   -clock clk [all_outputs]
-set_output_delay -min  0.0   -clock clk [all_outputs]
+#####Don't modify below setting#####
+set_input_delay  -max 1.0   -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
+set_input_delay  -min 0.0   -clock clk [remove_from_collection [all_inputs] [get_ports clk]]
+set_output_delay -max 1.0   -clock clk [all_outputs]
+set_output_delay -min 0.0   -clock clk [all_outputs]
 
 set_driving_cell -library fsa0m_a_t33_generic_io_ss1p62v125c -lib_cell XMD -pin {O} [all_inputs]
 #set_drive  0.1 [all_inputs]
