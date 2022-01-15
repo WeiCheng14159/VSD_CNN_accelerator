@@ -208,17 +208,26 @@ module EPU_wrapper (
 // {{{ I/O transpose 
     // Input  : 5000_0000 ~ 5000_ffff  mode (0: input, 1: output)
     // Output : 6000_0000 ~ 6000_ffff  mode (0: output, 1: input)
-    // ConvAcc: 8000_0000 ~ 8fff_ffff  control registers 
-
+    
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst) begin
-            {in_trans, out_trans, conv_start, conv_rst} <= 4'b0;
-            conv_w8 <= 32'h0; conv_w8 <= 32'h0; conv_mode <= 4'h0;
-        end else if (addr_r > `AXI_ADDR_BITS'h4fff_ffff && addr_r < `AXI_ADDR_BITS'h5001_0000)
+        if (~rst)
+            {in_trans, out_trans} <= 2'b0;
+        else if (addr_r > `AXI_ADDR_BITS'h4fff_ffff && addr_r < `AXI_ADDR_BITS'h5001_0000)
             in_trans <= s2axi_i.wdata[0];
         else if (addr_r > `AXI_ADDR_BITS'h5fff_ffff && addr_r < `AXI_ADDR_BITS'h6001_0000)
             out_trans <= s2axi_i.wdata[0];
-        else if (enb[5]) begin
+        else
+            {in_trans, out_trans} <= {in_trans, out_trans};
+    end
+// }}}
+    
+// {{{ ConvAcc control
+    // ConvAcc: 8000_0000 ~ 8fff_ffff  control registers 
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst) begin
+            {conv_start, conv_rst} <= 2'b0;
+            conv_w8 <= 32'h0; conv_mode <= 4'h0;
+        end else if (enb[5]) begin
             if (addr_r == `AXI_ADDR_BITS'h8000_0000)
                 conv_w8 <= s2axi_i.wdata;
             else if (addr_r == `AXI_ADDR_BITS'h8000_0004)
@@ -227,10 +236,13 @@ module EPU_wrapper (
                 conv_rst <= s2axi_i.wdata[0];
             else if (addr_r == `AXI_ADDR_BITS'h8000_000C)
                 conv_start <= s2axi_i.wdata[0];
+        end else begin
+            {conv_start, conv_rst} <= {conv_start, conv_rst};
+            conv_w8 <= conv_w8; conv_mode <= conv_mode;
         end
     end
 // }}}
-    
+
     sp_ram_intf param_bus2EPU();
     sp_ram_intf bias_bus2EPU();
     sp_ram_intf weight_bus2EPU();
