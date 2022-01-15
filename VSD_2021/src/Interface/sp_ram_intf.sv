@@ -1,6 +1,6 @@
 `ifndef SP_RAM_INTF_SV
 `define SP_RAM_INTF_SV
-`include "../../include/conv_acc.svh"
+`include "ConvAcc.svh"
 
 interface sp_ram_intf;
   logic cs;
