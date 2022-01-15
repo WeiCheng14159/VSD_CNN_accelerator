@@ -1,9 +1,10 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include "Bias_SRAM/Bias_SRAM_2k.sv"  
+`include "Param_SRAM/Param_SRAM_16B.sv"  // Param SRAM (16B)
+`include "ConvAcc.svh"
 
-module Bias_wrapper (
+module Param_wrapper (
     input  logic                               clk,
     input  logic                               rst,
     input  logic                               enb_i,
@@ -20,14 +21,14 @@ module Bias_wrapper (
     EPU_RW    = 3'h1,
     // WRAPPER_R = 3'h2,
     WRAPPER_W = 3'h3
-  } bias_wrapper_state_t;
+  } param_wrapper_state_t;
 
-  bias_wrapper_state_t curr_state, next_state;
-  sp_ram_intf bias_buff_bus ();
+  param_wrapper_state_t curr_state, next_state;
+  sp_ram_intf param_buff_bus ();
 
-  Bias_SRAM_2k i_Bias_SRAM_2k (
+  Param_SRAM_16B i_Param_SRAM_16B (
       .clk(clk),
-      .mem(bias_buff_bus)
+      .mem(param_buff_bus)
   );
 
   always_ff @(posedge clk, posedge rst) begin
@@ -54,32 +55,32 @@ module Bias_wrapper (
     bus2EPU.R_data = 0;
     rdata_o = 0;
     if (curr_state == EPU_RW) begin
-      bus2EPU.R_data     = bias_buff_bus.R_data;
-      bias_buff_bus.cs     = bus2EPU.cs;
-      bias_buff_bus.oe     = bus2EPU.oe;
-      bias_buff_bus.addr   = bus2EPU.addr;
-      bias_buff_bus.W_req  = bus2EPU.W_req;
-      bias_buff_bus.W_data = bus2EPU.W_data;
+      bus2EPU.R_data     = param_buff_bus.R_data;
+      param_buff_bus.cs     = bus2EPU.cs;
+      param_buff_bus.oe     = bus2EPU.oe;
+      param_buff_bus.addr   = bus2EPU.addr;
+      param_buff_bus.W_req  = bus2EPU.W_req;
+      param_buff_bus.W_data = bus2EPU.W_data;
     // end else if (curr_state == WRAPPER_R) begin
-    //   rdata_o            = bias_buff_bus.R_data;
-    //   bias_buff_bus.cs     = epuin_i.CS;
-    //   bias_buff_bus.oe     = epuin_i.OE;
-    //   bias_buff_bus.addr   = epuin_i.addr;
-    //   bias_buff_bus.W_req  = `WRITE_DIS;
-    //   bias_buff_bus.W_data = 0;
+    //   rdata_o            = param_buff_bus.R_data;
+    //   param_buff_bus.cs     = epuin_i.CS;
+    //   param_buff_bus.oe     = epuin_i.OE;
+    //   param_buff_bus.addr   = epuin_i.addr;
+    //   param_buff_bus.W_req  = `WRITE_DIS;
+    //   param_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
       rdata_o            = 0;
-      bias_buff_bus.cs     = epuin_i.CS;
-      bias_buff_bus.oe     = epuin_i.OE;
-      bias_buff_bus.addr   = epuin_i.addr;
-      bias_buff_bus.W_req  = `WRITE_ENB;
-      bias_buff_bus.W_data = epuin_i.wdata;
+      param_buff_bus.cs     = epuin_i.CS;
+      param_buff_bus.oe     = epuin_i.OE;
+      param_buff_bus.addr   = epuin_i.addr;
+      param_buff_bus.W_req  = `WRITE_ENB;
+      param_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      bias_buff_bus.cs     = 1'b0;
-      bias_buff_bus.oe     = 1'b0;
-      bias_buff_bus.addr   = 0;
-      bias_buff_bus.W_req  = `WRITE_DIS;
-      bias_buff_bus.W_data = 0;
+      param_buff_bus.cs     = 1'b0;
+      param_buff_bus.oe     = 1'b0;
+      param_buff_bus.addr   = 0;
+      param_buff_bus.W_req  = `WRITE_DIS;
+      param_buff_bus.W_data = 0;
     end
   end
 
