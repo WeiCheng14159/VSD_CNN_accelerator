@@ -24,7 +24,7 @@ parameter 	IDLE	 = 3'd0,
 			LD_BIAS	 = 3'd2,
 			LD_WT	 = 3'd3,
 			LD_I	 = 3'd4,
-			CAL		 = 3'd4,
+			CAL		 = 3'd5,
 			SW_O	 = 3'd6,
 			FIN		 = 3'd7;
 
@@ -72,8 +72,11 @@ logic [10:0] input_2D_cnt;
 //data_index
 logic [4:0] data_index;
 
+//last_addr
+logic last_addr;
+
 //parm
-assign param_intf.W_reg 	= `WRITE_DIS;
+assign param_intf.W_req 	= `WRITE_DIS;
 assign param_intf.W_data 	= 32'b0;
 assign param_intf.oe		= 1'b1;
 //Bias
@@ -99,11 +102,13 @@ logic [10:0] index;
 
 //FULL signal
 logic FULL;
-logic 2D_FULL;
+logic In_2D_FULL;
+logic In_2D_cnt_DLY;
 
 
 //last channel signal
 logic last_CH;
+logic [31:0] N_R_9;
 
 logic [2:0] STATE, NEXT;
 
@@ -112,8 +117,10 @@ always_ff@(posedge clk or negedge rst) begin
 	w8_tmp <= (~rst) ? 32'b0 : (start) ? w8 : w8_tmp;
 end
 
-assign FULL = index == input_2D_size;
-assign 2D_FULL = input_2D_cnt == input_2D_size;
+assign FULL = (index == input_2D_size);
+assign In_2D_FULL = (input_2D_cnt == input_2D_size);
+
+assign last_addr = (input_intf.addr == (total_elm - 32'b1));
 
 assign sum = output_intf.R_data[15:0] + partial_sum[0];
 
@@ -123,9 +130,11 @@ assign input_2D_size = num_row * num_row;
 assign input_size = num_row * num_row * CH_cnt;
 
 
-assign last_CH = (CH_cnt == (num_CH + 32'd3)) | (CH_cnt == (num_CH + 32'd2)) | (CH_cnt == (num_CH + 32'd6));
+assign N_R_9 = num_CH - 32'd9;
 
+assign last_CH = CH_cnt > N_R_9;
 
+assign In_2D_cnt_DLY = input_2D_cnt == (input_2D_size - 32'b1);
 
 always_ff@(posedge clk or negedge rst) begin
 	STATE <= (~rst)? IDLE : NEXT;
@@ -152,16 +161,21 @@ always_comb begin
 			NEXT = (state_cnt == 5'd1) ? SW_O : CAL;
 		end
 		SW_O	: begin
-			if((state_cnt == 5'd2) & (K_cnt == num_K) & last_CH & (input_intf.addr == (total_elm - 32'b1)))
+			if((state_cnt == 5'd2) & (K_cnt == num_K) & (last_CH) & (last_addr)) begin
 				NEXT = FIN;
-			else if((state_cnt == 5'd2) & last_CH & (input_intf.addr == (total_elm - 32'b1)))
+			end
+			else if((state_cnt == 5'd2) & (last_CH) & (last_addr)) begin
 				NEXT = LD_BIAS;
-			else if((state_cnt == 5'd2) & 2D_FULL)
+			end
+			else if((state_cnt == 5'd2) & (In_2D_FULL)) begin
 				NEXT = LD_WT;
-			else if(state_cnt == 5'd2)
+			end
+			else if(state_cnt == 5'd2) begin
 				NEXT = LD_I;
-			else
+			end
+			else begin
 				NEXT = SW_O;
+			end
 		end
 		FIN		: begin
 			NEXT = IDLE;
@@ -210,6 +224,7 @@ always_ff@(posedge clk or negedge rst) begin
 		end
 		else if (STATE == SW_O) begin
 			state_cnt <= (state_cnt == 5'd2) ? 5'd0 : state_cnt + 5'd1;
+		end
 	end
 end
 
@@ -217,13 +232,17 @@ end
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) CH_cnt <= 9'd0;
 	else if(STATE == LD_BIAS) CH_cnt <= 9'd0;
-	else if((STATE == SW_O) & (state_cnt == 5'd1)) CH_cnt <= FULL ? CH_cnt + 9'd9 : CH_cnt;
+	else if(STATE == SW_O) begin 
+		if (state_cnt == 5'd1) begin
+			CH_cnt <= FULL ? CH_cnt + 9'd9 : CH_cnt;
+		end
+	end
 end
 
 //kernel counter
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) K_cnt <= 10'b0;
-	else if ((STATE == LD_BIAS) & (state_cnt == 5'd1) begin
+	else if ((STATE == LD_BIAS) & (state_cnt == 5'd1)) begin
 		K_cnt <= K_cnt + 10'b1;
 	end
 end
@@ -232,14 +251,11 @@ end
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) input_2D_cnt <= 11'd0;
 	else if (STATE == LD_BIAS) input_2D_cnt <= 11'd0;
-	else if ((STATE == SW_O) begin
-		if (state_cnt == 5'd0)) input_2D_cnt <= input_2D_cnt + 11'd1;
-		else if(state_cnt == 5'd2) input_2D_cnt <= 2D_FULL ? 11'd0 : input_2D_cnt;
+	else if (STATE == SW_O) begin
+		if (state_cnt == 5'd1) input_2D_cnt <= input_2D_cnt + 11'd1;
+		else if(state_cnt == 5'd2) input_2D_cnt <= In_2D_FULL ? 11'd0 : input_2D_cnt;
 	end
 end
-
-
-
 //--------------------------------------------------------------//
 
 //load parameter
@@ -295,19 +311,26 @@ end
 
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) begin
-		for(i=0;i<9;i=i+1)
-			weight[i] <= 8'b0;
+		weight[0] <= 8'b0;
+		weight[1] <= 8'b0;
+		weight[2] <= 8'b0;
+		weight[3] <= 8'b0;
+		weight[4] <= 8'b0;
+		weight[5] <= 8'b0;
+		weight[6] <= 8'b0;
+		weight[7] <= 8'b0;
+		weight[8] <= 8'b0;
 	end
 	else if ((STATE == LD_WT) & (state_cnt == 5'd1)) begin
-		weight[0]	<= w8_temp[{weight_rdata[ 1: 0],3'b0} +: 8];
-		weight[1]	<= w8_temp[{weight_rdata[ 3: 2],3'b0} +: 8];
-		weight[2]	<= w8_temp[{weight_rdata[ 5: 4],3'b0} +: 8];
-		weight[3]	<= w8_temp[{weight_rdata[ 7: 6],3'b0} +: 8];
-		weight[4]	<= w8_temp[{weight_rdata[ 9: 8],3'b0} +: 8];
-		weight[5]	<= w8_temp[{weight_rdata[11:10],3'b0} +: 8];
-		weight[6]	<= w8_temp[{weight_rdata[13:12],3'b0} +: 8];
-		weight[7]	<= w8_temp[{weight_rdata[15:14],3'b0} +: 8];
-		weight[8]	<= w8_temp[{weight_rdata[17:16],3'b0} +: 8];
+		weight[0]	<= w8_tmp[{weight_rdata[ 1: 0],3'b0} +: 8];
+		weight[1]	<= w8_tmp[{weight_rdata[ 3: 2],3'b0} +: 8];
+		weight[2]	<= w8_tmp[{weight_rdata[ 5: 4],3'b0} +: 8];
+		weight[3]	<= w8_tmp[{weight_rdata[ 7: 6],3'b0} +: 8];
+		weight[4]	<= w8_tmp[{weight_rdata[ 9: 8],3'b0} +: 8];
+		weight[5]	<= w8_tmp[{weight_rdata[11:10],3'b0} +: 8];
+		weight[6]	<= w8_tmp[{weight_rdata[13:12],3'b0} +: 8];
+		weight[7]	<= w8_tmp[{weight_rdata[15:14],3'b0} +: 8];
+		weight[8]	<= w8_tmp[{weight_rdata[17:16],3'b0} +: 8];
 	end
 end
 //--------------------------------------------------------------//
@@ -322,8 +345,15 @@ end
 //Load input
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) begin
-		for(i=0;i<9;i=i+1)
-			data[i] <= 8'b0;
+		data[0] <= 8'b0;
+		data[1] <= 8'b0;
+		data[2] <= 8'b0;
+		data[3] <= 8'b0;
+		data[4] <= 8'b0;
+		data[5] <= 8'b0;
+		data[6] <= 8'b0;
+		data[7] <= 8'b0;
+		data[8] <= 8'b0;
 	end
 	else if (STATE == LD_I) begin 
 		data[data_index] <= input_rdata[7:0]; 
@@ -333,9 +363,9 @@ end
 //input number, check last few input channels
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) num_input <= 4'd0;
-	else if(STATE ==LD_PARM) num_input <= 4'd9;
+	else if(STATE ==LD_BIAS) num_input <= 4'd9;
 	else if((STATE == SW_O) & (state_cnt == 5'd2)) begin
-		if(CH_cnt > num_CH) begin
+		if(last_CH) begin
 			case(num_CH)
 				32'd160 : num_input <= 4'd7;
 				32'd192 : num_input <= 4'd3;
@@ -351,8 +381,8 @@ end
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) index <= 11'd0;
 	else if (STATE == LD_BIAS) index <= 11'd0;
-	else if ((STATE == SW_O) begin
-		if (state_cnt == 5'd0)) index <= index + 11'd1;
+	else if (STATE == SW_O) begin
+		if (state_cnt == 5'd0) index <= index + 11'd1;
 		else if (state_cnt == 5'd1) index <= FULL ? 11'd0 : index;
 	end
 end
@@ -361,8 +391,8 @@ end
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) input_intf.addr <= 32'b0;
 	else if(STATE == LD_BIAS) input_intf.addr <= 32'b0;
-	else if(STATE == LD_WT) begin
-		input_intf.addr <= input_intf.addr + input_2D_size;
+	else if(STATE == LD_I) begin
+		input_intf.addr <= (state_cnt > (num_input - 4'd2)) ?  input_intf.addr : input_intf.addr + input_2D_size;
 	end
 	else if(STATE == SW_O) begin
 		input_intf.addr <= (state_cnt == 5'd2) ? index + input_size : input_intf.addr;
@@ -375,8 +405,15 @@ end
 //--------------------------------------------------------------//
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) begin
-		for(i=0;i<9;i=i+1)
-			partial_sum[i] <= 32'b0;
+		partial_sum[0] <= 32'b0;
+		partial_sum[1] <= 32'b0;
+		partial_sum[2] <= 32'b0;
+		partial_sum[3] <= 32'b0;
+		partial_sum[4] <= 32'b0;
+		partial_sum[5] <= 32'b0;
+		partial_sum[6] <= 32'b0;
+		partial_sum[7] <= 32'b0;
+		partial_sum[8] <= 32'b0;
 	end
 	else if(STATE == CAL) begin
 		if(state_cnt == 5'd0) begin
@@ -409,11 +446,11 @@ end
 
 always_ff@(posedge clk or negedge rst) begin
 	if(~rst) output_intf.addr <= 32'b0;
-	else if((STATE == SW_O) & (state_cnt == 5'd0)) begin
-		if((index == (input_2D_size - 32'b1)) & (input_intf.addr == (total_elm - 32'b1)) begin //SW_O to LD_BIAS
+	else if((STATE == SW_O) & (state_cnt == 5'd1)) begin
+		if(In_2D_cnt_DLY & last_addr) begin //SW_O to LD_BIAS
 			output_intf.addr <= output_intf.addr + 32'b1;
 		end
-		else if (index == (input_2D_size - 32'b1)) begin //SW_O to LD_WT
+		else if (In_2D_cnt_DLY) begin //SW_O to LD_WT
 			output_intf.addr <= output_intf.addr - input_2D_size + 32'b1;
 		end
 		else //normal situation
@@ -423,17 +460,17 @@ end
 
 
 always_ff@(posedge clk or negedge rst) begin
-	if(~rst) output_wdata <= 8'b0;
-	else if((STATE == SW_O) & (state_cnt == 5'd0) begin
+	if(~rst) output_wdata <= 16'b0;
+	else if((STATE == SW_O) & (state_cnt == 5'd0)) begin
 		if(CH_cnt == 9'd0) begin
 			output_wdata <= bias[15:0] + partial_sum[0];
 		end
 		else if(last_CH) begin
 			if(sum[15]) begin
-				output_wdata <= (~&sum[15:12]) ? 8'h80 : sum[12:5] + 8'b1;
+				output_wdata <= 16'h0;
 			end
 			else begin
-				output_wdata <= (|sum[15:12]) ? 8'h7f : sum[12:5];
+				output_wdata <= (|sum[15:12]) ? 16'h7f : {8'b0 ,sum[12:5]};
 			end
 		end
 		else begin
