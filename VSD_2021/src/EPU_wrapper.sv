@@ -44,13 +44,20 @@ module EPU_wrapper (
     logic [3:0] conv_mode;
 
     // Handshake
-    assign EPUIN.rdfin = s2axi_o.rlast & rhns;
-    assign EPUIN.wrfin = s2axi_i.wlast & whns;
-    assign EPUIN.awhns = s2axi_i.awvalid & s2axi_o.awready;
-    assign EPUIN.arhns = s2axi_i.arvalid & s2axi_o.arready;
+    assign rdfin = s2axi_o.rlast & rhns;
+    assign wrfin = s2axi_i.wlast & whns;
+    assign awhns = s2axi_i.awvalid & s2axi_o.awready;
+    assign arhns = s2axi_i.arvalid & s2axi_o.arready;
     assign whns = s2axi_i.wvalid & s2axi_o.wready;
     assign rhns = s2axi_o.rvalid & s2axi_i.rready;
     assign bhns = s2axi_o.bvalid & s2axi_i.bready;
+    // EPU interface
+    assign EPUIN.rdfin = rdfin;
+    assign EPUIN.wrfin = wrfin;
+    assign EPUIN.awhns = awhns;
+    assign EPUIN.arhns = arhns;
+    assign EPUIN.wdata = s2axi_i.wdata;
+    
     // Interrupt
     assign epuint_o = conv_fin;
 
@@ -79,14 +86,14 @@ module EPU_wrapper (
     always_comb begin
         case(STATE)
             IDLE    : begin
-                case ({EPUIN.awhns, EPUIN.arhns})
+                case ({awhns, arhns})
                     2'b10   : NEXT = B_CH;
                     2'b01   : NEXT = R_CH;
                     default : NEXT = IDLE;
                 endcase
             end
-            R_CH    : NEXT = EPUIN.rdfin ? IDLE : R_CH;
-            W_CH    : NEXT = EPUIN.wrfin ? B_CH : W_CH;
+            R_CH    : NEXT = rdfin ? IDLE : R_CH;
+            W_CH    : NEXT = wrfin ? B_CH : W_CH;
             B_CH    : NEXT = bhns        ? IDLE : B_CH;
             default : NEXT = STATE;
         endcase
