@@ -50,7 +50,14 @@ module CSR (
 
 
     // pc
-    assign csr_pc_o    = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+    // assign csr_pc_o    = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+    always_comb begin
+        case (int_id_i)
+            `INT_DMA   : csr_pc_o = `ADDR_BITS'h1_000;
+            `INT_SCTRL : csr_pc_o = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+            default    : csr_pc_o = `ADDR_BITS'h0;
+        endcase
+    end
     assign csr_retpc_o = mepc_r;
 
 
@@ -63,12 +70,14 @@ module CSR (
     assign mret_o = csr2ex.mret;
     assign csr_en = csr_en_i & ~stall_o;
 
+
+
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             mstatus_r <= `DATA_BITS'h0;
             mie_r     <= `DATA_BITS'h0;
-            // mtvec_r   <= `DATA_BITS'h1_0000;
-            mtvec_r   <= `DATA_BITS'h1000;
+            mtvec_r   <= `DATA_BITS'h1_0000;
+            // mtvec_r   <= `DATA_BITS'h1000;
             mepc_r    <= `DATA_BITS'h0;
             mip_r     <= `DATA_BITS'h0;
 
