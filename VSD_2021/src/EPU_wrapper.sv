@@ -68,6 +68,7 @@ module EPU_wrapper (
             ids_r   <= `AXI_IDS_BITS'h0;
             len_r   <= `AXI_LEN_BITS'h0;
             wstrb_r <= `AXI_STRB_BITS'h0;
+            burst_r <= `AXI_BURST_BITS'h0;
         end
         else begin
             addr_r  <= arhns ? s2axi_i.araddr  : awhns ? s2axi_i.awaddr : addr_r;
