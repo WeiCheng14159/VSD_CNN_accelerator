@@ -60,7 +60,7 @@ module Decoder (
             valid_s[3] = validm_i;
         end
         // DRAM
-        else if (addr_i > `AXI_ADDR_BITS'h1fff_ffff && addr_i < `AXI_ADDR_BITS'h2020_0000) begin
+        else if (addr_i > `AXI_ADDR_BITS'h1fff_ffff && addr_i < `AXI_ADDR_BITS'h2080_0000) begin
             ready_s    = ready_s4_i;
             valid_s[4] = validm_i;
         end
