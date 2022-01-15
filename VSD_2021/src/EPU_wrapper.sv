@@ -146,10 +146,9 @@ module EPU_wrapper (
             B_CH : {s2axi_o.awready, s2axi_o.arready} = {bhns, 1'b0};
         endcase
     end
-    logic r_ch;
-    assign r_ch = STATE == R_CH;
+
     always_comb begin
-        case ({r_ch, enb})
+        case ({{STATE == R_CH}, enb})
             6'b100001 : s2axi_o.rvalid = in_rvalid;
             6'b100010 : s2axi_o.rvalid = out_rvalid;
             6'b100100 : s2axi_o.rvalid = bias_rvalid;
