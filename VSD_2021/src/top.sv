@@ -48,7 +48,6 @@ module top (
     // logic int_taken;
     // logic int_sctrl;
     // logic int_dma;
-    assign interrupt[2] = 1'b0;
 
 logic latch_rst;
 always_ff @(posedge clk or posedge rst) begin
@@ -155,6 +154,7 @@ end
     EPU_wrapper epu_wrapper (
         .clk     (clk              ),
         .rst     (latch_rst        ),
+        .epuint_o(interrupt[2]     ),
         .s2axi_i (slave6.S2AXIin   ),
         .s2axi_o (slave6.S2AXIout  )
     );
