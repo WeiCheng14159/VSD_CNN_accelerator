@@ -3,7 +3,7 @@ set designer "Student"
 
 set CoreSearchPath /usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/synopsys/
 set IOSearchPath /usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2008Q3v1.2/T33_GENERIC_IO/FrontEnd/synopsys/
-set MemoryPath ../sim/SRAM\ ../sim/data_array\ ../sim/tag_array ../sim/Bias_SRAM\ ../sim/InOut_SRAM\ ../sim/Weight_SRAM
+set MemoryPath ../sim/SRAM\ ../sim/data_array\ ../sim/tag_array\ ../sim/Bias_SRAM\ ../sim/InOut_SRAM\ ../sim/Weight_SRAM
 set DefintionPath ../include
 
 set search_path    "$CoreSearchPath $IOSearchPath $MemoryPath $DefintionPath $search_path"
