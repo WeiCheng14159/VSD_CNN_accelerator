@@ -47,5 +47,8 @@ build_hex: $(ELF_NAME)
 
 .PHONY: clean
 
-clean:
+clean: clean_gen_hex
 	rm -rf $(ELF_NAME) $(ELF_NAME).log rom*.hex dram*.hex *.o *.txt
+
+clean_gen_hex:
+	rm -rf In8_*.hex Bias32_*.hex param_*.hex W2_*.hex W8_*.hex
