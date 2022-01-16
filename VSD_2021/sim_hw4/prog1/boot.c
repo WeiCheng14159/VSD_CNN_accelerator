@@ -63,8 +63,5 @@ void boot() {
     quantity = (&__data_end - &__data_start);
     setDMA(&__data_paddr_start, &__data_start, quantity);
 
-    // asm("li t6, 0x80");
-    // asm("csrc mstatus, t6"); // Disable MPIE of mstatus
-
 }
 // */
