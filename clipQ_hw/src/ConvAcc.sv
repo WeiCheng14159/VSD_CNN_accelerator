@@ -1,17 +1,16 @@
-`include "conv_acc_pkg.sv"
-`include "conv_3x3.sv"
-`include "conv_1x1.sv"
-`include "max_pool.sv"
-`include "bus_switcher.sv"
+`include "ConvAcc.svh"
+`include "Conv_3x3.sv"
+`include "Conv_1x1.sv"
+`include "Max_pool.sv"
+`include "Bus_switcher.sv"
 `include "sp_ram_intf.sv"
 
-module conv
-  import conv_acc_pkg::*;
+module ConvAcc
 (
     input  logic                  clk,
     input  logic                  rst,
     input  logic                  start,
-    input  conv_acc_mode_t        mode,
+    input  logic [3:0]            mode,
     input  logic           [31:0] w8,
     output logic                  finish,
 
@@ -49,7 +48,7 @@ module conv
   logic finish_maxpool, start_maxpool;
   logic gated_maxpool_clk;
 
-  bus_switcher i_bus_switcher (
+  Bus_switcher i_Bus_switcher (
       .mode(mode),
       // External
       .clk(clk),
@@ -84,23 +83,23 @@ module conv
   // start
   always_comb begin
     {start_conv_1x1, start_conv_3x3, start_maxpool} = 3'b0;
-    if (mode == CONV_1x1_MODE) start_conv_1x1 = start;
-    else if (mode == CONV_3x3_MODE) start_conv_3x3 = start;
-    else if (mode == MAX_POOL_MODE) start_maxpool = start;
+    if (mode == `CONV_1x1_MODE) start_conv_1x1 = start;
+    else if (mode == `CONV_3x3_MODE) start_conv_3x3 = start;
+    else if (mode == `MAX_POOL_MODE) start_maxpool = start;
     else {start_conv_1x1, start_conv_3x3, start_maxpool} = 3'b0;
   end
 
   // finish
   always_comb begin
     finish = 1'b0;
-    if (mode == CONV_1x1_MODE) finish = finish_conv_1x1;
-    else if (mode == CONV_3x3_MODE) finish = finish_conv_3x3;
-    else if (mode == MAX_POOL_MODE) finish = finish_maxpool;
+    if (mode == `CONV_1x1_MODE) finish = finish_conv_1x1;
+    else if (mode == `CONV_3x3_MODE) finish = finish_conv_3x3;
+    else if (mode == `MAX_POOL_MODE) finish = finish_maxpool;
     else  // Connect to nothing
       finish = 1'b0;
   end
 
-  conv_1x1 i_conv_1x1 (
+  Conv_1x1 i_Conv_1x1 (
       .rst(rst),
       .clk(clk),  // gated_conv_1x1_clk
       .w8(w8),
@@ -113,7 +112,7 @@ module conv
       .output_intf(output_conv_1x1_intf)
   );
 
-  conv_3x3 i_conv_3x3 (
+  Conv_3x3 i_Conv_3x3 (
       .rst(rst),
       .clk(clk),  // gated_conv_3x3_clk
       .w8(w8),
@@ -126,7 +125,7 @@ module conv
       .output_intf(output_conv_3x3_intf)
   );
 
-  max_pool i_max_pool (
+  Max_pool i_Max_pool (
       .clk(clk),  // gated_maxpool_clk
       .rst(rst),
       .start(start_maxpool),
