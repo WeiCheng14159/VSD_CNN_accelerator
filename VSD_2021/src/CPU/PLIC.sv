@@ -7,6 +7,8 @@ module PLIC (
     output logic [`INT_ID_BITS-1:0] int_id_o
 );
 
+    // logic []hold_cnt;
+
     assign int_taken_o = |interrupt_i;
     always_comb begin
         case(interrupt_i)

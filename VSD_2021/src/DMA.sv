@@ -28,8 +28,16 @@ module DMA (
         latch_int <= rst ? 1'b0 : dma_fin | latch_fin;
     end
 
-    assign int_o = dma_fin | latch_int;
-    
+    logic [2:0] cnt;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)              cnt <= 3'h0;
+        else if (cnt == 3'h5) cnt <= 3'h0;
+        else if (dma_fin)     cnt <= cnt + 3'h1;
+        else if (|cnt)        cnt <= cnt + 3'h1;
+    end
+
+    // assign int_o = dma_fin | latch_int;
+    assign int_o = dma_fin | (|cnt);
     // output 
     // assign int_o = 0;
     // assign m2axi_o.arid    = `AXI_ID_BITS'h0;

@@ -10,10 +10,11 @@ volatile unsigned int *sensor_addr = (int *) 0x10000000;
  *****************************************************************/
 void copy () {
   int i;
-  // for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
-  //   *(copy_addr + i) = sensor_addr[i];
-  // }
-  setDMA(sensor_addr, copy_addr, sensor_size);
+  for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
+    *(copy_addr + i) = sensor_addr[i];
+  }
+  // asm("csrsi mstatus, 0x8"); // MIE of mstatus
+  // setDMA(sensor_addr, copy_addr, sensor_size);
   copy_addr += sensor_size; // Update copy address
   copy_count++;    // Increase copy count
   sensor_addr[0x80] = 1; // Enable sctrl_clear

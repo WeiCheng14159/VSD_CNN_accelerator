@@ -35,7 +35,7 @@ module DRAM_wrapper (
     logic [`AXI_LEN_BITS  -1:0] len;
     logic [`AXI_SIZE_BITS -1:0] size;
     logic [`AXI_STRB_BITS -1:0] wstrb;
-    logic [`AXI_DATA_BITS -1:0] wdata;
+    logic [`AXI_DATA_BITS -1:0] wdata_r;
     // DRAM
     logic [1:0] byte_off;
     logic [`WEB_BITS   -1:0] bwen, hwen, dramwen;
@@ -76,7 +76,7 @@ module DRAM_wrapper (
             len       <= `AXI_LEN_BITS'h0;
             size      <= `AXI_SIZE_BITS'h0;
             wstrb     <= `AXI_STRB_BITS'h0;
-            wdata     <= `DATA_BITS'h0;
+            wdata_r     <= `DATA_BITS'h0;
             write     <= 1'b0;
             dramvalid_r <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
@@ -90,7 +90,8 @@ module DRAM_wrapper (
             len       <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len;
             size      <= arhns ? s2axi_i.arsize  : awhns ? s2axi_i.awsize  : size;
             wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
-            wdata     <= awhns ? s2axi_i.wdata   : wdata;
+            // wdata     <= awhns ? s2axi_i.wdata   : wdata;
+            wdata_r   <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
             write     <= clear ? 1'b0 : (awhns ? 1'b1 : write);
             dramvalid_r <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
@@ -208,7 +209,7 @@ module DRAM_wrapper (
             end
             WRITECOL : begin
                 DRAM_A_o    = col_r;
-                DRAM_D_o    = s2axi_i.wdata;//dramdataD_r;
+                DRAM_D_o    = wdata_r;//s2axi_i.wdata;//dramdataD_r;
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = 1'b1;
                 DRAM_CASn_o = |dcnt;
@@ -264,6 +265,8 @@ module DRAM_wrapper (
 // {{{
 
 // }}}
+
+
 
 
 
