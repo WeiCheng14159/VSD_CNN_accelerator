@@ -24,14 +24,16 @@ module DMA_master (
     // Handshake
     logic arhns, awhns, rhns, whns, bhns;
     logic rdfin, wrfin;
+    logic wlast;
     // FIFO
     logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
     logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
-    logic [FIFO_DEPTH-1:0] fifo_cnt_r;
+    logic [FIFO_DEPTH:0] fifo_cnt_r;
     logic fifo_rhns;
     // DMA
     logic [`AXI_LEN_BITS-1:0] op_qty_r;   // send to AXI
     logic [`DATA_BITS   -1:0] rem_qty_r;  // remainder of quantity
+    logic burst_dram;
     logic done;  // rem_qty_r == 0
     // AXI
     logic [`ADDR_BITS-1:0] src_addr_r;  // araddr
@@ -46,18 +48,13 @@ module DMA_master (
     assign arhns = m2axi_i.arready && m2axi_o.arvalid;
     assign rhns  = m2axi_o.rready  && m2axi_i.rvalid;
     assign rdfin = rhns & m2axi_i.rlast;
-    assign wrfin = whns & m2axi_o.wlast;
+    assign wrfin = whns && m2axi_o.wlast;
     // DMA
     assign done = (~|rem_qty_r) && (STATE == B_CH);
     assign dma_fin_o = STATE == FIN;  // interrupt
 
 
 // {{{ STATE
-    // logic start;
-
-    // always_ff @(posedge clk or posedge rst) begin
-    //     start <= rst ? 1'b0 : dma_en_i;
-    // end
     always_ff @(posedge clk or posedge rst) begin
         STATE <= rst ? IDLE : NEXT;
     end
@@ -76,6 +73,8 @@ module DMA_master (
     end
 // }}}
 // {{{
+    assign burst_dram = dst_addr_r[31:24] == 8'h20;
+
     always_ff @(posedge clk or posedge rst) begin
         if (rst)           rem_qty_r <= `DATA_BITS'h0;
         else if (dma_en_i) rem_qty_r <= data_qty_i;
@@ -119,8 +118,8 @@ module DMA_master (
     assign m2axi_o.awburst = `AXI_BURST_FIXED;
     assign m2axi_o.wstrb   = `AXI_STRB_WORD;
     assign m2axi_o.wdata   = fifo_dataout;
-    assign m2axi_o.wlast   = lcnt == op_qty_r;
-    // assign m2axi_o.wlast   = &fifo_cnt_r;
+    // assign m2axi_o.wlast   = (lcnt == op_qty_r);
+    assign m2axi_o.wlast   = wlast;
 
     always_comb begin
         {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
@@ -185,20 +184,33 @@ end
 
 
     always_comb begin
-        case (dst_addr_r[31:24] == 8'h20)
-            1'b1 : assign fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h1);
-            1'b0 : assign fifo_ren = (STATE == BUSY) && ~fifo_empty;
+        case (burst_dram)
+            1'b1 : fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h5) || (|fifo_cnt_r && (dcnt == 3'h5));
+            1'b0 : fifo_ren = (STATE == BUSY) && fifo_full || (|fifo_cnt_r[1:0]);//~fifo_empty;
         endcase
     end
+    always_comb begin
+        case (burst_dram)
+            1'b1 : wlast = fifo_cnt_r[2] && (dcnt == 3'h5);
+            1'b0 : wlast = &fifo_cnt_r[1:0];
+        endcase
+    end
+
+
     
-
-
-    logic [FIFO_DEPTH-1:0] fifo_cnt;
     // assign fifo_ren = (STATE == BUSY) & fifo_full | (|fifo_cnt_r);
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)              fifo_cnt_r <= {FIFO_DEPTH{1'b0}};
-        else if (rdfin)       fifo_cnt_r <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
-        else if (|fifo_cnt_r) fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
+        if (rst)
+            fifo_cnt_r <= {(FIFO_DEPTH + 1){1'b0}};
+        else if (rdfin)
+            fifo_cnt_r <= {{(FIFO_DEPTH){1'b0}}, 1'b1};
+        else if (|fifo_cnt_r) begin
+            case (burst_dram)
+                1'b0 : fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH){1'b0}}, 1'b1};
+                1'b1 : fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH){1'b0}}, (dcnt == 3'h5)};
+            endcase
+        end
+        // else if () fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
     end
 
 
@@ -215,12 +227,6 @@ end
     );
 // }}}
 
-    logic [6:0] cnt;
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) cnt <= 0;
-        else if (STATE == AW_CH) cnt <= 0;
-        else if (fifo_ren) cnt <= cnt + 1;
-    end
 
     // always_ff @(posedge clk) begin
     //     if (wrfin)
