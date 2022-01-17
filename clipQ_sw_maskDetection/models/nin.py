@@ -126,12 +126,12 @@ class Net(nn.Module):
     def __init__(self, f, cifar, write):
         super(Net, self).__init__()
         self.QCNN = nn.Sequential(
-            QConv2d(3,  96, kernel_size=3, stride=1,
+            QConv2d(3,  60, kernel_size=3, stride=1,
                     padding=1, layer=1, full=f, w=write),
-            QConv2d(96, 160, kernel_size=1, stride=1,
+            QConv2d(60, 2, kernel_size=1, stride=1,
                     padding=0, layer=2, full=f, w=write),
-            QConv2d(160, 2, kernel_size=1, stride=1,
-                    padding=0, layer=3, full=f, w=write),
+            # QConv2d(60, 2, kernel_size=1, stride=1,
+            #         padding=0, layer=3, full=f, w=write),
             # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             QMaxPool2d(kernel_size=32, stride=2,
                     padding=0, layer=0, w=write),

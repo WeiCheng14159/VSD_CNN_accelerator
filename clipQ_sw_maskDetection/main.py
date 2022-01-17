@@ -61,7 +61,6 @@ def train(epoch, full):
 
         # backwarding
         loss = criterion(output, target)
-        # print("#############", output, "AAAAAAAAAAAAAAA", target)
         loss.backward()
 
         # restore weights
@@ -212,7 +211,7 @@ if __name__ == '__main__':
 
     # print("Distribution of classes: \n", get_class_distribution(dataset))
 
-    trainset, testset = random_split(dataset, (3073, 769))
+    trainset, testset = random_split(dataset, (4173, 1045))
 
     trainloader = torch.utils.data.DataLoader(dataset=trainset, shuffle=True, batch_size=16, num_workers=2)
     testloader  = torch.utils.data.DataLoader(dataset=testset, shuffle=False, batch_size=16, num_workers=2)
