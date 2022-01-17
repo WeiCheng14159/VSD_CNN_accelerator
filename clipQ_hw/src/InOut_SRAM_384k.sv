@@ -1,4 +1,4 @@
-`include "InOut_SRAM/SRAM_16b_32768w_64k.sv"
+`include "SRAM_16b_32768w_64k.sv"
 `include "sp_ram_intf.sv"
 
 // Combine six 64kB SRAM into 384kB SRAM

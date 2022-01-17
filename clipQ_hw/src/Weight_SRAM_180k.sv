@@ -1,4 +1,4 @@
-`include "Weight_SRAM/SRAM_18b_16384w_36k.sv"
+`include "SRAM_18b_16384w_36k.sv"
 `include "sp_ram_intf.sv"
 
 // Combine five 36kB SRAM into 180kB SRAM
