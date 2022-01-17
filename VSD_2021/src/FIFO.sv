@@ -6,8 +6,9 @@ module FIFO #(
     parameter FIFO_DEPTH = 4
 )(
     input  clk, rst,
+    input                   clr_i,  // clear mem 
     input                   wen_i,  // write enable
-    input                   ren_i,  // read enable  
+    input                   ren_i,  // read enable 
     input  [`DATA_BITS-1:0] data_i,
     output [`DATA_BITS-1:0] data_o,
     output                  full_o, empty_o            
@@ -25,7 +26,10 @@ module FIFO #(
         if (rst)
             for (i = 0; i < 2**FIFO_DEPTH; i = i + 1)
                 mem[i] <= `DATA_BITS'h0;
-        else if (wen_i & ~full_o)
+        else if (clr_i)
+            for (i = 0; i < 2**FIFO_DEPTH; i = i + 1)
+                mem[i] <= `DATA_BITS'h0;
+        else if (wen_i && ~full_o)
             mem[wptr] <= data_i;
     end
 
@@ -35,10 +39,15 @@ module FIFO #(
             wptr_ <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
             rptr  <= {FIFO_DEPTH{1'b0}};
         end
+        else if (clr_i) begin
+            wptr  <= {FIFO_DEPTH{1'b0}};
+            wptr_ <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
+            rptr  <= {FIFO_DEPTH{1'b0}};           
+        end
         else begin
-            wptr  <= wptr  + {{(FIFO_DEPTH-1){1'b0}}, ~full_o  & wen_i};
-            wptr_ <= wptr_ + {{(FIFO_DEPTH-1){1'b0}}, ~full_o  & wen_i};
-            rptr  <= rptr  + {{(FIFO_DEPTH-1){1'b0}}, ~empty_o & ren_i};
+            wptr  <= wptr  + {{(FIFO_DEPTH-1){1'b0}}, ~full_o  && wen_i};
+            wptr_ <= wptr_ + {{(FIFO_DEPTH-1){1'b0}}, ~full_o  && wen_i};
+            rptr  <= rptr  + {{(FIFO_DEPTH-1){1'b0}}, ~empty_o && ren_i};
         end
     end
 
