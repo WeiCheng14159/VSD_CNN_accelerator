@@ -57,7 +57,8 @@ if __name__ == "__main__":
     lines = rf.readlines()
     for l in lines:
         line = l.rstrip("\n")
-        wb = bytes.fromhex(BYTE_ZERO + BYTE_ZERO + BYTE_ZERO + line)
+        wb = bytearray.fromhex(BYTE_ZERO + BYTE_ZERO + BYTE_ZERO + line)
+        wb.reverse()
         wf.write(wb)
     rf.close()
     wf.close()
@@ -71,7 +72,8 @@ if __name__ == "__main__":
     lines = rf.readlines()
     for l in lines:
         line = l.rstrip("\n")
-        wb = bytes.fromhex(line)
+        wb = bytearray.fromhex(line)
+        wb.reverse()
         wf.write(wb)
     rf.close()
     wf.close()
@@ -85,7 +87,8 @@ if __name__ == "__main__":
     lines = rf.readlines()
     for l in lines:
         line = l.rstrip("\n")
-        wb = bytes.fromhex("000"+line)
+        wb = bytearray.fromhex("000"+line)
+        wb.reverse()
         wf.write(wb)
     rf.close()
     wf.close()
@@ -99,7 +102,8 @@ if __name__ == "__main__":
     lines = rf.readlines()
     for l in lines:
         line = l.rstrip("\n")
-        wb = bytes.fromhex(line)
+        wb = bytearray.fromhex(line)
+        wb.reverse()
         wf.write(wb)
     rf.close()
     wf.close()
