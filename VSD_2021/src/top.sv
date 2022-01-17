@@ -46,9 +46,11 @@ module top (
     // interrupt
     logic [`INT_BITS-1:0] interrupt;
     // logic int_taken;
-    // logic int_sctrl;
-    // logic int_dma;
-    assign interrupt[2] = 1'b0;
+    logic int_sctrl;
+    logic int_dma;
+    assign interrupt = {1'b0,
+                        int_sctrl,
+                        int_dma};
 
 logic latch_rst;
 always_ff @(posedge clk or posedge rst) begin
@@ -124,7 +126,7 @@ end
         .sensor_ready_i (sensor_ready    ),
         .sensor_out_i   (sensor_out      ),
         .sensor_en_o    (sensor_en       ),
-        .sctrl_int_o    (interrupt[1]    )
+        .sctrl_int_o    (int_sctrl       )
     );
 
     DRAM_wrapper dram_wrapper (
@@ -149,7 +151,7 @@ end
         .m2axi_o (master2.M2AXIout),
         .s2axi_i (slave5.S2AXIin  ),
         .s2axi_o (slave5.S2AXIout ),
-        .int_o   (interrupt[0]    )
+        .int_o   (int_dma         )
     );
 
     EPU_wrapper epu_wrapper (

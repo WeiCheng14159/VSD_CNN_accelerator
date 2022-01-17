@@ -1,5 +1,5 @@
 // prog1
-// /*
+/*
 void boot() {
 	extern unsigned int _dram_i_start;   // instruction start address in DRAM
 	extern unsigned int _dram_i_end;     // instruction end address in DRAM
@@ -28,8 +28,10 @@ void boot() {
 	for(i = 0; i < len; i++)
 		(&__data_start)[i] = (&__data_paddr_start)[i];
 }
-// */
-/*
+*/
+
+
+// /*
 void setDMA(int *source, int *dest, int quantity) {
     volatile int *_dma_i_start = (int *) 0x40000000;
     *(_dma_i_start+0) = (int)source;  
@@ -64,4 +66,4 @@ void boot() {
     setDMA(&__data_paddr_start, &__data_start, quantity);
 
 }
-*/
+// */
