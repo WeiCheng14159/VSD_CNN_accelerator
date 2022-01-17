@@ -70,7 +70,7 @@ module Conv_bus_switcher
       param_o.cs     = 0;
       param_o.oe     = 0;
       param_o.addr   = 0;
-      param_o.W_req  = 0;
+      param_o.W_req  = `WRITE_DIS;
       param_o.W_data = 0;
     end
   end
@@ -105,7 +105,7 @@ module Conv_bus_switcher
       bias_o.cs     = 0;
       bias_o.oe     = 0;
       bias_o.addr   = 0;
-      bias_o.W_req  = 0;
+      bias_o.W_req  = `WRITE_DIS;
       bias_o.W_data = 0;
     end
   end
@@ -140,7 +140,7 @@ module Conv_bus_switcher
       weight_o.cs     = 0;
       weight_o.oe     = 0;
       weight_o.addr   = 0;
-      weight_o.W_req  = 0;
+      weight_o.W_req  = `WRITE_DIS;
       weight_o.W_data = 0;
     end
   end
@@ -175,7 +175,7 @@ module Conv_bus_switcher
       input_o.cs     = 0;
       input_o.oe     = 0;
       input_o.addr   = 0;
-      input_o.W_req  = 0;
+      input_o.W_req  = `WRITE_DIS;
       input_o.W_data = 0;
     end
   end
@@ -210,7 +210,7 @@ module Conv_bus_switcher
       output_o.cs     = 0;
       output_o.oe     = 0;
       output_o.addr   = 0;
-      output_o.W_req  = 0;
+      output_o.W_req  = `WRITE_DIS;
       output_o.W_data = 0;
     end
   end
