@@ -67,7 +67,7 @@ module CSR (
     assign mie    = mstatus_r[`MIE];
     assign meip   = mip_r[`MEIP];
     assign meie   = mie_r[`MEIE];
-    assign int_o  = int_taken_i & mie & meip & meie;
+    assign int_o  = int_taken_i && mie && meip && meie;
     assign mret_o = csr2ex.mret;
     assign csr_en = csr_en_i & ~stall_o;
 
@@ -81,7 +81,6 @@ module CSR (
             // mtvec_r   <= `DATA_BITS'h1000;
             mepc_r    <= `DATA_BITS'h0;
             mip_r     <= `DATA_BITS'h0;
-
         end
         // else if (~csr_en_i) begin
         //     mstatus_r <= mstatus_r;
@@ -90,17 +89,17 @@ module CSR (
         //     mepc_r    <= mepc_r;
         //     mip_r     <= mip_r;		
         // end
-        else if (csr_en & csr2ex.wfi) begin
+        else if (csr_en && csr2ex.wfi) begin
             mepc_r       <= csr2ex.pc + `ADDR_BITS'h4;
             mip_r[`MEIP] <= mie_r[`MEIE] | mip_r[`MEIP];
         end
-        else if (csr_en & int_o) begin
+        else if (csr_en && int_o) begin
             mstatus_r[`MPP]  <= mip_r[`MEIP] ? 2'b11 : mstatus_r[`MPP];
             mstatus_r[`MPIE] <= mip_r[`MEIP] ? mstatus_r[`MIE] : mstatus_r[`MPIE];
             mstatus_r[`MIE]  <= mip_r[`MEIP] ? 1'b0 : mstatus_r[`MIE];
             mip_r[`MEIP]     <= 1'b0;
         end
-        else if (csr_en & csr2ex.mret) begin
+        else if (csr_en && csr2ex.mret) begin
             mstatus_r[`MIE]  <= mstatus_r[`MPIE];
             mstatus_r[`MPIE] <= 1'b1;
             mstatus_r[`MPP]  <= 2'b11;
@@ -131,6 +130,5 @@ module CSR (
         else if (int_o)    stall_o <= 1'b0; 
         else if (csr_en_i) stall_o <= wfi_o | stall_o;
     end
-
 
 endmodule

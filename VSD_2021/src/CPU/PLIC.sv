@@ -9,12 +9,10 @@ module PLIC (
 
     assign int_taken_o = |interrupt_i;
     always_comb begin
-        case(interrupt_i)
-            `INT_BITS'b1   : int_id_o = `INT_DMA;
-            `INT_BITS'b10  : int_id_o = `INT_SCTRL;
-            `INT_BITS'b100 : int_id_o = `INT_EPU;
-            default        : int_id_o = `INT_ID_BITS'h0;
-        endcase
+        if (interrupt_i[0])      int_id_o = `INT_DMA;
+        else if (interrupt_i[1]) int_id_o = `INT_SCTRL;
+        else if (interrupt_i[2]) int_id_o = `INT_EPU;
+        else                     int_id_o = `INT_ID_BITS'h0;
     end
 
 endmodule
