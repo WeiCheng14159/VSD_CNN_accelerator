@@ -1,13 +1,14 @@
 `include "../../include/CPU_def.svh"
 
 module CSR (
-    input                         clk, rst,
-    inf_EX_CSR.CSR2EX             csr2ex,
-    input                         csr_en_i,
-    input                         int_taken_i,
-    output logic [`ADDR_BITS-1:0] csr_pc_o, csr_retpc_o,
-    output logic                  wfi_o, mret_o, int_o,
-    output logic                  stall_o
+    input                           clk, rst,
+    inf_EX_CSR.CSR2EX               csr2ex,
+    input                           csr_en_i,
+    input                           int_taken_i,
+    input        [`INT_ID_BITS-1:0] int_id_i,
+    output logic [`ADDR_BITS  -1:0] csr_pc_o, csr_retpc_o,
+    output logic                    wfi_o, mret_o, int_o,
+    output logic                    stall_o
 );
 
     logic [`DATA_BITS-1:0] mstatus_r;
@@ -49,7 +50,15 @@ module CSR (
 
 
     // pc
-    assign csr_pc_o    = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+    // assign csr_pc_o    = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+    always_comb begin
+        case (int_id_i)
+            `INT_DMA   : csr_pc_o = `ADDR_BITS'h1_000;
+            `INT_EPU   : csr_pc_o = `ADDR_BITS'h1_000;
+            `INT_SCTRL : csr_pc_o = {mtvec_r[`DATA_BITS-1:2], 2'h0};
+            default    : csr_pc_o = `ADDR_BITS'h0;
+        endcase
+    end
     assign csr_retpc_o = mepc_r;
 
 
@@ -62,12 +71,14 @@ module CSR (
     assign mret_o = csr2ex.mret;
     assign csr_en = csr_en_i & ~stall_o;
 
+
+
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
             mstatus_r <= `DATA_BITS'h0;
             mie_r     <= `DATA_BITS'h0;
-            // mtvec_r   <= `DATA_BITS'h1_0000;
-            mtvec_r   <= `DATA_BITS'h1000;
+            mtvec_r   <= `DATA_BITS'h1_0000;
+            // mtvec_r   <= `DATA_BITS'h1000;
             mepc_r    <= `DATA_BITS'h0;
             mip_r     <= `DATA_BITS'h0;
 

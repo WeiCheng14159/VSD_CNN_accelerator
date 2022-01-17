@@ -30,7 +30,7 @@ module L1C_data (
     output logic [`DATA_BITS      -1:0] D_in,
     output logic [`CACHE_TYPE_BITS-1:0] D_type,
     // 
-    output logic arlenone_o
+    output logic                        arlenone_o
 );
 
     logic [`CACHE_IDX_BITS  -1:0] index;
@@ -69,7 +69,7 @@ module L1C_data (
     logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff and 0x4000_0000 ~ 0x4000_ffff -> uncacheable
 
 // {{{ Sample
-    assign cacheable = (core_addr[31:16] != 16'h1000) & (core_addr[31:16] != 16'h4000);
+    assign cacheable = (core_addr[31:16] != 16'h1000) && (core_addr[31:16] != 16'h4000);
     always @(posedge clk or posedge rst) begin
         if (rst) begin
             c_addr  <= `DATA_BITS'h0;
@@ -111,7 +111,7 @@ module L1C_data (
             // INIT    : NEXT = core_req ? CHK : INIT;
             INIT    : begin
                 casez ({core_req, core_write, valid[index], ~cacheable})
-                    4'b1001 : NEXT = NOUSE;
+                    // 4'b1001 : NEXT = CHK;
                     4'b110? : NEXT = WMISS;
                     4'b1000 : NEXT = RMISS;
                     4'b0??? : NEXT = INIT;
@@ -119,11 +119,12 @@ module L1C_data (
                 endcase
             end
             CHK     : begin
-                case ({c_write, hit})
-                    2'b11 : NEXT = WHIT;
-                    2'b10 : NEXT = WMISS;
-                    2'b01 : NEXT = FIN;   // RHIT
-                    2'b00 : NEXT = RMISS;
+                casez ({c_write, hit, ~cacheable})
+                    3'b11?  : NEXT = WHIT;
+                    3'b10?  : NEXT = WMISS;
+                    3'b001  : NEXT = NOUSE;
+                    3'b010  : NEXT = FIN;
+                    default : NEXT = RMISS;
                 endcase
             end
             WHIT    : NEXT = flag ? FIN : WHIT;
@@ -209,8 +210,6 @@ module L1C_data (
         end
     end
     // read hit, miss
-    // assign r_data = (STATE == RMISS) & flag ? DA_in : DA_out;
-    // assign read_data = r_data[{core_addr[3:2], 5'b0}+:32];
     always_comb begin
         case (STATE)
             CHK     : read_data = DA_out[{c_addr[3:2], 5'b0}+:32];
@@ -230,15 +229,15 @@ module L1C_data (
     end
 // }}}
 // {{{ CPU_wrapper
-    always_ff @(posedge clk or posedge rst) begin
-        arlenone_o <= rst ? 1'b0 : (STATE == CHK) ? (~c_write && ~hit && ~cacheable) : arlenone_o;
-    end
+
+    assign arlenone_o = ~cacheable;
     assign D_addr  = (STATE == RMISS) ? {c_addr[`DATA_BITS-1:4], 4'h0} : c_addr;
     assign D_type  = c_write ? c_type : `CACHE_WORD;
     assign D_in    = c_write ? c_in   : `DATA_BITS'h0;
     assign D_write = c_write;
     always_comb begin
         case (STATE)
+            CHK     : D_req = ~c_write && ~hit && ~cacheable;
             WMISS   : D_req = ~|cnt;
             WHIT    : D_req = ~|cnt;
             RMISS   : D_req = ~flag;
