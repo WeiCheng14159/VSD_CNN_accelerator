@@ -78,9 +78,9 @@ void boot() {
     int quantity = (&_dram_i_end - &_dram_i_start);
     setDMA(&_dram_i_start,&_imem_start,quantity);
     quantity = (&__sdata_end - &__sdata_start );
-    setDMA(&__sdata_start,&__sdata_paddr_start,quantity);
+    setDMA(&__sdata_paddr_start, &__sdata_start, quantity);
     quantity = (&__data_end - &__data_start);
-    setDMA(&__data_start,&__data_paddr_start,quantity);
+    setDMA(&__data_paddr_start, &__data_start, quantity);
 
 }
 // */

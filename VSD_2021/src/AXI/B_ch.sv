@@ -42,6 +42,11 @@ module B_ch (
     input        [`AXI_RESP_BITS-1:0] resp_s5_i,
     input                             valid_s5_i,
     output logic                      ready_s5_o,
+    // S6
+    input        [`AXI_IDS_BITS -1:0] ids_s6_i,
+    input        [`AXI_RESP_BITS-1:0] resp_s6_i,
+    input                             valid_s6_i,
+    output logic                      ready_s6_o,
     // SD
     input        [`AXI_IDS_BITS -1:0] ids_sd_i,
     input        [`AXI_RESP_BITS-1:0] resp_sd_i,
@@ -90,6 +95,7 @@ module B_ch (
 // }}}
 // Slave
     assign slave = {valid_sd_i, 
+                    valid_s6_i,
                     valid_s5_i, 
                     valid_s4_i, 
                     valid_s3_i, 
@@ -107,11 +113,13 @@ module B_ch (
             `AXI_SLAVE3        : {ids_s, resp_s, valid_s} = {ids_s3_i, resp_s3_i, valid_s3_i};
             `AXI_SLAVE4        : {ids_s, resp_s, valid_s} = {ids_s4_i, resp_s4_i, valid_s4_i};
             `AXI_SLAVE5        : {ids_s, resp_s, valid_s} = {ids_s5_i, resp_s5_i, valid_s5_i};
+            `AXI_SLAVE6        : {ids_s, resp_s, valid_s} = {ids_s6_i, resp_s6_i, valid_s6_i};
             `AXI_DEFAULT_SLAVE : {ids_s, resp_s, valid_s} = {ids_sd_i, resp_sd_i, valid_sd_i};
         endcase
     end
     
-    assign {ready_sd_o, 
+    assign {ready_sd_o,
+            ready_s6_o,
             ready_s5_o,
             ready_s4_o, 
             ready_s3_o, 

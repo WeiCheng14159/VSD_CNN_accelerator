@@ -6,6 +6,9 @@
 `include "data_array/data_array.v"
 `include "tag_array/tag_array.v"
 `include "SRAM/SRAM.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns/10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
@@ -13,6 +16,9 @@
 `include "SRAM/SRAM.v"
 `include "data_array/data_array.v"
 `include "tag_array/tag_array.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns/10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
@@ -20,23 +26,26 @@
 `include "SRAM/SRAM_rtl.sv"
 `include "data_array/data_array_rtl.sv"
 `include "tag_array/tag_array_rtl.sv"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
+`include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
 `endif
 `timescale 1ns/10ps
 `include "ROM/ROM.v"
 `include "DRAM/DRAM.sv"
 `define mem_word(addr) \
-    {TOP.DM1.i_SRAM.Memory_byte3[addr], \
-     TOP.DM1.i_SRAM.Memory_byte2[addr], \
-     TOP.DM1.i_SRAM.Memory_byte1[addr], \
-     TOP.DM1.i_SRAM.Memory_byte0[addr]}
+  {TOP.DM1.i_SRAM.Memory_byte3[addr], \
+   TOP.DM1.i_SRAM.Memory_byte2[addr], \
+   TOP.DM1.i_SRAM.Memory_byte1[addr], \
+   TOP.DM1.i_SRAM.Memory_byte0[addr]}
 `define dram_word(addr) \
-    {i_DRAM.Memory_byte3[addr], \
-     i_DRAM.Memory_byte2[addr], \
-     i_DRAM.Memory_byte1[addr], \
-     i_DRAM.Memory_byte0[addr]}
+  {i_DRAM.Memory_byte3[addr], \
+   i_DRAM.Memory_byte2[addr], \
+   i_DRAM.Memory_byte1[addr], \
+   i_DRAM.Memory_byte0[addr]}
 `define SIM_END 'h3fff
 `define SIM_END_CODE -32'd1
-`define TEST_START 'h40000
+`define TEST_START 'h100000
 module top_tb;
 
   logic clk;
@@ -74,47 +83,47 @@ module top_tb;
   always #(`CYCLE/2) clk = ~clk;
  
 
-    top TOP(
-        .clk          (clk          ),
-        .rst          (rst          ),
-        .ROM_out      (ROM_out      ),
-        .sensor_ready (sensor_ready ),
-        .sensor_out   (sensor_out   ),
-        .DRAM_valid   (DRAM_valid   ),
-        .DRAM_Q       (DRAM_Q       ),
-        .ROM_read     (ROM_read     ),
-        .ROM_enable   (ROM_enable   ),
-        .ROM_address  (ROM_address  ),
-        .sensor_en    (sensor_en    ),
-        .DRAM_CSn     (DRAM_CSn     ),
-        .DRAM_WEn     (DRAM_WEn     ),
-        .DRAM_RASn    (DRAM_RASn    ),
-        .DRAM_CASn    (DRAM_CASn    ),
-        .DRAM_A       (DRAM_A       ),
-        .DRAM_D       (DRAM_D       )
-    );
+  top TOP(
+    .clk          (clk          ),
+    .rst          (rst          ),
+    .ROM_out      (ROM_out      ),
+    .sensor_ready (sensor_ready ),
+    .sensor_out   (sensor_out   ),
+    .DRAM_valid   (DRAM_valid   ),
+    .DRAM_Q       (DRAM_Q       ),
+    .ROM_read     (ROM_read     ),
+    .ROM_enable   (ROM_enable   ),
+    .ROM_address  (ROM_address  ),
+    .sensor_en    (sensor_en    ),
+    .DRAM_CSn     (DRAM_CSn     ),
+    .DRAM_WEn     (DRAM_WEn     ),
+    .DRAM_RASn    (DRAM_RASn    ),
+    .DRAM_CASn    (DRAM_CASn    ),
+    .DRAM_A       (DRAM_A       ),
+    .DRAM_D       (DRAM_D       )
+  );
 
 
-    ROM i_ROM(
-        .CK (clk        ),
-        .CS (ROM_enable ),
-        .OE (ROM_read   ),
-        .A  (ROM_address),
-        .DO (ROM_out    )
-    );
+  ROM i_ROM(
+    .CK (clk        ),
+    .CS (ROM_enable ),
+    .OE (ROM_read   ),
+    .A  (ROM_address),
+    .DO (ROM_out    )
+  );
 
-    DRAM i_DRAM(
-        .CK   (clk        ),
-        .Q    (DRAM_Q     ),
-        .RST  (rst        ),
-        .CSn  (DRAM_CSn   ),
-        .WEn  (DRAM_WEn   ),
-        .RASn (DRAM_RASn  ),
-        .CASn (DRAM_CASn  ),
-        .A    (DRAM_A     ),
-        .D    (DRAM_D     ),
-        .VALID(DRAM_valid )
-    );
+   DRAM i_DRAM(
+    .CK   (clk        ),
+    .Q    (DRAM_Q     ),
+    .RST  (rst        ),
+    .CSn  (DRAM_CSn   ),
+    .WEn  (DRAM_WEn   ),
+    .RASn (DRAM_RASn  ),
+    .CASn (DRAM_CASn  ),
+    .A    (DRAM_A     ),
+    .D    (DRAM_D     ),
+    .VALID(DRAM_valid )
+  );
 
 
 

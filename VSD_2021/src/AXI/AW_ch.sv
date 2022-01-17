@@ -68,6 +68,14 @@ module AW_ch (
     output logic [`AXI_BURST_BITS-1:0] burst_s5_o,
     output logic                       valid_s5_o,
     input                              ready_s5_i,
+    // S6
+    output logic [`AXI_IDS_BITS  -1:0] id_s6_o,
+    output logic [`AXI_ADDR_BITS -1:0] addr_s6_o,
+    output logic [`AXI_LEN_BITS  -1:0] len_s6_o,
+    output logic [`AXI_SIZE_BITS -1:0] size_s6_o,
+    output logic [`AXI_BURST_BITS-1:0] burst_s6_o,
+    output logic                       valid_s6_o,
+    input                              ready_s6_i,
     // SD
     output logic [`AXI_IDS_BITS  -1:0] id_sd_o,
     output logic [`AXI_ADDR_BITS -1:0] addr_sd_o,
@@ -136,6 +144,12 @@ module AW_ch (
     assign len_s5_o   = len_m;
     assign size_s5_o  = size_m;
     assign burst_s5_o = burst_m;
+    // S6
+    assign id_s6_o    = id_m;
+    assign addr_s6_o  = addr_m;
+    assign len_s6_o   = len_m;
+    assign size_s6_o  = size_m;
+    assign burst_s6_o = burst_m;
     // SD
     assign id_sd_o    = id_m;
     assign addr_sd_o  = addr_m;
@@ -178,7 +192,6 @@ module AW_ch (
         .ready_m1_o (ready_m1_o),
         .ready_m2_o (ready_m2_o)
     );
-
     Decoder aw_decoder (
         .addr_i     (addr_m    ),
         .validm_i   (valid_m   ), 
@@ -188,6 +201,7 @@ module AW_ch (
         .ready_s3_i (ready_s3_i),
         .ready_s4_i (ready_s4_i),
         .ready_s5_i (ready_s5_i),
+        .ready_s6_i (ready_s6_i),
         .ready_sd_i (ready_sd_i),
         .valid_s0_o (valid_s0_o),
         .valid_s1_o (valid_s1_o),
@@ -195,6 +209,7 @@ module AW_ch (
         .valid_s3_o (valid_s3_o),
         .valid_s4_o (valid_s4_o),
         .valid_s5_o (valid_s5_o),
+        .valid_s6_o (valid_s6_o),
         .valid_sd_o (valid_sd_o),
         .readys_o   (ready_s   )
     );

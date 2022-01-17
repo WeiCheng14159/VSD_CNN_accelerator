@@ -17,14 +17,19 @@ module DMA (
     logic [`ADDR_BITS-1:0] src_addr, dst_addr;
     logic [`DATA_BITS-1:0] data_qty;  // quantity
     logic dma_en;  // start
-    logic dma_fin, latch_fin;
+    logic dma_fin, latch_fin, latch_int;
 
     always_ff @(posedge clk or posedge rst) begin
-        latch_fin <= rst ? 1'b0 : dma_fin ? 1'b1 : dma_en ? 1'b0 : latch_fin;
+        if (rst)            latch_fin <= 1'b0;
+        else if (dma_fin)   latch_fin <= 1'b1;
+        else if (latch_fin) latch_fin <= 1'b0;
     end
-    assign int_o = dma_fin | latch_fin;
-    
+    always_ff @(posedge clk or posedge rst) begin
+        latch_int <= rst ? 1'b0 : dma_fin | latch_fin;
+    end
 
+    assign int_o = dma_fin | latch_int;
+    
     // output 
     // assign int_o = 0;
     // assign m2axi_o.arid    = `AXI_ID_BITS'h0;
