@@ -12,6 +12,11 @@ MEMORY {
   dmem   : ORIGIN = 0x00020000, LENGTH = 0x00010000
   dram_i : ORIGIN = 0x20000000, LENGTH = 0x00400000
   dram_d : ORIGIN = 0x20400000, LENGTH = 0x00400000
+  in8_d  : ORIGIN = 0x50000000, LENGTH = 0x00100000
+  w2_d   : ORIGIN = 0x70000000, LENGTH = 0x00100000
+  bias_d : ORIGIN = 0x71000000, LENGTH = 0x00100000
+  param_d: ORIGIN = 0x72000000, LENGTH = 0x00100000
+  epu_d  : ORIGIN = 0x80000000, LENGTH = 0x00100000
 }
 
 /* Specify the default entry point to the program */
@@ -79,9 +84,29 @@ SECTIONS {
     __sdata_end = .;
   } > dmem AT > dram_d
 
-  .data : {
+  .in8_dat : {
     . = ALIGN(4);
-    __data_paddr_start = LOADADDR(.data);
+    In8.o(.data)
+  } > in8_d
+
+  .w2_dat : {
+    . = ALIGN(4);
+    W2.o(.data)
+  } > w2_d
+
+  .bias_dat : {
+    . = ALIGN(4);
+    Bias32.o(.data)
+  } > bias_d
+
+  .param_dat : {
+    . = ALIGN(4);
+    param.o(.data)
+  } > param_d
+
+  .data1 : {
+    . = ALIGN(4);
+    __data_paddr_start = LOADADDR(.data1);
     __data_start = .;
     *(.data)
     *(.data.*)
