@@ -40,14 +40,39 @@ void setDMA(int *source, int *dest, int quantity) {
 
 int main(void) {
   extern unsigned int _test_start;
+  /* EPU data address */
+  // input data address
+  extern unsigned int __in8_start;
+  extern unsigned int __in8_end;
+  extern unsigned int __in8_data_in_dram_start;
+  // w2 data address
+  extern unsigned int __w2_start;
+  extern unsigned int __w2_end;
+  extern unsigned int __w2_data_in_dram_start;
+  // bias data address
+  extern unsigned int __bias_start;
+  extern unsigned int __bias_end;
+  extern unsigned int __bias_data_in_dram_start;
+  // param data address 
+  extern unsigned int __param_start;
+  extern unsigned int __param_end;
+  extern unsigned int __param_data_in_dram_start;
+
   copy_addr = &_test_start;
 
-  // Enable Global Interrupt
-  asm("csrsi mstatus, 0x8"); // MIE of mstatus
-
-  // Enable Local Interrupt
-  asm("li t6, 0x800");
-  asm("csrs mie, t6"); // MEIE of mie 
+  // int quantity;
+  // // Move param data
+  // quantity = (&__param_end - &__param_start);
+  // setDMA(&__param_data_in_dram_start, &__param_start, quantity);
+  // // Move input data
+  // quantity = (&__in8_end - &__in8_start);
+  // setDMA(&__in8_data_in_dram_start, &__in8_start, quantity);
+  // // Move w2 data
+  // quantity = (&__w2_end - &__w2_start);
+  // setDMA(&__w2_data_in_dram_start, &__w2_start, quantity);
+  // // Move bias data
+  // quantity = (&__bias_end - &__bias_start);
+  // setDMA(&__bias_data_in_dram_start, &__bias_start, quantity);
 
   return 0;
 }
