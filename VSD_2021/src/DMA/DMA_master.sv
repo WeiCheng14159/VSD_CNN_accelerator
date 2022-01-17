@@ -2,12 +2,8 @@
 `include "../include/AXI_define.svh"
 `include "../FIFO.sv"
 
-parameter FIFO_DEPTH = 2;
-parameter IDLE  = 3'h0,
-          CHECK = 3'h1,
-          AR_CH = 3'h2,  // send address to source
-          AW_CH = 3'h3,  // send address to destination
-          BUSY  = 3'h4, B_CH = 3'h5, FIN = 3'h6;
+
+
 
 module DMA_master (
     input clk, rst,
@@ -19,7 +15,12 @@ module DMA_master (
     input  [`DATA_BITS    -1:0] data_qty_i,
     output                      dma_fin_o
 );
-    
+    localparam FIFO_DEPTH = 2;
+    localparam IDLE  = 3'h0,
+               CHECK = 3'h1,
+               AR_CH = 3'h2,  // send address to source
+               AW_CH = 3'h3,  // send address to destination
+               BUSY  = 3'h4, B_CH = 3'h5, FIN = 3'h6;
     logic [2:0] STATE, NEXT;    
     // Handshake
     logic arhns, awhns, rhns, whns, bhns;
@@ -27,7 +28,7 @@ module DMA_master (
     // FIFO
     logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
     logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
-    logic [FIFO_DEPTH-1:0] fifo_cnt_r;
+    logic [FIFO_DEPTH-1:0] fifo_cnt_r;  // clean the remainder of FIFO mem
     // DMA
     logic [`AXI_LEN_BITS-1:0] op_qty_r;   // send to AXI
     logic [`DATA_BITS   -1:0] rem_qty_r;  // remainder of quantity
@@ -98,17 +99,16 @@ module DMA_master (
         end
     end
 
-
 // }}}
 // {{{ AXI
     assign m2axi_o.arid    = `AXI_DMA_ID;
     assign m2axi_o.araddr  = src_addr_r;
-    assign m2axi_o.arlen   = op_qty_r;//data_qty_i[`AXI_LEN_BITS-1:0];
+    assign m2axi_o.arlen   = op_qty_r;
     assign m2axi_o.arsize  = `AXI_SIZE_WORD;
     assign m2axi_o.arburst = `AXI_BURST_FIXED;
     assign m2axi_o.awid    = `AXI_DMA_ID;
     assign m2axi_o.awaddr  = dst_addr_r;
-    assign m2axi_o.awlen   = op_qty_r;//data_qty_i[`AXI_LEN_BITS-1:0];
+    assign m2axi_o.awlen   = op_qty_r;
     assign m2axi_o.awburst = `AXI_BURST_FIXED;
     assign m2axi_o.wstrb   = `AXI_STRB_WORD;
     assign m2axi_o.wdata   = fifo_dataout;
@@ -131,11 +131,12 @@ module DMA_master (
             end
             AW_CH : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b010;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b0;          
+                {m2axi_o.rready, m2axi_o.bready} = 2'b10;          
             end            
             BUSY  : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = {2'b0, fifo_ren};
-                {m2axi_o.rready, m2axi_o.bready} = {~fifo_full, 1'b0}; 
+                // {m2axi_o.rready, m2axi_o.bready} = {~fifo_full, 1'b0};
+                {m2axi_o.rready, m2axi_o.bready} = 2'b10; 
             end
             B_CH  : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
@@ -146,7 +147,7 @@ module DMA_master (
 // }}}
 // {{{ FIFO (2)
     assign fifo_datain = m2axi_i.rdata;
-    assign fifo_wen = (STATE == BUSY) & rhns;
+    assign fifo_wen = (STATE == BUSY || STATE == AW_CH) & rhns;
     assign fifo_ren = (STATE == BUSY) & fifo_full | (|fifo_cnt_r);
     always_ff @(posedge clk or posedge rst) begin
         if (rst)              fifo_cnt_r <= {FIFO_DEPTH{1'b0}};

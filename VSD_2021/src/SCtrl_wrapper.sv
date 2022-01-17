@@ -2,7 +2,7 @@
 `include "../include/AXI_define.svh"
 `include "./Interface/inf_Slave.sv"
 `include "sensor_ctrl.sv"
-
+localparam SENSOR_ADDR = 9;
 module SCtrl_wrapper(
     input clk, rst,
     inf_Slave.S2AXIin             s2axi_i,
@@ -20,14 +20,13 @@ module SCtrl_wrapper(
     logic rdfin, wrfin;
     // Sensor
     logic sctrl_en, sctrl_clear;
-    logic [8:0] sensor_addr;
-    logic [`DATA_BITS-1:0] sctrl_out;
+    logic [SENSOR_ADDR-1:0] sensor_addr_r;
+    logic [`DATA_BITS -1:0] sctrl_out;
 
     //logic [13:0] raddr, waddr;
     logic [`ADDR_BITS     -1:0] addr;
     logic [`AXI_IDS_BITS  -1:0] aids; //arids, awids;
-    logic [`AXI_DATA_BITS -1:0] rdata;
-    logic [`AXI_LEN_BITS  -1:0] alen; //arlen, awlen;
+    logic [`AXI_LEN_BITS  -1:0] len_r; //arlen, awlen;
     logic [`AXI_BURST_BITS-1:0] burst;
     logic rvalid;
     // arlen, awlen
@@ -54,23 +53,24 @@ module SCtrl_wrapper(
         end
     end
 
-    // Sample
+// {{{ Sample
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
             addr   <= `ADDR_BITS'h0;
             aids   <= `AXI_IDS_BITS'h0;
-            alen   <= `AXI_LEN_BITS'h0;
+            len_r  <= `AXI_LEN_BITS'h0;
             burst  <= `AXI_BURST_BITS'h0;
             rvalid <= 1'b0;
         end
         else begin
-            addr   <= awhns ? s2axi_i.awaddr  : arhns ? s2axi_i.araddr : addr;
-            aids   <= awhns ? s2axi_i.awid    : arhns ? s2axi_i.arid : aids;
-            alen   <= awhns ? s2axi_i.awlen   : arhns ? s2axi_i.arlen : alen;
+            addr   <= awhns ? s2axi_i.awaddr  : arhns ? s2axi_i.araddr  : addr;
+            aids   <= awhns ? s2axi_i.awid    : arhns ? s2axi_i.arid    : aids;
+            len_r  <= awhns ? s2axi_i.awlen   : arhns ? s2axi_i.arlen   : len_r;
             burst  <= awhns ? s2axi_i.awburst : arhns ? s2axi_i.arburst : burst;
             rvalid <= s2axi_o.rvalid;
         end
     end
+// }}}
 // {{{ STATE
     always_ff@(posedge clk or negedge rst) begin
         STATE <= ~rst ? IDLE : NEXT;
@@ -107,13 +107,14 @@ module SCtrl_wrapper(
     end
 // }}}
 // {{{ AXI
-    assign s2axi_o.rlast = cnt == alen;
+    assign s2axi_o.rlast = cnt == len_r;
     assign s2axi_o.rresp = `AXI_RESP_OKAY;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
     assign s2axi_o.rdata = sctrl_out; 
     assign s2axi_o.rid = aids;
     assign s2axi_o.bid = aids;
-
+    assign s2axi_o.rvalid = STATE == R_CH;
+    assign s2axi_o.bvalid = STATE == B_CH;
     always_comb begin
         case (STATE)
             IDLE    : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = {1'b1, ~s2axi_i.awvalid, 1'b0};
@@ -123,41 +124,43 @@ module SCtrl_wrapper(
             default : {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b0;
         endcase
     end
-    always_comb begin
-        case (STATE)
-            B_CH    : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b1;
-            R_CH    : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b10;
-            default : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
-        endcase
-    end
 // }}}
-	
-    always_comb begin
-        case (burst)
-            default : sensor_addr = addr[2+:9];
-        endcase
+
+    // always_comb begin
+    //     case (burst)
+    //         `AXI_BURST_FIXED : sensor_addr = addr[10:2]; //addr[2+:9];
+    //     endcase
+    // end
+
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)               sensor_addr_r <= {SENSOR_ADDR{1'b0}};
+        else if (awhns)         sensor_addr_r <= s2axi_i.awaddr[10:2];
+        else if (arhns)         sensor_addr_r <= s2axi_i.araddr[10:2];
+        else if (wrfin | rdfin) sensor_addr_r <= {SENSOR_ADDR{1'b0}};
+        else if (whns | rhns)   sensor_addr_r <= sensor_addr_r + {{(SENSOR_ADDR-1){1'b0}}, 1'b1};
+
     end
 
     always_ff @ (posedge clk or negedge rst) begin
         if (~rst) 
             {sctrl_en, sctrl_clear} <= 2'b0;
         else if (s2axi_i.wvalid) begin
-            if (sensor_addr == 9'h40)     sctrl_en    <= s2axi_i.wdata[0];
-            else if(sensor_addr == 9'h80) sctrl_clear <= s2axi_i.wdata[0]; 
+            if (sensor_addr_r == 9'h40)     sctrl_en    <= s2axi_i.wdata[0];
+            else if(sensor_addr_r == 9'h80) sctrl_clear <= s2axi_i.wdata[0]; 
         end
     end
 
     sensor_ctrl sensor_ctrl(
-        .clk              (clk              ),
-        .rst              (~rst             ),
-        .sctrl_en         (sctrl_en         ),
-        .sctrl_clear      (sctrl_clear      ),
-        .sctrl_addr       (sensor_addr[5:0] ),
-        .sensor_ready     (sensor_ready_i   ),
-        .sensor_out       (sensor_out_i     ),
-        .sctrl_interrupt  (sctrl_int_o),
-        .sctrl_out        (sctrl_out        ),
-        .sensor_en        (sensor_en_o      )
+        .clk              (clk               ),
+        .rst              (~rst              ),
+        .sctrl_en         (sctrl_en          ),
+        .sctrl_clear      (sctrl_clear       ),
+        .sctrl_addr       (sensor_addr_r[5:0]),
+        .sensor_ready     (sensor_ready_i    ),
+        .sensor_out       (sensor_out_i      ),
+        .sctrl_interrupt  (sctrl_int_o       ),
+        .sctrl_out        (sctrl_out         ),
+        .sensor_en        (sensor_en_o       )
     );
 
 endmodule
