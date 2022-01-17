@@ -42,9 +42,95 @@ void sort(int *array, unsigned int size) {
       }
     }
   }
-
   return;
 }
+
+/*****************************************************************
+ * Function: void Merge Sort                                     *
+ * Description: Sorting data                                     *
+ *****************************************************************/
+void Merge(int array[], int l, int m, int r) {
+    int i, j, k;
+    int n1 = m - l + 1;
+    int n2 = r - m;
+    // temp array
+    int L[n1], R[n2];
+    // copy to temp array
+    for (i = 0; i < n1; i++)
+        L[i] = array[l + i];
+    for (j = 0; j < n2; j++)
+        R[j] = array[m + 1 + j];
+    i = 0; // initial index of first subarray
+    j = 0; // initial index of second subarray
+    k = l; // initial index of merged subarray
+    while (i < n1 && j < n2) {
+        if (L[i] <= R[j]) {
+            array[k] = L[i];
+            i++;
+        }
+        else {
+            array[k] = R[j];
+            j++;
+        }
+        k++;
+    }
+    // copy remaining elements of L[]
+    while (i < n1) {
+        array[k] = L[i];
+        k++;
+        i++;
+    }
+    // copy remaining elements of R[]
+    while (j < n2) {
+        array[k] = R[j];
+        k++;
+        j++;
+    }
+    return;
+}
+
+void MergeSort(int array[], unsigned int l, unsigned int r) {
+    if (l < r) {
+        int m = l + (r - l) / 2;
+        MergeSort(array, l, m);
+        MergeSort(array, m + 1, r);
+        Merge(array, l, m, r);
+    }
+    return;
+}
+
+
+/*****************************************************************
+ * Function: void Quick Sort                                     *
+ * Description: Sorting data                                     *
+ *****************************************************************/
+void swap (int* a, int* b) {
+    int temp = *a;
+    *a = *b; 
+    *b = temp;
+}
+// return partition index
+int partition(int array[], int low, int high) {
+    int pivot = array[high];
+    int i = low - 1;
+    for (int j = low; j <= high - 1; j++) {
+        if (array[j] < pivot) {
+            i++;
+            swap(&array[i], &array[j]);
+        }
+    }
+    swap(&array[i + 1], &array[high]);
+    return (i+1);
+}
+
+void QuickSort(int array[], int low, int high) {
+    if (low < high) {
+        int partition_idx = partition(array, low, high);
+        QuickSort(array, low, partition_idx - 1);
+        QuickSort(array, partition_idx + 1, high);
+    }
+}
+
 
 int main(void) {
   extern unsigned int _test_start;
@@ -70,7 +156,9 @@ int main(void) {
     }
 
     // Start sorting
-    sort(sort_addr, sensor_size);
+    //sort(sort_addr, sensor_size);
+    //MergeSort(sort_addr, 0, sensor_size - 1);
+    QuickSort(sort_addr, 0, sensor_size - 1);
     sort_addr += sensor_size;
     sort_count++;
   }
