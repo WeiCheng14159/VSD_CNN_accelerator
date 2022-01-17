@@ -2,7 +2,7 @@
 `include "../include/AXI_define.svh"
 `include "../FIFO.sv"
 
-parameter FIFO_DEPTH = 6;
+parameter FIFO_DEPTH = 2;
 parameter IDLE  = 3'h0,
           CHECK = 3'h1,
           AR_CH = 3'h2,  // send address to source
@@ -40,11 +40,11 @@ module DMA_master (
     logic [`AXI_LEN_BITS-1:0] lcnt;
     
     // Handshake
-    assign awhns = m2axi_i.awready & m2axi_o.awvalid;
-    assign whns  = m2axi_i.wready  & m2axi_o.wvalid;
-    assign bhns  = m2axi_o.bready  & m2axi_i.bvalid;
-    assign arhns = m2axi_i.arready & m2axi_o.arvalid;
-    assign rhns  = m2axi_o.rready  & m2axi_i.rvalid;
+    assign awhns = m2axi_i.awready && m2axi_o.awvalid;
+    assign whns  = m2axi_i.wready  && m2axi_o.wvalid;
+    assign bhns  = m2axi_o.bready  && m2axi_i.bvalid;
+    assign arhns = m2axi_i.arready && m2axi_o.arvalid;
+    assign rhns  = m2axi_o.rready  && m2axi_i.rvalid;
     assign rdfin = rhns & m2axi_i.rlast;
     assign wrfin = whns & m2axi_o.wlast;
     // DMA
@@ -101,8 +101,8 @@ module DMA_master (
         end
     end
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)             lcnt <= `AXI_LEN_BITS'h0;
-        else if (arhns)      lcnt <= `AXI_LEN_BITS'h0;
+        if (rst)            lcnt <= `AXI_LEN_BITS'h0;
+        else if (arhns)     lcnt <= `AXI_LEN_BITS'h0;
         else if (fifo_rhns) lcnt <= lcnt + `AXI_LEN_BITS'h1;
     end
 
@@ -121,6 +121,7 @@ module DMA_master (
     assign m2axi_o.wdata   = fifo_dataout;
     assign m2axi_o.wlast   = lcnt == op_qty_r;
     // assign m2axi_o.wlast   = &fifo_cnt_r;
+
     always_comb begin
         {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
         {m2axi_o.rready, m2axi_o.bready} = 2'b0;
@@ -144,7 +145,7 @@ module DMA_master (
             BUSY  : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = {2'b0, fifo_ren};
                 {m2axi_o.rready, m2axi_o.bready} = {~fifo_full, 1'b0};
-                // {m2axi_o.rready, m2axi_o.bready} = {whns, 1'b0}; 
+                // {m2axi_o.rready, m2axi_o.bready} = {fifo_empty, 1'b0}; 
             end
             B_CH  : begin
                 {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
@@ -159,17 +160,48 @@ module DMA_master (
         if (rst) fifo_rhns <= 1'b0;
         else     fifo_rhns <= rhns;
     end
-    assign fifo_datain = m2axi_i.rdata;
-    assign fifo_wen = (STATE == BUSY) && m2axi_i.rvalid;
-    // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
-    // assign fifo_ren = (STATE == BUSY) && fifo_rhns;
-    assign fifo_ren = (STATE == BUSY) && ~fifo_empty;
 
+    assign fifo_datain = m2axi_i.rdata;
+    assign fifo_wen = (STATE == BUSY) && rhns;
+    // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
+    logic wready;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) wready <= 1'b0;
+        else if (wrfin) wready <= 1'b0;
+        else if (m2axi_i.wready) wready <= 1'b1;
+    end
+
+// assign fifo_ren = (STATE == BUSY) && ~fifo_empty;
+logic setrow;
+logic [2:0] dcnt;
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)               dcnt <= 3'h0;
+    else if (dma_fin_o)    dcnt <= 3'h0;
+    else if (dcnt == 3'h5) dcnt <= 3'h1;
+    else if (|dcnt)        dcnt <= dcnt + 3'h1;
+    else if (awhns)        dcnt <= 3'h1;
+    
+end
+
+
+    always_comb begin
+        case (dst_addr_r[31:24] == 8'h20)
+            1'b1 : assign fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h1);
+            1'b0 : assign fifo_ren = (STATE == BUSY) && ~fifo_empty;
+        endcase
+    end
+    
+
+
+    logic [FIFO_DEPTH-1:0] fifo_cnt;
+    // assign fifo_ren = (STATE == BUSY) & fifo_full | (|fifo_cnt_r);
     always_ff @(posedge clk or posedge rst) begin
         if (rst)              fifo_cnt_r <= {FIFO_DEPTH{1'b0}};
         else if (rdfin)       fifo_cnt_r <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
         else if (|fifo_cnt_r) fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
     end
+
+
     FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
         .clk     (clk         ),
         .rst     (rst         ),
