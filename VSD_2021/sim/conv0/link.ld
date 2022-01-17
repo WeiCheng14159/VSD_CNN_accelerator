@@ -86,23 +86,35 @@ SECTIONS {
 
   .in8_dat : {
     . = ALIGN(4);
+    __in8_data_in_dram_start = LOADADDR(.in8_dat);
+    __in8_start = .;
     In8.o(.data)
-  } > in8_d
+    __in8_end = .;
+  } > in8_d AT > dram_d
 
   .w2_dat : {
     . = ALIGN(4);
+    __w2_data_in_dram_start = LOADADDR(.w2_dat);
+    __w2_start = .;
     W2.o(.data)
-  } > w2_d
+    __w2_end = .;
+  } > w2_d AT > dram_d
 
   .bias_dat : {
     . = ALIGN(4);
+    __bias_data_in_dram_start = LOADADDR(.bias_dat);
+    __bias_start = .;
     Bias32.o(.data)
-  } > bias_d
+    __bias_end = .;
+  } > bias_d AT > dram_d
 
   .param_dat : {
     . = ALIGN(4);
+    __param_data_in_dram_start = LOADADDR(.param_dat);
+    __param_start = .;
     param.o(.data)
-  } > param_d
+    __param_end = .;
+  } > param_d AT > dram_d
 
   .data1 : {
     . = ALIGN(4);
