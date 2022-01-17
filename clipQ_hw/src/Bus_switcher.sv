@@ -1,9 +1,8 @@
 `include "CG.sv"
 
-module bus_switcher
-  import conv_acc_pkg::*;
+module Bus_switcher
 (
-    input  conv_acc_mode_t     mode,
+    input  logic [3:0]         mode,
     // External bus
     input  logic               clk,
            sp_ram_intf.compute param_o,
@@ -36,9 +35,9 @@ module bus_switcher
 
   logic conv_3x3_enb, conv_1x1_enb, maxpool_enb;
 
-  assign conv_3x3_enb = (mode == CONV_3x3_MODE);
-  assign conv_1x1_enb = (mode == CONV_1x1_MODE);
-  assign maxpool_enb  = (mode == MAX_POOL_MODE);
+  assign conv_3x3_enb = (mode == `CONV_3x3_MODE);
+  assign conv_1x1_enb = (mode == `CONV_1x1_MODE);
+  assign maxpool_enb  = (mode == `MAX_POOL_MODE);
 
   // Param Bus
   always_comb begin
