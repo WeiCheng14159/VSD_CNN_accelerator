@@ -131,14 +131,22 @@ module SCtrl_wrapper(
         endcase
     end
 // }}}
-	
+    logic sctrl_int;
+    logic latch_int;
+    // assign sctrl_int_o = sctrl_int & ~latch_int;
+    assign sctrl_int_o = sctrl_int;
+    
+    always_ff @(posedge clk or negedge rst) begin
+        latch_int <= ~rst ? 1'b0 : sctrl_int;
+    end
+
+
     always_ff @(posedge clk or negedge rst) begin
         if (~rst)               sensor_addr_r <= {SENSOR_ADDR{1'b0}};
         else if (awhns)         sensor_addr_r <= s2axi_i.awaddr[10:2];
         else if (arhns)         sensor_addr_r <= {s2axi_i.araddr[10:2]};
         else if (wrfin | rdfin) sensor_addr_r <= {SENSOR_ADDR{1'b0}};
         else if (whns | rhns)   sensor_addr_r <= sensor_addr_r + {{(SENSOR_ADDR-1){1'b0}}, 1'b1};
-
     end
 
     always_ff @ (posedge clk or negedge rst) begin
@@ -158,7 +166,7 @@ module SCtrl_wrapper(
         .sctrl_addr       (sensor_addr_r[5:0]),
         .sensor_ready     (sensor_ready_i   ),
         .sensor_out       (sensor_out_i     ),
-        .sctrl_interrupt  (sctrl_int_o),
+        .sctrl_interrupt  (sctrl_int     ),
         .sctrl_out        (sctrl_out        ),
         .sensor_en        (sensor_en_o      )
     );
