@@ -29,6 +29,15 @@ void copy () {
   return;
 }
 
+void setDMA(int *source, int *dest, int quantity) {
+    unsigned int *dma_ctrl_addr = (int *) 0x40000000; 
+    *(dma_ctrl_addr+0) = (int)source;  
+    *(dma_ctrl_addr+1) = (int)dest;
+    *(dma_ctrl_addr+2) = (int)quantity;
+    *(dma_ctrl_addr+3) = 1;  // Enable DMA
+    asm("wfi");
+};
+
 int main(void) {
   extern unsigned int _test_start;
   copy_addr = &_test_start;
