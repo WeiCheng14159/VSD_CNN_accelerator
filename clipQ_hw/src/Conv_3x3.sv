@@ -1,7 +1,7 @@
-`include "../include/conv_acc.svh"
-`include "../include/sp_ram_intf.sv"
+`include "ConvAcc.svh"
+`include "sp_ram_intf.sv"
 
-module  conv_3x3(
+module  Conv_3x3(
 	input					clk,
 	input					rst,
 	input			[31:0]	w8,

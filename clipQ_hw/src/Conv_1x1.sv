@@ -1,6 +1,6 @@
-`include "conv_acc.svh"
+`include "ConvAcc.svh"
 
-module conv_1x1(
+module Conv_1x1(
 	input clk, rst,
 	
 	input 			start,
