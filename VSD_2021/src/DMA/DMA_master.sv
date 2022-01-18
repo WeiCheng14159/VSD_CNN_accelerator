@@ -3,8 +3,6 @@
 `include "../FIFO.sv"
 
 
-
-
 module DMA_master (
     input clk, rst,
     inf_Master.M2AXIin          m2axi_i,
@@ -48,7 +46,7 @@ module DMA_master (
     assign bhns  = m2axi_o.bready  && m2axi_i.bvalid;
     assign arhns = m2axi_i.arready && m2axi_o.arvalid;
     assign rhns  = m2axi_o.rready  && m2axi_i.rvalid;
-    assign rdfin = rhns & m2axi_i.rlast;
+    assign rdfin = rhns && m2axi_i.rlast;
     assign wrfin = whns && m2axi_o.wlast;
     // DMA
     assign done = (~|rem_qty_r) && (STATE == B_CH);

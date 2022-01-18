@@ -214,9 +214,11 @@ module top_tb;
     $fsdbDumpvars;
     `elsif FSDB_ALL
     $fsdbDumpfile("top.fsdb");
-    $fsdbDumpvars("+struct", "+mda", TOP);
+    $fsdbDumpvars("+struct", "+mda", TOP.i_dma.dma_m.i_fifo);
     //$fsdbDumpvars("+struct", "+mda", i_DRAM);
-    $fsdbDumpvars("+struct", i_DRAM);
+    // $fsdbDumpvars("+struct", i_DRAM);
+    $fsdbDumpvars;
+    
     `endif
     #(`CYCLE*`MAX)
     for (i = 0; i < num; i++)
