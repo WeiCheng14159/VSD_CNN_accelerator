@@ -1,5 +1,7 @@
 `include "../include/CPU_def.svh"
 `include "./Interface/inf_Slave.sv"
+`include "./FIFO.sv"
+localparam DRAM_ADDR = 11;
 
 module DRAM_wrapper (
     input clk, rst,
@@ -32,7 +34,7 @@ module DRAM_wrapper (
     logic [21:0] addr;
     logic [`AXI_IDS_BITS  -1:0] ids;
     logic [`AXI_BURST_BITS-1:0] burst;
-    logic [`AXI_LEN_BITS  -1:0] len;
+    logic [`AXI_LEN_BITS  -1:0] len_r;
     logic [`AXI_SIZE_BITS -1:0] size;
     logic [`AXI_STRB_BITS -1:0] wstrb;
     logic [`AXI_DATA_BITS -1:0] wdata_r;
@@ -41,10 +43,12 @@ module DRAM_wrapper (
     logic [`WEB_BITS   -1:0] bwen, hwen, dramwen;
     logic [`DATA_BITS  -1:0] dramdata_r;
     logic [`DATA_BITS  -1:0] dramdataD_r;
-    logic [`DRAM_A_BITS-1:0] row, col, col_r;
+    // logic [`DRAM_A_BITS-1:0] row, col, col_r;
+    logic [`DRAM_A_BITS-1:0] col_r;
     logic [ 1:0] off;
     logic dramvalid_r;
     // Counter
+    logic flag;
     logic [2:0] dcnt;  // wait 5 cycle
     logic [`AXI_LEN_BITS-1:0] rcnt;   // cnt for read
     // Other
@@ -64,6 +68,11 @@ module DRAM_wrapper (
     assign ahns  = arhns | awhns;
     assign rdfin = s2axi_o.rlast & rhns;
     assign wrfin = s2axi_i.wlast & whns;
+    // always_ff @(posedge clk or negedge rst) begin
+    //     if (~rst)         latch_wrfin <= 1'b0;
+    //     else if (dcnt[2]) latch_wrfin <= 1'b0;
+    //     else if (wrfin)   latch_wrfin <= 1'b1;
+    // end
 // }}}
     
 // {{{ Sample
@@ -73,10 +82,10 @@ module DRAM_wrapper (
             addr      <= 21'h0;
             ids       <= `AXI_IDS_BITS'h0;
             burst     <= `AXI_BURST_BITS'h0;
-            len       <= `AXI_LEN_BITS'h0;
+            len_r     <= `AXI_LEN_BITS'h0;
             size      <= `AXI_SIZE_BITS'h0;
             wstrb     <= `AXI_STRB_BITS'h0;
-            wdata_r     <= `DATA_BITS'h0;
+            wdata_r   <= `DATA_BITS'h0;
             write     <= 1'b0;
             dramvalid_r <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
@@ -87,7 +96,7 @@ module DRAM_wrapper (
             byte_off  <= arhns ? s2axi_i.araddr[ 1:0] : awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
             ids       <= arhns ? s2axi_i.arid    : awhns ? s2axi_i.awid    : ids;
             burst     <= arhns ? s2axi_i.arburst : awhns ? s2axi_i.awburst : burst;
-            len       <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len;
+            len_r     <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len_r;
             size      <= arhns ? s2axi_i.arsize  : awhns ? s2axi_i.awsize  : size;
             wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
             // wdata     <= awhns ? s2axi_i.wdata   : wdata;
@@ -100,9 +109,7 @@ module DRAM_wrapper (
     end
 // }}}
 // {{{ Counter, flag
-    logic flag;
     assign flag = (STATE == READCOL) ? dramvalid_r : dcnt[2];
-
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
             dcnt <= 3'h0;
@@ -141,8 +148,15 @@ module DRAM_wrapper (
     end
     always_comb begin  // flag = dcnt == 3'h4
         case (STATE)
-            IDLE     : NEXT = ahns         ? SETROW : IDLE;
-            SETROW   : NEXT = flag         ? (write ? WRITECOL : READCOL) : SETROW;
+            IDLE     : NEXT = ahns ? SETROW : IDLE;
+            SETROW   : NEXT = flag ? (write ? WRITECOL : READCOL) : SETROW;
+            SETROW   : begin
+                case ({flag, write})
+                    2'b10   : NEXT = READCOL;
+                    2'b11   : NEXT = WRITECOL;
+                    default : NEXT = SETROW;
+                endcase
+            end
             READCOL  : NEXT = flag & rdfin ? PRECHG : READCOL;
             // WRITECOL : NEXT = flag         ? PRECHG : WRITECOL;
             WRITECOL : NEXT = flag & wrfin ? PRECHG : WRITECOL; 
@@ -152,9 +166,9 @@ module DRAM_wrapper (
     end
 // }}}
 // {{{ DRAM 
-    assign row = addr[20:10];
-    assign col = {1'b0, addr[9:0]};
-    assign off = rcnt[1:0];
+    // assign row = addr[20:10];
+    // assign col = {1'b0, addr[9:0]};
+    // assign off = rcnt[1:0];
 
     always_ff @(posedge clk or negedge rst) begin
         if (~rst)             col_r <= `DRAM_A_BITS'h0;
@@ -199,7 +213,6 @@ module DRAM_wrapper (
                 DRAM_WEn_o  = 4'hf;
             end
             READCOL  : begin
-                // DRAM_A_o    = col + {9'h0, off};
                 DRAM_A_o    = col_r;
                 DRAM_D_o    = s2axi_i.wdata;
                 DRAM_CSn_o  = 1'b0;
@@ -238,7 +251,7 @@ module DRAM_wrapper (
     assign s2axi_o.rid   = ids;
     assign s2axi_o.rdata = dramdata_r;
     assign s2axi_o.rresp = `AXI_RESP_OKAY;
-    assign s2axi_o.rlast = rcnt == len;
+    assign s2axi_o.rlast = rcnt == len_r;
     assign s2axi_o.bid   = ids;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
     logic [2:0] readyout;

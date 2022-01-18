@@ -1,38 +1,32 @@
-module SRAM (A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,DO0,
-             DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8,DO9,DO10,DO11,
-             DO12,DO13,DO14,DO15,DO16,DO17,DO18,DO19,
-             DO20,DO21,DO22,DO23,DO24,DO25,DO26,DO27,
-             DO28,DO29,DO30,DO31,DI0,DI1,DI2,DI3,DI4,
-             DI5,DI6,DI7,DI8,DI9,DI10,DI11,DI12,DI13,DI14,
-             DI15,DI16,DI17,DI18,DI19,DI20,DI21,DI22,
-             DI23,DI24,DI25,DI26,DI27,DI28,DI29,DI30,
-             DI31,CK,WEB0,WEB1,WEB2,WEB3,OE, CS);
+module SUMA180_384X32X1BM4 (A0,A1,A2,A3,A4,A5,A6,A7,A8,
+                            DO0, DO1, DO2, DO3, DO4, DO5, DO6, DO7, DO8, DO9,
+                            DO10,DO11,DO12,DO13,DO14,DO15,DO16,DO17,DO18,DO19,
+                            DO20,DO21,DO22,DO23,DO24,DO25,DO26,DO27,DO28,DO29,
+                            DO30,DO31,
+                            DI0, DI1, DI2, DI3, DI4, DI5, DI6, DI7, DI8, DI9,
+                            DI10,DI11,DI12,DI13,DI14,DI15,DI16,DI17,DI18,DI19,
+                            DI20,DI21,DI22,DI23,DI24,DI25,DI26,DI27,DI28,DI29,
+                            DI30,DI31, 
+                            CK,WEB,OE,CS);
 
-  output     DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8,
-             DO9,DO10,DO11,DO12,DO13,DO14,DO15,DO16,DO17,DO18,
-             DO19,DO20,DO21,DO22,DO23,DO24,DO25,DO26,DO27,DO28,
-             DO29,DO30,DO31;
-  input      DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8,
-             DI9,DI10,DI11,DI12,DI13,DI14,DI15,DI16,DI17,DI18,
-             DI19,DI20,DI21,DI22,DI23,DI24,DI25,DI26,DI27,DI28,
-             DI29,DI30,DI31;
-  input      A0,A1,A2,A3,A4,A5,A6,A7,A8,
-             A9,A10,A11,A12,A13;
-  input      WEB0;                                    
-  input      WEB1;                                    
-  input      WEB2;                                    
-  input      WEB3;                                    
-  input      CK;                                      
-  input      CS;                                      
-  input      OE;                                      
-  parameter  AddressSize          = 14;               
-  parameter  Bits                 = 8;                
-  parameter  Words                = 16384;            
-  parameter  Bytes                = 4;                
-  logic      [Bits-1:0]           Memory_byte0 [Words-1:0];     
-  logic      [Bits-1:0]           Memory_byte1 [Words-1:0];     
-  logic      [Bits-1:0]           Memory_byte2 [Words-1:0];     
-  logic      [Bits-1:0]           Memory_byte3 [Words-1:0];     
+  output      DO0, DO1, DO2, DO3, DO4, DO5, DO6, DO7, DO8, DO9,
+              DO10,DO11,DO12,DO13,DO14,DO15,DO16,DO17,DO18,DO19,
+              DO20,DO21,DO22,DO23,DO24,DO25,DO26,DO27,DO28,DO29,
+              DO30,DO31;
+  input       DI0, DI1, DI2, DI3, DI4, DI5, DI6, DI7, DI8, DI9,
+              DI10,DI11,DI12,DI13,DI14,DI15,DI16,DI17,DI18,DI19,
+              DI20,DI21,DI22,DI23,DI24,DI25,DI26,DI27,DI28,DI29,
+              DI30,DI31;
+  input       A0,A1,A2,A3,A4,A5,A6,A7,A8;
+  input       WEB;                                  
+  input       CK;                                      
+  input       CS;                                      
+  input       OE;                                      
+  parameter  AddressSize          = 9;               
+  parameter  Bits                 = 32;                
+  parameter  Words                = 384;            
+  parameter  Bytes                = 1;                
+  logic      [Bits-1:0]           Memory [Words-1:0];     
 
   logic      [Bytes*Bits-1:0]     DI;                
   logic      [Bytes*Bits-1:0]     DO;                
@@ -113,51 +107,19 @@ module SRAM (A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,DO0,
   assign     A[6]                 = A6;
   assign     A[7]                 = A7;
   assign     A[8]                 = A8;
-  assign     A[9]                 = A9;
-  assign     A[10]                = A10;
-  assign     A[11]                = A11;
-  assign     A[12]                = A12;
-  assign     A[13]                = A13;
 
   always_ff @(posedge CK)
   begin
     if (CS)
     begin
-      if (~WEB0)
+      if (~WEB)
       begin
-        Memory_byte0[A] <= DI[0*Bits+:Bits];
-        latched_DO[0*Bits+:Bits] <= DI[0*Bits+:Bits];
+        Memory[A] <= DI;
+        latched_DO <= DI;
       end
       else
       begin
-        latched_DO[0*Bits+:Bits] <= Memory_byte0[A];
-      end
-      if (~WEB1)
-      begin
-        Memory_byte1[A] <= DI[1*Bits+:Bits];
-        latched_DO[1*Bits+:Bits] <= DI[1*Bits+:Bits];
-      end
-      else
-      begin
-        latched_DO[1*Bits+:Bits] <= Memory_byte1[A];
-      end
-      if (~WEB2)
-      begin
-        Memory_byte2[A] <= DI[2*Bits+:Bits];
-        latched_DO[2*Bits+:Bits] <= DI[2*Bits+:Bits];
-      end
-      else
-      begin
-        latched_DO[2*Bits+:Bits] <= Memory_byte2[A];
-      end
-      if (~WEB3)
-      begin
-        Memory_byte3[A] <= DI[3*Bits+:Bits];
-        latched_DO[3*Bits+:Bits] <= DI[3*Bits+:Bits];
-      end
-      else
-      begin
-        latched_DO[3*Bits+:Bits] <= Memory_byte3[A];
+        latched_DO <= Memory[A];
       end
     end
   end

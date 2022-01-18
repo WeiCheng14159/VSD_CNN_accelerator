@@ -18,22 +18,22 @@
     
 ________________________________________________________________________________
 
-      Module Name       :  data_array  
-      Word              :  64          
-      Bit               :  8           
-      Byte              :  16          
-      Mux               :  1           
-      Power Ring Type   :  port        
-      Power Ring Width  :  2 (um)      
-      Output Loading    :  0.5 (pf)    
-      Input Data Slew   :  0.5 (ns)    
-      Input Clock Slew  :  0.5 (ns)    
+      Module Name       :  SUMA180_384X32X1BM4  
+      Word              :  384                  
+      Bit               :  32                   
+      Byte              :  1                    
+      Mux               :  4                    
+      Power Ring Type   :  port                 
+      Power Ring Width  :  2 (um)               
+      Output Loading    :  0.5 (pf)             
+      Input Data Slew   :  0.5 (ns)             
+      Input Clock Slew  :  0.5 (ns)             
 
 ________________________________________________________________________________
 
       Library          : FSA0M_A
       Memaker          : 200901.2.1
-      Date             : 2018/10/22 20:31:52
+      Date             : 2022/01/11 11:39:28
 
 ________________________________________________________________________________
 
@@ -82,23 +82,23 @@ ________________________________________________________________________________
 
    Input Pins:
  
-       Pin Name   Capacitance  Descriptions                                  
-       A[5:0]     0.024 pF     Address signals of width 6                    
-       CK         0.060 pF     Clock signal for addresses, WEB, CS, and DI   
-       CS         0.120 pF     Chip select, active high                      
-       OE         0.030 pF     Output enable signal, active high             
-       DI[127:0]  0.009 pF     Input data of width 128                       
-       WEB[15:0]  0.008 pF     Write enable signals of 16 bytes, active low  
+       Pin Name  Capacitance  Descriptions                                 
+       A[8:0]    0.024 pF     Address signals of width 9                   
+       CK        0.060 pF     Clock signal for addresses, WEB, CS, and DI  
+       CS        0.120 pF     Chip select, active high                     
+       OE        0.030 pF     Output enable signal, active high            
+       DI[31:0]  0.036 pF     Input data of width 32                       
+       WEB       0.008 pF     Write enable signals of 1 bytes, active low  
 
    Output Pins: 
 
-       Pin Name   Capacitance  Descriptions                          
-       DO[127:0]  0.028 pF     Output data of width 128 (tri-state)  
+       Pin Name  Capacitance  Descriptions                         
+       DO[31:0]  0.113 pF     Output data of width 32 (tri-state)  
 
 
    Approximated Area Information: 
 
-       RAM area = 1888.140 um (Width) x 156.720 um (Height) = 0.296 mm^2
+       RAM area = 1898.680 um (Width) x 166.800 um (Height) = 0.317 mm^2
        Power ring width = 2 um
 
 
@@ -151,9 +151,9 @@ ________________________________________________________________________________
    Power Consumption:
 
        Power Type       BC     TC     WC      Unit         
-       Standby Current  1.113  1.782  12.936  uA (CS = 0)  
-       DC Current       1.113  1.782  12.936  uA (CS = 1)  
-       Max. AC Current  0.457  0.402  0.343   mA/MHz       
+       Standby Current  1.000  1.557  15.439  uA (CS = 0)  
+       DC Current       1.000  1.557  15.439  uA (CS = 1)  
+       Max. AC Current  0.387  0.339  0.276   mA/MHz       
 
        Total current   = AC current * Freq + DC current   
        Notes:
@@ -175,14 +175,14 @@ ________________________________________________________________________________
    symbol  BC    TC    WC    Descriptions                                 
    taa     1.64  2.33  3.73  Data access time from CK rising              
    toh     0.86  1.29  2.15  Output data hold time after CK rising        
-   trc     1.69  2.43  3.94  Read cycle time                              
+   trc     1.69  2.44  3.95  Read cycle time                              
    tcss    0.50  0.70  1.22  CS setup time before CK rising               
    tcshr   0.08  0.14  0.24  CS hold time after CK rising in read cycle   
    tcshw   0.08  0.14  0.24  CS hold time after CK rising in write cycle  
    twh     0.10  0.10  0.10  WEB hold time after CK rising                
    tah     0.10  0.10  0.11  Address hold time after CK rising            
    tas     0.38  0.56  0.98  Address setup time before CK rising          
-   twc     1.69  2.43  3.94  Write cycle time                             
+   twc     1.69  2.44  3.95  Write cycle time                             
    tws     0.26  0.35  0.56  WEB setup time before CK rising              
    tdh     0.10  0.10  0.10  Input data hold time after CK rising         
    tds     0.40  0.55  0.89  Input data setup time before CK rising       

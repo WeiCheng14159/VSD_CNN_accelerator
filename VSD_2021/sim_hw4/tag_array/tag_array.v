@@ -18,22 +18,22 @@
     
 ________________________________________________________________________________
 
-      Module Name       :  tag_array  
-      Word              :  64         
-      Bit               :  22         
-      Byte              :  1          
-      Mux               :  1          
-      Power Ring Type   :  port       
-      Power Ring Width  :  2 (um)     
-      Output Loading    :  0.5 (pf)   
-      Input Data Slew   :  0.5 (ns)   
-      Input Clock Slew  :  0.5 (ns)   
+      Module Name       :  SUMA180_16384X18X1BM4  
+      Word              :  16384                  
+      Bit               :  18                     
+      Byte              :  1                      
+      Mux               :  4                      
+      Power Ring Type   :  port                   
+      Power Ring Width  :  2 (um)                 
+      Output Loading    :  0.5 (pf)               
+      Input Data Slew   :  0.5 (ns)               
+      Input Clock Slew  :  0.5 (ns)               
 
 ________________________________________________________________________________
 
       Library          : FSA0M_A
       Memaker          : 200901.2.1
-      Date             : 2018/10/22 20:38:38
+      Date             : 2022/01/10 18:44:38
 
 ________________________________________________________________________________
 
@@ -53,7 +53,7 @@ ________________________________________________________________________________
 
                 Library          : FSA0M_A
                 Memaker          : 200901.2.1
-                Date             : 2018/10/22 20:38:38
+                Date             : 2022/01/10 18:44:38
 
  *******************************************************************************/
 
@@ -61,32 +61,30 @@ ________________________________________________________________________________
 `timescale 10ps/1ps
 
 
-module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
-                  DO7,DO8,DO9,DO10,DO11,DO12,DO13,DO14,DO15,
-                  DO16,DO17,DO18,DO19,DO20,DO21,DI0,DI1,
-                  DI2,DI3,DI4,DI5,DI6,DI7,DI8,DI9,DI10,DI11,
-                  DI12,DI13,DI14,DI15,DI16,DI17,DI18,DI19,
-                  DI20,DI21,CK,WEB,OE, CS);
+module SUMA180_16384X18X1BM4 (A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,DO0,
+                              DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8,DO9,DO10,DO11,
+                              DO12,DO13,DO14,DO15,DO16,DO17,DI0,DI1,
+                              DI2,DI3,DI4,DI5,DI6,DI7,DI8,DI9,DI10,DI11,
+                              DI12,DI13,DI14,DI15,DI16,DI17,CK,WEB,OE, CS);
 
   `define    TRUE                 (1'b1)              
   `define    FALSE                (1'b0)              
 
   parameter  SYN_CS               = `TRUE;            
   parameter  NO_SER_TOH           = `TRUE;            
-  parameter  AddressSize          = 6;                
-  parameter  Bits                 = 22;               
-  parameter  Words                = 64;               
+  parameter  AddressSize          = 14;               
+  parameter  Bits                 = 18;               
+  parameter  Words                = 16384;            
   parameter  Bytes                = 1;                
-  parameter  AspectRatio          = 1;                
-  parameter  TOH                  = (77:114:192);     
+  parameter  AspectRatio          = 4;                
+  parameter  TOH                  = (82:122:204);     
 
   output     DO0,DO1,DO2,DO3,DO4,DO5,DO6,DO7,DO8,
-             DO9,DO10,DO11,DO12,DO13,DO14,DO15,DO16,DO17,DO18,
-             DO19,DO20,DO21;
+             DO9,DO10,DO11,DO12,DO13,DO14,DO15,DO16,DO17;
   input      DI0,DI1,DI2,DI3,DI4,DI5,DI6,DI7,DI8,
-             DI9,DI10,DI11,DI12,DI13,DI14,DI15,DI16,DI17,DI18,
-             DI19,DI20,DI21;
-  input      A0,A1,A2,A3,A4,A5;
+             DI9,DI10,DI11,DI12,DI13,DI14,DI15,DI16,DI17;
+  input      A0,A1,A2,A3,A4,A5,A6,A7,A8,
+             A9,A10,A11,A12,A13;
   input      WEB;                                     
   input      CK;                                      
   input      CS;                                      
@@ -127,6 +125,14 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   reg                             n_flag_A3;          
   reg                             n_flag_A4;          
   reg                             n_flag_A5;          
+  reg                             n_flag_A6;          
+  reg                             n_flag_A7;          
+  reg                             n_flag_A8;          
+  reg                             n_flag_A9;          
+  reg                             n_flag_A10;         
+  reg                             n_flag_A11;         
+  reg                             n_flag_A12;         
+  reg                             n_flag_A13;         
   reg                             n_flag_DI0;         
   reg                             n_flag_DI1;         
   reg                             n_flag_DI2;         
@@ -145,10 +151,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   reg                             n_flag_DI15;        
   reg                             n_flag_DI16;        
   reg                             n_flag_DI17;        
-  reg                             n_flag_DI18;        
-  reg                             n_flag_DI19;        
-  reg                             n_flag_DI20;        
-  reg                             n_flag_DI21;        
   reg                             n_flag_WEB;         
   reg                             n_flag_CS;          
   reg                             n_flag_CK_PER;      
@@ -206,10 +208,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   bufif1     ido15           (DO15, DO_[15], OE_);         
   bufif1     ido16           (DO16, DO_[16], OE_);         
   bufif1     ido17           (DO17, DO_[17], OE_);         
-  bufif1     ido18           (DO18, DO_[18], OE_);         
-  bufif1     ido19           (DO19, DO_[19], OE_);         
-  bufif1     ido20           (DO20, DO_[20], OE_);         
-  bufif1     ido21           (DO21, DO_[21], OE_);         
   buf        ick0            (CK_, CK);                    
   buf        ia0             (A_[0], A0);                  
   buf        ia1             (A_[1], A1);                  
@@ -217,6 +215,14 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   buf        ia3             (A_[3], A3);                  
   buf        ia4             (A_[4], A4);                  
   buf        ia5             (A_[5], A5);                  
+  buf        ia6             (A_[6], A6);                  
+  buf        ia7             (A_[7], A7);                  
+  buf        ia8             (A_[8], A8);                  
+  buf        ia9             (A_[9], A9);                  
+  buf        ia10            (A_[10], A10);                
+  buf        ia11            (A_[11], A11);                
+  buf        ia12            (A_[12], A12);                
+  buf        ia13            (A_[13], A13);                
   buf        idi_0           (DI_[0], DI0);                
   buf        idi_1           (DI_[1], DI1);                
   buf        idi_2           (DI_[2], DI2);                
@@ -235,10 +241,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   buf        idi_15          (DI_[15], DI15);              
   buf        idi_16          (DI_[16], DI16);              
   buf        idi_17          (DI_[17], DI17);              
-  buf        idi_18          (DI_[18], DI18);              
-  buf        idi_19          (DI_[19], DI19);              
-  buf        idi_20          (DI_[20], DI20);              
-  buf        idi_21          (DI_[21], DI21);              
   buf        ics0            (CS_, CS);                    
   buf        ioe0            (OE_, OE);                    
   buf        iweb0           (WEB_, WEB);                  
@@ -296,6 +298,14 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
            n_flag_A3 or
            n_flag_A4 or
            n_flag_A5 or
+           n_flag_A6 or
+           n_flag_A7 or
+           n_flag_A8 or
+           n_flag_A9 or
+           n_flag_A10 or
+           n_flag_A11 or
+           n_flag_A12 or
+           n_flag_A13 or
            n_flag_DI0 or
            n_flag_DI1 or
            n_flag_DI2 or
@@ -314,10 +324,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
            n_flag_DI15 or
            n_flag_DI16 or
            n_flag_DI17 or
-           n_flag_DI18 or
-           n_flag_DI19 or
-           n_flag_DI20 or
-           n_flag_DI21 or
            n_flag_WEB or
            n_flag_CS or
            n_flag_CK_PER or
@@ -364,6 +370,14 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
       end
       else begin
           NOT_BUS_A  = {
+                         n_flag_A13,
+                         n_flag_A12,
+                         n_flag_A11,
+                         n_flag_A10,
+                         n_flag_A9,
+                         n_flag_A8,
+                         n_flag_A7,
+                         n_flag_A6,
                          n_flag_A5,
                          n_flag_A4,
                          n_flag_A3,
@@ -372,10 +386,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
                          n_flag_A0};
 
           NOT_BUS_DI  = {
-                         n_flag_DI21,
-                         n_flag_DI20,
-                         n_flag_DI19,
-                         n_flag_DI18,
                          n_flag_DI17,
                          n_flag_DI16,
                          n_flag_DI15,
@@ -590,21 +600,21 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
   endfunction //end AddressRangeCheck;
 
    specify
-      specparam TAA  = (143:209:342);
-      specparam TWDV = (107:157:256);
-      specparam TRC  = (169:243:394);
+      specparam TAA  = (244:353:574);
+      specparam TWDV = (183:265:430);
+      specparam TRC  = (279:399:640);
       specparam THPW = (32:46:71);
       specparam TLPW = (32:46:71);
-      specparam TAS  = (53:71:114);
+      specparam TAS  = (48:65:107);
       specparam TAH  = (10:10:11);
-      specparam TWS  = (40:50:77);
+      specparam TWS  = (34:44:68);
       specparam TWH  = (10:10:10);
-      specparam TDS  = (44:63:103);
+      specparam TDS  = (41:58:95);
       specparam TDH  = (10:10:10);
-      specparam TCSS = (67:88:143);
+      specparam TCSS = (60:81:134);
       specparam TCSH = (8:14:24);
-      specparam TOE      = (44:64:105);
-      specparam TOZ      = (44:60:90);
+      specparam TOE      = (47:69:112);
+      specparam TOZ      = (48:64:96);
 
       $setuphold ( posedge CK &&& con_A,          posedge A0, TAS,     TAH,     n_flag_A0      );
       $setuphold ( posedge CK &&& con_A,          negedge A0, TAS,     TAH,     n_flag_A0      );
@@ -618,6 +628,22 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
       $setuphold ( posedge CK &&& con_A,          negedge A4, TAS,     TAH,     n_flag_A4      );
       $setuphold ( posedge CK &&& con_A,          posedge A5, TAS,     TAH,     n_flag_A5      );
       $setuphold ( posedge CK &&& con_A,          negedge A5, TAS,     TAH,     n_flag_A5      );
+      $setuphold ( posedge CK &&& con_A,          posedge A6, TAS,     TAH,     n_flag_A6      );
+      $setuphold ( posedge CK &&& con_A,          negedge A6, TAS,     TAH,     n_flag_A6      );
+      $setuphold ( posedge CK &&& con_A,          posedge A7, TAS,     TAH,     n_flag_A7      );
+      $setuphold ( posedge CK &&& con_A,          negedge A7, TAS,     TAH,     n_flag_A7      );
+      $setuphold ( posedge CK &&& con_A,          posedge A8, TAS,     TAH,     n_flag_A8      );
+      $setuphold ( posedge CK &&& con_A,          negedge A8, TAS,     TAH,     n_flag_A8      );
+      $setuphold ( posedge CK &&& con_A,          posedge A9, TAS,     TAH,     n_flag_A9      );
+      $setuphold ( posedge CK &&& con_A,          negedge A9, TAS,     TAH,     n_flag_A9      );
+      $setuphold ( posedge CK &&& con_A,          posedge A10, TAS,     TAH,     n_flag_A10     );
+      $setuphold ( posedge CK &&& con_A,          negedge A10, TAS,     TAH,     n_flag_A10     );
+      $setuphold ( posedge CK &&& con_A,          posedge A11, TAS,     TAH,     n_flag_A11     );
+      $setuphold ( posedge CK &&& con_A,          negedge A11, TAS,     TAH,     n_flag_A11     );
+      $setuphold ( posedge CK &&& con_A,          posedge A12, TAS,     TAH,     n_flag_A12     );
+      $setuphold ( posedge CK &&& con_A,          negedge A12, TAS,     TAH,     n_flag_A12     );
+      $setuphold ( posedge CK &&& con_A,          posedge A13, TAS,     TAH,     n_flag_A13     );
+      $setuphold ( posedge CK &&& con_A,          negedge A13, TAS,     TAH,     n_flag_A13     );
       $setuphold ( posedge CK &&& con_DI,         posedge DI0, TDS,     TDH,     n_flag_DI0     );
       $setuphold ( posedge CK &&& con_DI,         negedge DI0, TDS,     TDH,     n_flag_DI0     );
       $setuphold ( posedge CK &&& con_DI,         posedge DI1, TDS,     TDH,     n_flag_DI1     );
@@ -654,14 +680,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
       $setuphold ( posedge CK &&& con_DI,         negedge DI16, TDS,     TDH,     n_flag_DI16    );
       $setuphold ( posedge CK &&& con_DI,         posedge DI17, TDS,     TDH,     n_flag_DI17    );
       $setuphold ( posedge CK &&& con_DI,         negedge DI17, TDS,     TDH,     n_flag_DI17    );
-      $setuphold ( posedge CK &&& con_DI,         posedge DI18, TDS,     TDH,     n_flag_DI18    );
-      $setuphold ( posedge CK &&& con_DI,         negedge DI18, TDS,     TDH,     n_flag_DI18    );
-      $setuphold ( posedge CK &&& con_DI,         posedge DI19, TDS,     TDH,     n_flag_DI19    );
-      $setuphold ( posedge CK &&& con_DI,         negedge DI19, TDS,     TDH,     n_flag_DI19    );
-      $setuphold ( posedge CK &&& con_DI,         posedge DI20, TDS,     TDH,     n_flag_DI20    );
-      $setuphold ( posedge CK &&& con_DI,         negedge DI20, TDS,     TDH,     n_flag_DI20    );
-      $setuphold ( posedge CK &&& con_DI,         posedge DI21, TDS,     TDH,     n_flag_DI21    );
-      $setuphold ( posedge CK &&& con_DI,         negedge DI21, TDS,     TDH,     n_flag_DI21    );
       $setuphold ( posedge CK &&& con_WEB,        posedge WEB, TWS,     TWH,     n_flag_WEB     );
       $setuphold ( posedge CK &&& con_WEB,        negedge WEB, TWS,     TWH,     n_flag_WEB     );
       $setuphold ( posedge CK,                    posedge CS, TCSS,    TCSH,    n_flag_CS      );
@@ -687,10 +705,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
       if (NODELAY == 0)  (posedge CK => (DO15 :1'bx)) = TAA  ;
       if (NODELAY == 0)  (posedge CK => (DO16 :1'bx)) = TAA  ;
       if (NODELAY == 0)  (posedge CK => (DO17 :1'bx)) = TAA  ;
-      if (NODELAY == 0)  (posedge CK => (DO18 :1'bx)) = TAA  ;
-      if (NODELAY == 0)  (posedge CK => (DO19 :1'bx)) = TAA  ;
-      if (NODELAY == 0)  (posedge CK => (DO20 :1'bx)) = TAA  ;
-      if (NODELAY == 0)  (posedge CK => (DO21 :1'bx)) = TAA  ;
 
 
       (OE => DO0) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
@@ -711,10 +725,6 @@ module tag_array (A0,A1,A2,A3,A4,A5,DO0,DO1,DO2,DO3,DO4,DO5,DO6,
       (OE => DO15) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
       (OE => DO16) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
       (OE => DO17) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
-      (OE => DO18) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
-      (OE => DO19) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
-      (OE => DO20) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
-      (OE => DO21) = (TOE,  TOE,  TOZ,  TOE,  TOZ,  TOE  );
    endspecify
 
 `endprotect

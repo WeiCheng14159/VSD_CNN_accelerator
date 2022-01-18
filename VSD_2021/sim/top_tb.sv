@@ -6,6 +6,9 @@
 `include "data_array/data_array.v"
 `include "tag_array/tag_array.v"
 `include "SRAM/SRAM.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns/10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `elsif PR
@@ -13,6 +16,9 @@
 `include "SRAM/SRAM.v"
 `include "data_array/data_array.v"
 `include "tag_array/tag_array.v"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
+`include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns/10ps
 `include "/usr/cad/CBDK/CBDK018_UMC_Faraday_v1.0/orig_lib/fsa0m_a/2009Q2v2.0/GENERIC_CORE/FrontEnd/verilog/fsa0m_a_generic_core_21.lib"
 `else
@@ -20,6 +26,9 @@
 `include "SRAM/SRAM_rtl.sv"
 `include "data_array/data_array_rtl.sv"
 `include "tag_array/tag_array_rtl.sv"
+`include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
+`include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
+`include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
 `endif
 `timescale 1ns/10ps
 `include "ROM/ROM.v"

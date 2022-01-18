@@ -48,7 +48,8 @@ module top (
     // logic int_taken;
     logic int_sctrl;
     logic [1:0] int_dma;
-    assign interrupt = {1'b0,
+    logic int_epu;
+    assign interrupt = {int_epu,
                         int_sctrl,
                         int_dma};
 
@@ -158,7 +159,8 @@ end
         .clk     (clk              ),
         .rst     (latch_rst        ),
         .s2axi_i (slave6.S2AXIin   ),
-        .s2axi_o (slave6.S2AXIout  )
+        .s2axi_o (slave6.S2AXIout  ),
+        .epuint_o(int_epu          )
     );
 
 endmodule
