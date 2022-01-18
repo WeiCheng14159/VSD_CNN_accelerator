@@ -2,7 +2,7 @@ unsigned int *copy_addr; // = &_test_start;
 unsigned int copy_count = 0;
 const unsigned int sensor_size = 64;
 volatile unsigned int *sensor_addr = (int *) 0x10000000;
-	extern void setDMA(unsigned int *source, unsigned int *dest, unsigned int quantity);
+extern void setDMA(unsigned int *source, unsigned int *dest, unsigned int quantity);
 /*****************************************************************
  * Function: void copy()                                         *
  * Description: Part of interrupt service routine (ISR).         *
@@ -16,6 +16,7 @@ void copy () {
   // asm("csrsi mstatus, 0x8"); // MIE of mstatus
   // setDMA(sensor_addr, copy_addr, sensor_size);
   copy_addr += sensor_size; // Update copy address
+  asm("addi t3, x0, 1");
   copy_count++;    // Increase copy count
   sensor_addr[0x80] = 1; // Enable sctrl_clear
   sensor_addr[0x80] = 0; // Disable sctrl_clear
@@ -26,7 +27,7 @@ void copy () {
   return;
 }
 
-	/*****************************************************************
+/*****************************************************************
  * Function: void Quick Sort                                     *
  * Description: Sorting data                                     *
  *****************************************************************/
@@ -56,6 +57,7 @@ void QuickSort(int array[], int low, int high) {
         QuickSort(array, partition_idx + 1, high);
     }
 }
+
 
 int main(void) {
   extern unsigned int _test_start;

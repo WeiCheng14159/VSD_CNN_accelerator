@@ -58,7 +58,7 @@ module Master(
     assign m2axi_o.arid    = `AXI_ID_BITS'h0;
     assign m2axi_o.arlen   = arlenone_i ? `AXI_LEN_ONE : `AXI_LEN_FOUR;
     assign m2axi_o.arsize  = `AXI_SIZE_BITS'b10;
-    assign m2axi_o.arburst = `AXI_BURST_INC;
+    assign m2axi_o.arburst = `AXI_BURST_FIXED;
     assign m2axi_o.araddr  = caddr_i;
     assign m2axi_o.awid    = `AXI_ID_BITS'h0;
     assign m2axi_o.awlen   = `AXI_LEN_ONE;

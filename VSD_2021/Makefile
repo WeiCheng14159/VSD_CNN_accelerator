@@ -72,6 +72,23 @@ rtl1: | $(bld_dir)
   +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
+# Convolution layer by layer
+conv0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+conv0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+  +nc64bit \
+	+prog_path=$(root_dir)/$(sim_dir)/conv0
+
 # Post-Synthesis simulation
 syn_all: clean syn0 syn1
 
@@ -249,3 +266,5 @@ clean:
 	rm -rf $(sim_dir)/prog*/result*.txt; \
 	make -C $(sim_dir)/prog0/ clean; \
 	make -C $(sim_dir)/prog1/ clean; \
+	make -C $(sim_dir)/prog2/ clean; \
+	make -C $(sim_dir)/conv0/ clean; \
