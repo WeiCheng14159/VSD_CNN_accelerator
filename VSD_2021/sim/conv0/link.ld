@@ -93,6 +93,14 @@ SECTIONS {
     __in8_end = .;
   } > in8_d AT > dram_d
 
+  .out8_dat : {
+    . = ALIGN(4);
+    __out8_data_in_dram_start = LOADADDR(.out8_dat);
+    __out8_start = .;
+    Out8.o(.data)
+    __out8_end = .;
+  } > out8_d AT > dram_d
+
   .w2_dat : {
     . = ALIGN(4);
     __w2_data_in_dram_start = LOADADDR(.w2_dat);
