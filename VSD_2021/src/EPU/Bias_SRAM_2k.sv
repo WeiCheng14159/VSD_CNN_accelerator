@@ -4,25 +4,25 @@
 // One 2kB SRAM
 
 module Bias_SRAM_2k (
-    input logic         clk,
-    sp_ram_intf.memory mem
+    input logic              clk,
+          sp_ram_intf.memory mem
 );
 
-  logic         CK;
-  logic         CS;
-  logic         OE;
-  logic         WEB;
-  logic  [ 8:0] A;
-  logic  [31:0] DI;
-  logic  [31:0] DO;
+  logic        CK;
+  logic        CS;
+  logic        OE;
+  logic        WEB;
+  logic [ 8:0] A;
+  logic [31:0] DI;
+  logic [31:0] DO;
 
   assign CK = clk;
   assign CS = mem.cs;
   assign OE = mem.oe;
-  assign A  = mem.addr[8:0];
+  assign A = mem.addr[8:0];
   assign DI = mem.W_data;
   assign WEB = mem.W_req;
-  assign mem.R_data = DO; 
+  assign mem.R_data = DO;
 
   SRAM_32b_384w_2k i_SRAM_32b_384w_2k (
       .CK (CK),
@@ -33,5 +33,5 @@ module Bias_SRAM_2k (
       .DI (DI),
       .DO (DO)
   );
-      
+
 endmodule

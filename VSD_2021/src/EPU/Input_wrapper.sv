@@ -78,17 +78,17 @@ module Input_wrapper (
       in_buff_bus.W_req  = `WRITE_DIS;
       in_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
-      rdata_o            = 0;
-      in_buff_bus.cs     = epuin_i.CS;
-      in_buff_bus.oe     = epuin_i.OE;
-      in_buff_bus.addr   = epu_addr_shift;
+      rdata_o = 0;
+      in_buff_bus.cs = epuin_i.CS;
+      in_buff_bus.oe = epuin_i.OE;
+      in_buff_bus.addr = epu_addr_shift;
       in_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
       in_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      in_buff_bus.cs     = (epuin_i.arhns | bus2EPU.cs);
-      in_buff_bus.oe     = 1'b0;
+      in_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
+      in_buff_bus.oe = 1'b0;
       in_buff_bus.addr   = epuin_i.arhns ? epu_addr_shift : bus2EPU.cs ? bus2EPU.addr : 0;
-      in_buff_bus.W_req  = `WRITE_DIS;
+      in_buff_bus.W_req = `WRITE_DIS;
       in_buff_bus.W_data = 0;
     end
   end

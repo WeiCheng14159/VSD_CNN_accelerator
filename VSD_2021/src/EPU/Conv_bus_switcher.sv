@@ -1,37 +1,36 @@
 `include "ConvAcc.svh"
 `include "Interface/sp_ram_intf.sv"
 
-module Conv_bus_switcher
-(
-    input  logic         [3:0] mode,
+module Conv_bus_switcher (
+    input  logic               [3:0] mode,
     // External bus
-    input  logic               clk,
-           sp_ram_intf.compute param_o,
-           sp_ram_intf.compute bias_o,
-           sp_ram_intf.compute weight_o,
-           sp_ram_intf.compute input_o,
-           sp_ram_intf.compute output_o,
+    input  logic                     clk,
+           sp_ram_intf.compute       param_o,
+           sp_ram_intf.compute       bias_o,
+           sp_ram_intf.compute       weight_o,
+           sp_ram_intf.compute       input_o,
+           sp_ram_intf.compute       output_o,
     // For 3x3 conv unit
-    output logic               gated_conv_3x3_clk,
-           sp_ram_intf.memory  param_conv_3x3_i,
-           sp_ram_intf.memory  bias_conv_3x3_i,
-           sp_ram_intf.memory  weight_conv_3x3_i,
-           sp_ram_intf.memory  input_conv_3x3_i,
-           sp_ram_intf.memory  output_conv_3x3_i,
+    output logic                     gated_conv_3x3_clk,
+           sp_ram_intf.memory        param_conv_3x3_i,
+           sp_ram_intf.memory        bias_conv_3x3_i,
+           sp_ram_intf.memory        weight_conv_3x3_i,
+           sp_ram_intf.memory        input_conv_3x3_i,
+           sp_ram_intf.memory        output_conv_3x3_i,
     // For 1x1 conv unit
-    output logic               gated_conv_1x1_clk,
-           sp_ram_intf.memory  param_conv_1x1_i,
-           sp_ram_intf.memory  bias_conv_1x1_i,
-           sp_ram_intf.memory  weight_conv_1x1_i,
-           sp_ram_intf.memory  input_conv_1x1_i,
-           sp_ram_intf.memory  output_conv_1x1_i,
+    output logic                     gated_conv_1x1_clk,
+           sp_ram_intf.memory        param_conv_1x1_i,
+           sp_ram_intf.memory        bias_conv_1x1_i,
+           sp_ram_intf.memory        weight_conv_1x1_i,
+           sp_ram_intf.memory        input_conv_1x1_i,
+           sp_ram_intf.memory        output_conv_1x1_i,
     // For max pooling unit
-    output logic               gated_maxpool_clk,
-           sp_ram_intf.memory  param_maxpool_i,
-           sp_ram_intf.memory  bias_maxpool_i,
-           sp_ram_intf.memory  weight_maxpool_i,
-           sp_ram_intf.memory  input_maxpool_i,
-           sp_ram_intf.memory  output_maxpool_i
+    output logic                     gated_maxpool_clk,
+           sp_ram_intf.memory        param_maxpool_i,
+           sp_ram_intf.memory        bias_maxpool_i,
+           sp_ram_intf.memory        weight_maxpool_i,
+           sp_ram_intf.memory        input_maxpool_i,
+           sp_ram_intf.memory        output_maxpool_i
 );
 
   logic conv_3x3_enb, conv_1x1_enb, maxpool_enb;

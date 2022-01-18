@@ -1,7 +1,7 @@
 `include "../../include/CPU_def.svh"
 `include "../../include/AXI_define.svh"
 `include "../Interface/inf_Slave.sv"
-`include "EPU/Bias_SRAM_2k.sv"  
+`include "EPU/Bias_SRAM_2k.sv"
 
 module Bias_wrapper (
     input  logic                               clk,
@@ -61,7 +61,7 @@ module Bias_wrapper (
     rdata_o = 0;
     rvalid_o = 1'b0;
     if (curr_state == EPU_RW) begin
-      bus2EPU.R_data     = bias_buff_bus.R_data;
+      bus2EPU.R_data       = bias_buff_bus.R_data;
       bias_buff_bus.cs     = bus2EPU.cs;
       bias_buff_bus.oe     = bus2EPU.oe;
       bias_buff_bus.addr   = bus2EPU.addr;
@@ -69,24 +69,24 @@ module Bias_wrapper (
       bias_buff_bus.W_data = bus2EPU.W_data;
     end else if (curr_state == WRAPPER_R) begin
       rvalid_o             = 1'b1;
-      rdata_o            = bias_buff_bus.R_data;
+      rdata_o              = bias_buff_bus.R_data;
       bias_buff_bus.cs     = epuin_i.CS;
       bias_buff_bus.oe     = epuin_i.OE;
       bias_buff_bus.addr   = epu_addr_shift;
       bias_buff_bus.W_req  = `WRITE_DIS;
       bias_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
-      rdata_o            = 0;
-      bias_buff_bus.cs     = epuin_i.CS;
-      bias_buff_bus.oe     = epuin_i.OE;
-      bias_buff_bus.addr   = epu_addr_shift;
-      bias_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
+      rdata_o = 0;
+      bias_buff_bus.cs = epuin_i.CS;
+      bias_buff_bus.oe = epuin_i.OE;
+      bias_buff_bus.addr = epu_addr_shift;
+      bias_buff_bus.W_req = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
       bias_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      bias_buff_bus.cs     = (epuin_i.arhns | bus2EPU.cs);
-      bias_buff_bus.oe     = 1'b0;
-      bias_buff_bus.addr   = epuin_i.arhns ? epu_addr_shift : bus2EPU.cs ? bus2EPU.addr : 0;
-      bias_buff_bus.W_req  = `WRITE_DIS;
+      bias_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
+      bias_buff_bus.oe = 1'b0;
+      bias_buff_bus.addr = epuin_i.arhns ? epu_addr_shift : bus2EPU.cs ? bus2EPU.addr : 0;
+      bias_buff_bus.W_req = `WRITE_DIS;
       bias_buff_bus.W_data = 0;
     end
   end
