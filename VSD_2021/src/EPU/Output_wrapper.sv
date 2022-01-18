@@ -78,17 +78,17 @@ module Output_wrapper (
       out_buff_bus.W_req  = `WRITE_DIS;
       out_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
-      rdata_o             = 0;
-      out_buff_bus.cs     = epuin_i.CS;
-      out_buff_bus.oe     = epuin_i.OE;
-      out_buff_bus.addr   = epuin_i.addr[19:2];
+      rdata_o = 0;
+      out_buff_bus.cs = epuin_i.CS;
+      out_buff_bus.oe = epuin_i.OE;
+      out_buff_bus.addr = epuin_i.addr[19:2];
       out_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
       out_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      out_buff_bus.cs     = (epuin_i.arhns | bus2EPU.cs);
-      out_buff_bus.oe     = 1'b0;
+      out_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
+      out_buff_bus.oe = 1'b0;
       out_buff_bus.addr   = epuin_i.arhns ? epu_addr_shift : bus2EPU.cs ? bus2EPU.addr : 0;
-      out_buff_bus.W_req  = `WRITE_DIS;
+      out_buff_bus.W_req = `WRITE_DIS;
       out_buff_bus.W_data = 0;
     end
   end

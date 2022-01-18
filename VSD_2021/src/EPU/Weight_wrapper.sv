@@ -62,32 +62,32 @@ module Weight_wrapper (
     rdata_o = 0;
     rvalid_o = 1'b0;
     if (curr_state == EPU_RW) begin
-      bus2EPU.R_data     = weight_buff_bus.R_data;
+      bus2EPU.R_data         = weight_buff_bus.R_data;
       weight_buff_bus.cs     = bus2EPU.cs;
       weight_buff_bus.oe     = bus2EPU.oe;
       weight_buff_bus.addr   = bus2EPU.addr;
       weight_buff_bus.W_req  = bus2EPU.W_req;
       weight_buff_bus.W_data = bus2EPU.W_data;
     end else if (curr_state == WRAPPER_R) begin
-      rvalid_o              = 1'b1;
-      rdata_o            = weight_buff_bus.R_data;
+      rvalid_o               = 1'b1;
+      rdata_o                = weight_buff_bus.R_data;
       weight_buff_bus.cs     = epuin_i.CS;
       weight_buff_bus.oe     = epuin_i.OE;
       weight_buff_bus.addr   = epu_addr_shift;
       weight_buff_bus.W_req  = `WRITE_DIS;
       weight_buff_bus.W_data = 0;
     end else if (curr_state == WRAPPER_W) begin
-      rdata_o            = 0;
-      weight_buff_bus.cs     = epuin_i.CS;
-      weight_buff_bus.oe     = epuin_i.OE;
-      weight_buff_bus.addr   = epu_addr_shift;
+      rdata_o = 0;
+      weight_buff_bus.cs = epuin_i.CS;
+      weight_buff_bus.oe = epuin_i.OE;
+      weight_buff_bus.addr = epu_addr_shift;
       weight_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
       weight_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
-      weight_buff_bus.cs     = (epuin_i.arhns | bus2EPU.cs);
-      weight_buff_bus.oe     = 1'b0;
+      weight_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
+      weight_buff_bus.oe = 1'b0;
       weight_buff_bus.addr   = epuin_i.arhns ? epu_addr_shift : bus2EPU.cs ? bus2EPU.addr : 0;
-      weight_buff_bus.W_req  = `WRITE_DIS;
+      weight_buff_bus.W_req = `WRITE_DIS;
       weight_buff_bus.W_data = 0;
     end
   end

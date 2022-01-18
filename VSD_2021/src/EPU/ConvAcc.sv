@@ -4,14 +4,13 @@
 `include "EPU/Conv_bus_switcher.sv"
 `include "Interface/sp_ram_intf.sv"
 
-module ConvAcc
-(
-    input  logic                  clk,
-    input  logic                  rst,
-    input  logic                  start,
-    input  logic            [3:0] mode,
-    input  logic           [31:0] w8,
-    output logic                  finish,
+module ConvAcc (
+    input  logic        clk,
+    input  logic        rst,
+    input  logic        start,
+    input  logic [ 3:0] mode,
+    input  logic [31:0] w8,
+    output logic        finish,
 
     sp_ram_intf.compute param_intf,
     sp_ram_intf.compute bias_intf,
