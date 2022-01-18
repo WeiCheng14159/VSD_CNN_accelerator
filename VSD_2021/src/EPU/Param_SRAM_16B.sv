@@ -20,7 +20,7 @@ module Param_SRAM_16B (
   logic      [Bytes*Bits-1:0]     latched_DO;                
   logic      [AddressSize-1:0]    A;   
 
-  assign A = mem.addr;
+  assign A = mem.addr[AddressSize-1:0];
   assign CK = clk;
   assign CS = mem.cs;
   assign OE = mem.oe;
