@@ -1,4 +1,4 @@
-void bootDMA(int *source, int *dest, int quantity) {
+void dma_move(int *source, int *dest, int quantity) {
     unsigned int *dma_ctrl_addr = (int *) 0x40000000; 
     *(dma_ctrl_addr+0) = (int)source;  
     *(dma_ctrl_addr+1) = (int)dest;
@@ -25,10 +25,10 @@ void boot() {
     asm("csrs mie, t6"); // MEIE of mie
 
     int quantity = (&_dram_i_end - &_dram_i_start);
-    bootDMA(&_dram_i_start,&_imem_start,quantity);
+    dma_move(&_dram_i_start,&_imem_start,quantity);
     quantity = (&__sdata_end - &__sdata_start );
-    bootDMA(&__sdata_paddr_start, &__sdata_start, quantity);
+    dma_move(&__sdata_paddr_start, &__sdata_start, quantity);
     quantity = (&__data_end - &__data_start);
-    bootDMA(&__data_paddr_start, &__data_start, quantity);
+    dma_move(&__data_paddr_start, &__data_start, quantity);
 
 }
