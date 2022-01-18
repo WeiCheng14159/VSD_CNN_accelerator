@@ -79,6 +79,7 @@ module DRAM_wrapper (
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
             addr        <= 21'h0;
+            byte_off    <= 2'b00;
             ids         <= `AXI_IDS_BITS'h0;
             burst       <= `AXI_BURST_BITS'h0;
             len_r         <= `AXI_LEN_BITS'h0;
