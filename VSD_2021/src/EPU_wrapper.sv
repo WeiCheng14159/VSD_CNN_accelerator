@@ -31,7 +31,7 @@ module EPU_wrapper (
     logic awhns, arhns, whns, rhns, bhns;
     logic rdfin, wrfin;
     // Sample
-    logic [`AXI_ADDR_BITS -1:0] addr_r;
+    logic [`AXI_ADDR_BITS -1:0] addr_r, addr_i, addr_offset;
     logic [`AXI_IDS_BITS  -1:0] ids_r;
     logic [`AXI_LEN_BITS  -1:0] len_r;
     logic [`AXI_STRB_BITS -1:0] wstrb_r;
@@ -50,7 +50,7 @@ module EPU_wrapper (
         EPU_CTRL_SEL    = 1 << EPU_CTRL_SEL_B
     } buffer_sel_t;
 
-    buffer_sel_t buffer_sel;
+    buffer_sel_t buffer_sel, buffer_sel_r, buffer_sel_i;
     inf_EPUIN EPUIN();
     logic [`DATA_BITS-1:0] in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
     logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
@@ -68,11 +68,12 @@ module EPU_wrapper (
     assign rhns = s2axi_o.rvalid & s2axi_i.rready;
     assign bhns = s2axi_o.bvalid & s2axi_i.bready;
     // EPU interface
-    assign EPUIN.rdfin = rdfin;
+    assign EPUIN.rlast = s2axi_o.rlast;
     assign EPUIN.wrfin = wrfin;
     assign EPUIN.awhns = awhns;
     assign EPUIN.arhns = arhns;
     assign EPUIN.wdata = s2axi_i.wdata;
+    assign EPUIN.whns = whns;
     
     // Interrupt
     assign epuint_o = conv_fin;
@@ -104,8 +105,9 @@ module EPU_wrapper (
         case(STATE)
             IDLE    : begin
                 case ({awhns, arhns})
-                    2'b10   : NEXT = B_CH;
+                    2'b10   : NEXT = W_CH;
                     2'b01   : NEXT = R_CH;
+                    2'b11   : NEXT = W_CH;
                     default : NEXT = IDLE;
                 endcase
             end
@@ -173,48 +175,57 @@ module EPU_wrapper (
 
 // }}}
 
-
-// {{{ SRAM
+    assign EPUIN.addr = (arhns) ? s2axi_i.araddr : addr_offset;
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)               EPUIN.addr <= {`EPU_ADDR_BITS{1'b0}};
-        else if (awhns)         EPUIN.addr <= s2axi_i.awaddr;
-        else if (arhns)         EPUIN.addr <= s2axi_i.araddr + `EPU_ADDR_BITS'h1;//{{(`EPU_ADDR_BITS-1){1'b0}}, 1'b1};
-        else if (wrfin | rdfin) EPUIN.addr <= {`EPU_ADDR_BITS{1'b0}};
-        else if (whns | rhns)   EPUIN.addr <= EPUIN.addr + `EPU_ADDR_BITS'h1;//{{(`EPU_ADDR_BITS-1){1'b0}}, 1'b1};
+        if (rst)                addr_offset <= {`EPU_ADDR_BITS{1'b0}};
+        else if (awhns)         addr_offset <= s2axi_i.awaddr;
+        else if (arhns)         addr_offset <= s2axi_i.araddr + `EPU_ADDR_BITS'h4;
+        else if (wrfin | rdfin) addr_offset <= {`EPU_ADDR_BITS{1'b0}};
+        else if (whns | rhns)   addr_offset <= EPUIN.addr + `EPU_ADDR_BITS'h4;
     end
 
-    // Input  : 5000_0000 ~ 5000_ffff
-    //          5001_0000 ~ 5fff_ffff
-    // Output : 6000_0000 ~ 6000_ffff
-    //          6001_0000 ~ 6fff_ffff
+    // Input   : 5000_0000 ~ 5fff_ffff
+    // Output  : 6000_0000 ~ 6fff_ffff
     // Weight  : 7000_0000 ~ 70ff_ffff
     // Bias    : 7100_0000 ~ 71ff_ffff
     // Param   : 7200_0000 ~ 72ff_ffff
     // ConvAcc : 8000_0000 ~ 8fff_ffff
+    function automatic buffer_sel_t EPU_ADDR_DECODE (logic [`AXI_ADDR_BITS -1:0] addr);
+        EPU_ADDR_DECODE = SEL_NO;
+        if (addr >= `AXI_ADDR_BITS'h5000_0000 && addr <= `AXI_ADDR_BITS'h5fff_ffff)
+            EPU_ADDR_DECODE = IN_SEL;
+        else if (addr >= `AXI_ADDR_BITS'h6000_0000 && addr <= `AXI_ADDR_BITS'h6fff_ffff)
+            EPU_ADDR_DECODE = OUT_SEL;
+        else if (addr >= `AXI_ADDR_BITS'h7000_0000 && addr <= `AXI_ADDR_BITS'h70ff_ffff)
+            EPU_ADDR_DECODE = WEIGHT_SEL;
+        else if (addr >= `AXI_ADDR_BITS'h7100_0000 && addr <= `AXI_ADDR_BITS'h71ff_ffff)
+            EPU_ADDR_DECODE = BIAS_SEL;
+        else if (addr >= `AXI_ADDR_BITS'h7200_0000 && addr <= `AXI_ADDR_BITS'h72ff_ffff)
+            EPU_ADDR_DECODE = PARAM_SEL;
+        else if (addr >= `AXI_ADDR_BITS'h8000_0000 && addr <= `AXI_ADDR_BITS'h8fff_ffff)
+            EPU_ADDR_DECODE = EPU_CTRL_SEL;
+        else 
+            EPU_ADDR_DECODE = SEL_NO;
+    endfunction
 
     always_comb begin
-        buffer_sel = SEL_NO;
-        if (addr_r > `AXI_ADDR_BITS'h5000_ffff && addr_r < `AXI_ADDR_BITS'h6000_0000)
-            buffer_sel = IN_SEL;
-        else if (addr_r > `AXI_ADDR_BITS'h6000_ffff && addr_r < `AXI_ADDR_BITS'h7000_0000)
-            buffer_sel = OUT_SEL;
-        else if (addr_r > `AXI_ADDR_BITS'h6fff_ffff && addr_r < `AXI_ADDR_BITS'h7100_0000)
-            buffer_sel = WEIGHT_SEL;
-        else if (addr_r > `AXI_ADDR_BITS'h70ff_ffff && addr_r < `AXI_ADDR_BITS'h7200_0000)
-            buffer_sel = BIAS_SEL;
-        else if (addr_r > `AXI_ADDR_BITS'h71ff_ffff && addr_r < `AXI_ADDR_BITS'h7300_0000)
-            buffer_sel = PARAM_SEL;
-        else if (addr_r > `AXI_ADDR_BITS'h7fff_ffff && addr_r < `AXI_ADDR_BITS'h9000_0000)
-            buffer_sel = EPU_CTRL_SEL;
-        else 
-            buffer_sel = SEL_NO;
+        if(arhns)
+            buffer_sel_i = EPU_ADDR_DECODE(s2axi_i.araddr);
+        else if(awhns)
+            buffer_sel_i = EPU_ADDR_DECODE(s2axi_i.awaddr);
+        else
+            buffer_sel_i = SEL_NO;
     end
+    
+    assign buffer_sel_r = EPU_ADDR_DECODE(addr_r);
+    assign buffer_sel = (STATE == IDLE) ? buffer_sel_i : buffer_sel_r;
+
     always_comb begin
         case (STATE)
-            IDLE    : {EPUIN.OE, EPUIN.CS} = {~s2axi_i.awvalid && arhns, s2axi_i.awvalid || s2axi_i.arvalid};
+            IDLE    : {EPUIN.OE, EPUIN.CS} = {arhns, (awhns | arhns)};
             R_CH    : {EPUIN.OE, EPUIN.CS} = 2'b11;
-            W_CH    : {EPUIN.OE, EPUIN.CS} = 2'b1;
-            B_CH    : {EPUIN.OE, EPUIN.CS} = 2'b1;
+            W_CH    : {EPUIN.OE, EPUIN.CS} = 2'b01;
+            B_CH    : {EPUIN.OE, EPUIN.CS} = 2'b0;
             default : {EPUIN.OE, EPUIN.CS} = 2'b0;
         endcase
     end
