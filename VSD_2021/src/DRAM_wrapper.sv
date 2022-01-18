@@ -16,6 +16,7 @@ module DRAM_wrapper (
     output logic [          10:0] DRAM_A_o,
     output logic [`DATA_BITS-1:0] DRAM_D_o
 );
+	
     localparam FIFO_DEPTH = 6;
     localparam IDLE     = 3'h0,
                SETROW   = 3'h1,
@@ -36,7 +37,7 @@ module DRAM_wrapper (
     logic [`AXI_LEN_BITS  -1:0] len_r;
     logic [`AXI_SIZE_BITS -1:0] size;
     logic [`AXI_STRB_BITS -1:0] wstrb;
-    logic [`AXI_DATA_BITS -1:0] wdata;
+    logic [`AXI_DATA_BITS -1:0] wdata_r;
     // DRAM
     logic [1:0] byte_off;
     logic [`WEB_BITS   -1:0] bwen, hwen, dramwen;
@@ -78,32 +79,32 @@ module DRAM_wrapper (
     assign clear = ((STATE == READCOL) | (STATE == WRITECOL)) & dcnt[2];
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
-            addr        <= 21'h0;
-            byte_off    <= 2'b00;
-            ids         <= `AXI_IDS_BITS'h0;
-            burst       <= `AXI_BURST_BITS'h0;
-            len_r         <= `AXI_LEN_BITS'h0;
-            size        <= `AXI_SIZE_BITS'h0;
-            wstrb       <= `AXI_STRB_BITS'h0;
-            wdata       <= `DATA_BITS'h0;
-            write       <= 1'b0;
+            addr      <= 21'h0;
+            ids       <= `AXI_IDS_BITS'h0;
+            burst     <= `AXI_BURST_BITS'h0;
+            len_r     <= `AXI_LEN_BITS'h0;
+            size      <= `AXI_SIZE_BITS'h0;
+            wstrb     <= `AXI_STRB_BITS'h0;
+            wdata_r   <= `DATA_BITS'h0;
+            write     <= 1'b0;
             dramvalid_r <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
             dramdataD_r <= `DATA_BITS'h0;
         end
         else begin
-            addr        <= arhns ? s2axi_i.araddr[22:2] : awhns ? s2axi_i.awaddr[22:2] : addr;
-            byte_off    <= arhns ? s2axi_i.araddr[ 1:0] : awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
-            ids         <= arhns ? s2axi_i.arid    : awhns ? s2axi_i.awid    : ids;
-            burst       <= arhns ? s2axi_i.arburst : awhns ? s2axi_i.awburst : burst;
-            len_r         <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len_r;
-            size        <= arhns ? s2axi_i.arsize  : awhns ? s2axi_i.awsize  : size;
-            wstrb       <= awhns ? s2axi_i.wstrb   : wstrb;
-            wdata       <= awhns ? s2axi_i.wdata   : wdata;
-            write       <= clear ? 1'b0 : (awhns ? 1'b1 : write);
+            addr      <= arhns ? s2axi_i.araddr[22:2] : awhns ? s2axi_i.awaddr[22:2] : addr;
+            byte_off  <= arhns ? s2axi_i.araddr[ 1:0] : awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
+            ids       <= arhns ? s2axi_i.arid    : awhns ? s2axi_i.awid    : ids;
+            burst     <= arhns ? s2axi_i.arburst : awhns ? s2axi_i.awburst : burst;
+            len_r     <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len_r;
+            size      <= arhns ? s2axi_i.arsize  : awhns ? s2axi_i.awsize  : size;
+            wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
+            // wdata     <= awhns ? s2axi_i.wdata   : wdata;
+            wdata_r   <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
+            write     <= clear ? 1'b0 : (awhns ? 1'b1 : write);
             dramvalid_r <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
-            dramdataD_r <= (STATE == SETROW) ? s2axi_i.wdata : dramdataD_r;
+            // dramdataD_r <= (STATE == SETROW) ? s2axi_i.wdata : dramdataD_r;
         end
     end
 // }}}
@@ -157,7 +158,7 @@ module DRAM_wrapper (
                 endcase
             end
             READCOL  : NEXT = flag & rdfin ? PRECHG : READCOL;
-            // WRITECOL : NEXT = flag ? PRECHG : WRITECOL; 
+            // WRITECOL : NEXT = flag         ? PRECHG : WRITECOL;
             WRITECOL : NEXT = flag & wrfin ? PRECHG : WRITECOL; 
             PRECHG   : NEXT = flag         ? IDLE : PRECHG;
             default  : NEXT = STATE;
@@ -204,7 +205,7 @@ module DRAM_wrapper (
                 DRAM_WEn_o  = 4'hf;
             end
             SETROW   : begin
-                DRAM_A_o    = addr[20:10];
+                DRAM_A_o    = addr[20:10]; 
                 DRAM_D_o    = s2axi_i.wdata;
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = |dcnt;
@@ -221,7 +222,7 @@ module DRAM_wrapper (
             end
             WRITECOL : begin
                 DRAM_A_o    = col_r;
-                DRAM_D_o    = dramdataD_r;
+                DRAM_D_o    = wdata_r;//s2axi_i.wdata;//dramdataD_r;
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = 1'b1;
                 DRAM_CASn_o = |dcnt;
@@ -260,8 +261,8 @@ module DRAM_wrapper (
     always_comb begin
         case (STATE)
             IDLE     : readyout = {~s2axi_i.awvalid, 2'b10};
-            // WRITECOL : readyout = 3'b1;
             WRITECOL : readyout = {2'b0, flag};
+            // WRITECOL : readyout = 3'b1;
             default  : readyout = 3'b0;  // SETROW, READCOL, PRECHG
         endcase
     end
@@ -274,12 +275,33 @@ module DRAM_wrapper (
     end
 // }}}
 
+// {{{
 
-// {{{ FIFO(2)
+// }}}
+
+
+
+
+
+// {{{ FIFO
+    logic [2:0] wen_valid;
+    logic wen_enb;
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)                 wen_enb <= 1'b0;
+        // else if (wrfin)           wen_enb <= 1'b0;
+        else if (&wen_valid[2:1]) wen_enb <= 1'b1;
+    end
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)              wen_valid <= 3'h0;
+        // else if (wrfin)        wen_valid <= 3'h0;
+        else if (awhns)        wen_valid <= 3'h4;
+        else if (wen_valid[2]) wen_valid[1:0] <= wen_valid[1:0] + 2'h1;
+    end
+
     assign fifo_datain = s2axi_i.wdata;
-    // assign fifo_wen = ((STATE == WRITECOL) || (STATE == SETROW)) && (s2axi_i.wvalid);
-    assign fifo_wen = s2axi_i.wvalid && |len_r;
-    assign fifo_ren = (STATE == WRITECOL) && flag && len_r;
+    assign fifo_wen = wen_enb && wen_valid[0];//(STATE == SETROW || STATE == WRITECOL) && ~fifo_full;
+    assign fifo_ren = (STATE == WRITECOL) && flag;
+
     always_ff @(posedge clk or posedge rst) begin
         if (rst)              fifo_cnt_r <= {FIFO_DEPTH{1'b0}};
         else if (rdfin)       fifo_cnt_r <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
@@ -288,6 +310,7 @@ module DRAM_wrapper (
     FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
         .clk     (clk         ),
         .rst     (~rst        ),
+        .clr_i   (0),
         .wen_i   (fifo_wen    ),
         .ren_i   (fifo_ren    ),
         .data_i  (fifo_datain ),
@@ -296,4 +319,6 @@ module DRAM_wrapper (
         .full_o  (fifo_full   )
     );
 // }}}
+
+
 endmodule

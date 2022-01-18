@@ -13,6 +13,7 @@ void copy () {
   for (i = 0; i < sensor_size; i++) { // Copy data from sensor controller to DM
     *(copy_addr + i) = sensor_addr[i];
   }
+  // asm("csrsi mstatus, 0x8"); // MIE of mstatus
   // setDMA(sensor_addr, copy_addr, sensor_size);
   copy_addr += sensor_size; // Update copy address
   asm("addi t3, x0, 1");
@@ -25,80 +26,6 @@ void copy () {
   }
   return;
 }
-
-/*****************************************************************
- * Function: void sort(int *, unsigned int)                      *
- * Description: Sorting data                                     *
- *****************************************************************/
-void sort(int *array, unsigned int size) {
-  int i, j;
-  int temp;
-  for (i = 0; i < size - 1; i++) {
-    for (j = i + 1; j < size; j++) {
-      if (array[i] > array[j]) {
-        temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-      }
-    }
-  }
-  return;
-}
-
-/*****************************************************************
- * Function: void Merge Sort                                     *
- * Description: Sorting data                                     *
- *****************************************************************/
-void Merge(int array[], int l, int m, int r) {
-    int i, j, k;
-    int n1 = m - l + 1;
-    int n2 = r - m;
-    // temp array
-    int L[n1], R[n2];
-    // copy to temp array
-    for (i = 0; i < n1; i++)
-        L[i] = array[l + i];
-    for (j = 0; j < n2; j++)
-        R[j] = array[m + 1 + j];
-    i = 0; // initial index of first subarray
-    j = 0; // initial index of second subarray
-    k = l; // initial index of merged subarray
-    while (i < n1 && j < n2) {
-        if (L[i] <= R[j]) {
-            array[k] = L[i];
-            i++;
-        }
-        else {
-            array[k] = R[j];
-            j++;
-        }
-        k++;
-    }
-    // copy remaining elements of L[]
-    while (i < n1) {
-        array[k] = L[i];
-        k++;
-        i++;
-    }
-    // copy remaining elements of R[]
-    while (j < n2) {
-        array[k] = R[j];
-        k++;
-        j++;
-    }
-    return;
-}
-
-void MergeSort(int array[], unsigned int l, unsigned int r) {
-    if (l < r) {
-        int m = l + (r - l) / 2;
-        MergeSort(array, l, m);
-        MergeSort(array, m + 1, r);
-        Merge(array, l, m, r);
-    }
-    return;
-}
-
 
 /*****************************************************************
  * Function: void Quick Sort                                     *
@@ -139,11 +66,11 @@ int main(void) {
   copy_addr = &_test_start;
 
   // Enable Global Interrupt
-  asm("csrsi mstatus, 0x8"); // MIE of mstatus
+  // asm("csrsi mstatus, 0x8"); // MIE of mstatus
 
-  // Enable Local Interrupt
-  asm("li t6, 0x800");
-  asm("csrs mie, t6"); // MEIE of mie 
+  // // Enable Local Interrupt
+  // asm("li t6, 0x800");
+  // asm("csrs mie, t6"); // MEIE of mie 
 
   // Enable Sensor Controller
   sensor_addr[0x40] = 1; // Enable sctrl_en
@@ -156,8 +83,7 @@ int main(void) {
     }
 
     // Start sorting
-    //sort(sort_addr, sensor_size);
-    //MergeSort(sort_addr, 0, sensor_size - 1);
+    // sort(sort_addr, sensor_size);
     QuickSort(sort_addr, 0, sensor_size - 1);
     sort_addr += sensor_size;
     sort_count++;
