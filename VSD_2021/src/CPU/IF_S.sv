@@ -17,14 +17,14 @@ module IF_S (
     // CSR
     input                     csr_int_i,
     input                     csr_mret_i,
-    input  [`ADDR_BITS  -1:0] csr_pc_i, csr_retpc_i
+    input  [`ADDR_BITS  -1:0] csr_pc_i, csr_mretpc_i
 );
     logic [`ADDR_BITS-1:0] pc_in, pc_out, pc_outadd4;
     assign pc_outadd4 = pc_out + 32'h4;
     // Branch Ctrl
     always @(*) begin
         if (csr_mret_i)
-            pc_in = csr_retpc_i;
+            pc_in = csr_mretpc_i;
         else if (csr_int_i) 
             pc_in = csr_pc_i;
         else begin
