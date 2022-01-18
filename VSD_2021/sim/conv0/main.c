@@ -67,6 +67,10 @@ int main(void) {
   extern unsigned int __param_start;
   extern unsigned int __param_end;
   extern unsigned int __param_data_in_dram_start;
+  // output data address 
+  extern unsigned int __out8_start;
+  extern unsigned int __out8_end;
+  extern unsigned int __out8_data_in_dram_start;
 
   copy_addr = &_test_start;
 
