@@ -140,6 +140,7 @@ module R_ch (
         case(master)
             `AXI_MASTER0 : ready_m = ready_m0_i; 
             `AXI_MASTER1 : ready_m = ready_m1_i;
+            `AXI_MASTER2 : ready_m = ready_m2_i;
             default      : ready_m = 1'b1;
         endcase
     end

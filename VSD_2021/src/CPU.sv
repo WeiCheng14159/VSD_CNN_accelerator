@@ -174,6 +174,8 @@ module CPU (
     PLIC i_plic (
         .clk         (clk        ),
         .rst         (rst        ),
+        .csr_wfi_i   (csr_wfi    ),
+        .ifid_en_i   (ifid_en    ),
         .interrupt_i (interrupt_i),
         .int_taken_o (int_taken  ),
         .int_id_o    (int_id     )

@@ -8,7 +8,7 @@ module SRAM_wrapper(
     inf_Slave.S2AXIout s2axi_o
 );
 
-    localparam IDLE  = 2'h0, R_CH  = 2'h1, W_CH  = 2'h2, B_CH  = 2'h3;
+    localparam IDLE = 2'h0, R_CH = 2'h1, W_CH = 2'h2, B_CH = 2'h3;
     logic [1:0] STATE, NEXT;
     // Handshake
     logic awhns, arhns, whns, rhns, bhns;
