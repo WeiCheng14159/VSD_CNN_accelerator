@@ -11,6 +11,9 @@ volatile unsigned int *epu_param_buff_addr  = (int *) 0x72000000;
 volatile unsigned int *epu_w8_addr          = (int *) 0x80000000;
 volatile unsigned int *epu_ctrl_addr        = (int *) 0x80000004;
 
+void dma_move(int *source, int *dest, int quantity);
+void cpu_move(int *source, int *dest, int quantity);
+
 /*****************************************************************
  * Function: void copy()                                         *
  * Description: Part of interrupt service routine (ISR).         *
@@ -29,13 +32,20 @@ void copy () {
   return;
 }
 
-void setDMA(int *source, int *dest, int quantity) {
+void dma_move(int *source, int *dest, int quantity) {
     unsigned int *dma_ctrl_addr = (int *) 0x40000000; 
     *(dma_ctrl_addr+0) = (int)source;  
     *(dma_ctrl_addr+1) = (int)dest;
     *(dma_ctrl_addr+2) = (int)quantity;
     *(dma_ctrl_addr+3) = 1;  // Enable DMA
     asm("wfi");
+};
+
+void cpu_move(int *source, int *dest, int quantity) {
+  int i;
+  for (i = 0; i < quantity; i++) {
+    dest[i] = source[i];
+  }
 };
 
 int main(void) {
@@ -60,19 +70,23 @@ int main(void) {
 
   copy_addr = &_test_start;
 
-  // int quantity;
-  // // Move param data
-  // quantity = (&__param_end - &__param_start);
-  // setDMA(&__param_data_in_dram_start, &__param_start, quantity);
-  // // Move input data
-  // quantity = (&__in8_end - &__in8_start);
-  // setDMA(&__in8_data_in_dram_start, &__in8_start, quantity);
-  // // Move w2 data
-  // quantity = (&__w2_end - &__w2_start);
-  // setDMA(&__w2_data_in_dram_start, &__w2_start, quantity);
-  // // Move bias data
-  // quantity = (&__bias_end - &__bias_start);
-  // setDMA(&__bias_data_in_dram_start, &__bias_start, quantity);
+  int quantity;
+  // Move input data
+  quantity = (&__in8_end - &__in8_start);
+  dma_move(&__in8_data_in_dram_start, &__in8_start, quantity);
+  // Move param data
+  quantity = (&__param_end - &__param_start);
+  dma_move(&__param_data_in_dram_start, &__param_start, quantity);
+  // Move w2 data
+  quantity = (&__w2_end - &__w2_start);
+  dma_move(&__w2_data_in_dram_start, &__w2_start, quantity);
+  // Move bias data
+  quantity = (&__bias_end - &__bias_start);
+  dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
+  // cpu_move(&__bias_start, &__bias_data_in_dram_start, quantity);
+  // Move output data back to DRAM
+  // quantity = (&__out8_end - &__out8_start);
+  // cpu_move(&__out8_start, &__out8_data_in_dram_start, quantity);
 
   return 0;
 }
