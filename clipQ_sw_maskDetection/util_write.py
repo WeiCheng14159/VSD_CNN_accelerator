@@ -184,25 +184,13 @@ class Quantize():
             # ipdb.set_trace()
 
             # Max modified for generate mutiple layer data
-            if index == 0 or index == 3 or index == 6:
+            if index == 0:
                 if not os.path.exists('./H_data/conv{:d}/W2.hex'.format(int(index))):
                     ch_fileW2_kernel_3x3(ww, './H_data/conv{:d}/W2.hex'.format(int(index)))
 
-            if index == 1 or index == 4: # 1 * 1 * 96
+            if index == 1:
                 if not os.path.exists('./H_data/conv{:d}/W2.hex'.format(int(index))):
-                    ch_fileW2_kernel_1x1(ww, './H_data/conv{:d}/W2.hex'.format(int(index)), 96)
-
-            if index == 2: # 1 * 1 * 160
-                if not os.path.exists('./H_data/conv{:d}/W2.hex'.format(int(index))):
-                    ch_fileW2_kernel_1x1(ww, './H_data/conv{:d}/W2.hex'.format(int(index)), 160)
-
-            if index == 5 or index == 8: # 1 * 1 * 192
-                if not os.path.exists('./H_data/conv{:d}/W2.hex'.format(int(index))):
-                    ch_fileW2_kernel_1x1(ww, './H_data/conv{:d}/W2.hex'.format(int(index)), 192)
-
-            if index == 7: # 1 * 1 * 384
-                if not os.path.exists('./H_data/conv{:d}/W2.hex'.format(int(index))):
-                    ch_fileW2_kernel_1x1(ww, './H_data/conv{:d}/W2.hex'.format(int(index)), 384)
+                    ch_fileW2_kernel_1x1(ww, './H_data/conv{:d}/W2.hex'.format(int(index)), 60)
 
             if not os.path.exists('./H_data/conv{:d}/W8.hex'.format(int(index))):
                 fileW8(pa, './H_data/conv{:d}/W8.hex'.format(int(index)), 5)

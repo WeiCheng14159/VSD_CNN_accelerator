@@ -103,15 +103,15 @@ class QMaxPool2d(nn.Module):
     def forward(self, x):
         if self.w:
             # for write input.hex
-            if not os.path.exists('./H_data/pool{:d}/In8.hex'.format(int(self.layer))):
-                out_ch_fileW8(x[0], './H_data/pool{:d}/In8.hex'.format(int(self.layer)), 5)
+            if not os.path.exists('./H_data/pool{:d}/In8.hex'.format(int(self.layer)-1)):
+                out_ch_fileW8(x[0], './H_data/pool{:d}/In8.hex'.format(int(self.layer)-1), 5)
 
         x = self.MaxPool(x)
 
         if self.w:
             # for write Output.hex
-            if not os.path.exists('./H_data/pool{:d}/Out8.hex'.format(int(self.layer))):
-                out_ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)), 5)
+            if not os.path.exists('./H_data/pool{:d}/Out8.hex'.format(int(self.layer)-1)):
+                out_ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)-1), 5)
         return x
 
 
@@ -124,7 +124,7 @@ class Net(nn.Module):
             QConv2d(60, 2, kernel_size=1, stride=1,
                     padding=0, layer=2, full=f, w=write),
             QMaxPool2d(kernel_size=32, stride=2,
-                    padding=0, layer=0, w=write)
+                    padding=0, layer=1, w=write)
         )
 
     def forward(self, x):
