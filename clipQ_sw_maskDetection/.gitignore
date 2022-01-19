@@ -1,5 +1,5 @@
 # Directory to ignore
-H_data/*.hex
+#H_data/*.hex
 data/cifar100/*
 data/cifar10/*
 models/*.tar
