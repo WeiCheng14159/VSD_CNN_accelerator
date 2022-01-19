@@ -93,8 +93,10 @@ module W_ch (
     assign valid_m0 = 1'b0;
     assign ready_m0 = 1'b0;
 
-    assign ready_m1_o = ready_s & valid_m1_i;
-    assign ready_m2_o = ready_s & valid_m2_i;
+    // assign ready_m1_o = ready_s & valid_m1_i;
+    // assign ready_m2_o = ready_s & valid_m2_i;
+    assign ready_m1_o = ready_s;
+    assign ready_m2_o = ready_s;
 	assign validin_m = {valid_m2_i, valid_m1_i, valid_m0};
 	always_comb begin
 		case(validin_m)
@@ -125,7 +127,7 @@ module W_ch (
             `AXI_SLAVE5        : ready_s = ready_s5_i;
             `AXI_SLAVE6        : ready_s = ready_s6_i;
             `AXI_DEFAULT_SLAVE : ready_s = ready_sd_i;
-            default            : ready_s = 1'b1;
+            default            : ready_s = 1'b0;
         endcase
     end
     assign free = valid_m & ready_s & last_m;
