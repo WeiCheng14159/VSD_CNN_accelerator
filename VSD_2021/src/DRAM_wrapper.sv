@@ -60,14 +60,14 @@ module DRAM_wrapper (
     logic [FIFO_DEPTH-1:0] fifo_cnt_r;
 
 // {{{ Handshake
-    assign arhns = s2axi_i.arvalid & s2axi_o.arready;
-    assign rhns  = s2axi_o.rvalid  & s2axi_i.rready;
-    assign awhns = s2axi_i.awvalid & s2axi_o.awready; 
-    assign whns  = s2axi_i.wvalid  & s2axi_o.wready;
-    assign bhns  = s2axi_o.bvalid  & s2axi_i.bready;
-    assign ahns  = arhns | awhns;
-    assign rdfin = s2axi_o.rlast & rhns;
-    assign wrfin = s2axi_i.wlast & whns;
+    assign arhns = s2axi_i.arvalid && s2axi_o.arready;
+    assign rhns  = s2axi_o.rvalid  && s2axi_i.rready;
+    assign awhns = s2axi_i.awvalid && s2axi_o.awready; 
+    assign whns  = s2axi_i.wvalid  && s2axi_o.wready;
+    assign bhns  = s2axi_o.bvalid  && s2axi_i.bready;
+    assign ahns  = arhns || awhns;
+    assign rdfin = s2axi_o.rlast && rhns;
+    assign wrfin = s2axi_i.wlast && whns;
     // always_ff @(posedge clk or negedge rst) begin
     //     if (~rst)         latch_wrfin <= 1'b0;
     //     else if (dcnt[2]) latch_wrfin <= 1'b0;
@@ -166,15 +166,14 @@ module DRAM_wrapper (
     end
 // }}}
 // {{{ DRAM 
-    // assign row = addr[20:10];
-    // assign col = {1'b0, addr[9:0]};
-    // assign off = rcnt[1:0];
+
 
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)             col_r <= `DRAM_A_BITS'h0;
-        else if (arhns)       col_r <= s2axi_i.araddr[11:2];
-        else if (awhns)       col_r <= s2axi_i.awaddr[11:2];
-        else if (rhns | whns) col_r <= col_r + `DRAM_A_BITS'h1;
+        if (~rst)                         col_r <= `DRAM_A_BITS'h0;
+        else if (arhns)                   col_r <= s2axi_i.araddr[11:2];
+        else if (awhns)                   col_r <= s2axi_i.awaddr[11:2];
+        else if (write && flag) col_r <= STATE == SETROW ? col_r : col_r + `DRAM_A_BITS'h1;
+        else if (rhns)          col_r <= col_r + `DRAM_A_BITS'h1;
     end
 
     // DRAM_WEn
@@ -247,6 +246,7 @@ module DRAM_wrapper (
         endcase
     end
 // }}}
+
 // {{{ AXI
     assign s2axi_o.rid   = ids;
     assign s2axi_o.rdata = dramdata_r;
@@ -254,70 +254,17 @@ module DRAM_wrapper (
     assign s2axi_o.rlast = rcnt == len_r;
     assign s2axi_o.bid   = ids;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
-    logic [2:0] readyout;
-    logic [1:0] validout;
-    assign {s2axi_o.arready, s2axi_o.awready, s2axi_o.wready} = readyout;
-    assign {s2axi_o.rvalid, s2axi_o.bvalid} = validout;
+    assign s2axi_o.arready = (STATE == IDLE) && ~s2axi_i.awvalid;
+    assign s2axi_o.awready = STATE == IDLE;
     always_comb begin
-        case (STATE)
-            IDLE     : readyout = {~s2axi_i.awvalid, 2'b10};
-            WRITECOL : readyout = {2'b0, flag};
-            // WRITECOL : readyout = 3'b1;
-            default  : readyout = 3'b0;  // SETROW, READCOL, PRECHG
+        case(STATE)
+            SETROW   : s2axi_o.wready = 1'b0;
+            WRITECOL : s2axi_o.wready = flag;
+            default  : s2axi_o.wready = 1'b0;
         endcase
     end
-    always_comb begin
-        case (STATE)
-            READCOL  : validout = {dramvalid_r, 1'b0};
-            PRECHG   : validout = {1'b0, ~|dcnt};
-            default  : validout = 2'b0;  // IDLE, SETROW, WRITECOL
-        endcase
-    end
-// }}}
-
-// {{{
-
-// }}}
-
-
-
-
-
-// {{{ FIFO
-    logic [2:0] wen_valid;
-    logic wen_enb;
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst)                 wen_enb <= 1'b0;
-        // else if (wrfin)           wen_enb <= 1'b0;
-        else if (&wen_valid[2:1]) wen_enb <= 1'b1;
-    end
-    always_ff @(posedge clk or negedge rst) begin
-        if (~rst)              wen_valid <= 3'h0;
-        // else if (wrfin)        wen_valid <= 3'h0;
-        else if (awhns)        wen_valid <= 3'h4;
-        else if (wen_valid[2]) wen_valid[1:0] <= wen_valid[1:0] + 2'h1;
-    end
-
-    assign fifo_datain = s2axi_i.wdata;
-    assign fifo_wen = wen_enb && wen_valid[0];//(STATE == SETROW || STATE == WRITECOL) && ~fifo_full;
-    assign fifo_ren = (STATE == WRITECOL) && flag;
-
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst)              fifo_cnt_r <= {FIFO_DEPTH{1'b0}};
-        else if (rdfin)       fifo_cnt_r <= {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
-        else if (|fifo_cnt_r) fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
-    end
-    FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
-        .clk     (clk         ),
-        .rst     (~rst        ),
-        .clr_i   (0),
-        .wen_i   (fifo_wen    ),
-        .ren_i   (fifo_ren    ),
-        .data_i  (fifo_datain ),
-        .data_o  (fifo_dataout),
-        .empty_o (fifo_empty  ),
-        .full_o  (fifo_full   )
-    );
+    assign s2axi_o.rvalid = (STATE == READCOL) && dramvalid_r;
+    assign s2axi_o.bvalid = (STATE == PRECHG)  && (~|dcnt);
 // }}}
 
 

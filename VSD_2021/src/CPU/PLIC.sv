@@ -18,10 +18,19 @@ module PLIC (
 **************************************/
 
     logic [`INT_BITS-2:0] interrupt_r;
-    logic enb, valid;
+    logic [`INT_BITS-2:0] int_filter;
+    logic enb, valid, lock_dma;
+
+    assign int_filter = lock_dma ? {2'b0, interrupt_i[1]} : interrupt_i[`INT_BITS-1:1];
+
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)                              lock_dma <= 1'b0;
+        else if (interrupt_r[0] && ifid_en_i) lock_dma <= 1'b0;
+        else if (interrupt_i[0])              lock_dma <= 1'b1;
+    end
 
     logic int_taken;
-    assign int_taken = |interrupt_i[`INT_BITS-1:1];
+    assign int_taken = |int_filter;
     assign valid = enb && ~csr_wfi_i && int_taken;
     assign mretpc_o = csr_retpc_i;
 
@@ -34,7 +43,7 @@ module PLIC (
     always_ff @(posedge clk or posedge rst) begin
         if (rst)            interrupt_r <= `INT_BITS'h0;
         else if (ifid_en_i) interrupt_r <= `INT_BITS'h0;
-        else if (valid)     interrupt_r <= interrupt_i[3:1];
+        else if (valid)     interrupt_r <= int_filter;
     end
 
     assign int_taken_o = |interrupt_r;
@@ -48,12 +57,3 @@ module PLIC (
     end
 
 endmodule
-
-
-
-
-
-
-
-
-
