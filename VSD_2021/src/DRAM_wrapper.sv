@@ -16,8 +16,7 @@ module DRAM_wrapper (
     output logic [          10:0] DRAM_A_o,
     output logic [`DATA_BITS-1:0] DRAM_D_o
 );
-	
-    localparam FIFO_DEPTH = 6;
+
     localparam IDLE     = 3'h0,
                SETROW   = 3'h1,
                READCOL  = 3'h2,
@@ -40,7 +39,7 @@ module DRAM_wrapper (
     logic [`AXI_DATA_BITS -1:0] wdata_r;
     // DRAM
     logic [1:0] byte_off;
-    logic [`WEB_BITS   -1:0] bwen, hwen, dramwen;
+    logic [`WEB_BITS   -1:0] bwen, hwen, dramwen_r;
     logic [`DATA_BITS  -1:0] dramdata_r;
     // logic [`DRAM_A_BITS-1:0] row, col, col_r;
     logic [`DRAM_A_BITS-1:0] col_r;
@@ -53,10 +52,6 @@ module DRAM_wrapper (
     // Other
     logic write;
     logic clear;  // clear write
-    // FIFO
-    logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
-    logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
-    logic [FIFO_DEPTH-1:0] fifo_cnt_r;
 
 // {{{ Handshake
     assign arhns = s2axi_i.arvalid && s2axi_o.arready;
@@ -75,7 +70,9 @@ module DRAM_wrapper (
 // }}}
     
 // {{{ Sample
-    assign clear = ((STATE == READCOL) | (STATE == WRITECOL)) & dcnt[2];
+logic [31:0] test;
+assign test = s2axi_i.wdata;
+    assign clear = ((STATE == READCOL) || (STATE == WRITECOL)) & dcnt[2];
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
             addr      <= 21'h0;
@@ -99,7 +96,7 @@ module DRAM_wrapper (
             wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
             // wdata     <= awhns ? s2axi_i.wdata   : wdata;
             wdata_r   <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
-            write     <= clear ? 1'b0 : (awhns ? 1'b1 : write);
+            write     <= (STATE == WRITECOL) ? 1'b0 : (awhns ? 1'b1 : write);
             dramvalid_r <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
         end
@@ -146,7 +143,6 @@ module DRAM_wrapper (
     always_comb begin  // flag = dcnt == 3'h4
         case (STATE)
             IDLE     : NEXT = ahns ? SETROW : IDLE;
-            SETROW   : NEXT = flag ? (write ? WRITECOL : READCOL) : SETROW;
             SETROW   : begin
                 case ({flag, write})
                     2'b10   : NEXT = READCOL;
@@ -163,14 +159,19 @@ module DRAM_wrapper (
     end
 // }}}
 // {{{ DRAM 
+    logic [31:0] dram_addr;
+    assign dram_addr = {10'b0, col_r[9:0], 2'b0};
+    logic [10:0] rrow;
+    logic [9:0] ccol;
+    assign rrow = s2axi_i.araddr[22:12];
+    assign ccol = s2axi_i.araddr[11:2];
 
 
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)                         col_r <= `DRAM_A_BITS'h0;
-        else if (arhns)                   col_r <= s2axi_i.araddr[11:2];
-        else if (awhns)                   col_r <= s2axi_i.awaddr[11:2];
-        else if (write && flag) col_r <= STATE == SETROW ? col_r : col_r + `DRAM_A_BITS'h1;
-        else if (rhns)          col_r <= col_r + `DRAM_A_BITS'h1;
+        if (~rst)               col_r <= `DRAM_A_BITS'h0;
+        else if (arhns)         col_r <= s2axi_i.araddr[11:2];
+        else if (awhns)         col_r <= s2axi_i.awaddr[11:2];
+        else if (rhns || whns)  col_r <= col_r + `DRAM_A_BITS'h1;
     end
 
     // DRAM_WEn
@@ -182,12 +183,15 @@ module DRAM_wrapper (
             2'h3 : {bwen, hwen} = {4'b0111, 4'b0111};
         endcase
     end
-    always_comb begin
-        case (wstrb)
-            `AXI_STRB_HWORD : dramwen = hwen;
-            `AXI_STRB_BYTE  : dramwen = bwen;
-            default         : dramwen = 4'h0; 
-        endcase
+    always_ff @(posedge clk or negedge rst) begin
+        if (rst) 
+            dramwen_r <= 4'h0;
+        else begin
+            case (wstrb)
+                `AXI_STRB_HWORD : dramwen_r = hwen;
+                `AXI_STRB_BYTE  : dramwen_r = bwen;
+            endcase
+        end
     end
 
     always_comb begin
@@ -222,7 +226,7 @@ module DRAM_wrapper (
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = 1'b1;
                 DRAM_CASn_o = |dcnt;
-                DRAM_WEn_o  = ~|dcnt ? dramwen : 4'hf;
+                DRAM_WEn_o  = ~|dcnt ? dramwen_r : 4'hf;
             end
             PRECHG   : begin
                 DRAM_A_o    = addr[20:10]; 

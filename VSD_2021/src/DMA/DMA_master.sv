@@ -28,8 +28,6 @@ module DMA_master (
     // FIFO
     logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
     logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
-    logic [FIFO_DEPTH:0] fifo_cnt_r;
-    logic fifo_rhns;
     // DMA
     logic [`AXI_LEN_BITS-1:0] op_qty_r;   // send to AXI
     logic [`DATA_BITS   -1:0] rem_qty_r;  // remainder of quantity
@@ -147,7 +145,7 @@ always_ff @(posedge clk or posedge rst) begin
 end
 
     assign fifo_datain = (STATE == BUSY) ? m2axi_i.rdata : `DATA_BITS'h0;
-    assign fifo_wen    = (STATE == BUSY) && rhns;
+    assign fifo_wen    = (STATE == BUSY) && ~fifo_full  && m2axi_i.rvalid;//rhns;
     assign fifo_ren    = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready || (dcnt == 3'h4);
     // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
 
@@ -188,17 +186,17 @@ end
 // }}}
 
 
-    // always_ff @(posedge clk) begin
-    //     if (wrfin)
-    //         $display("==================================================");
-    //     if (whns)
-    //         $display("%h", fifo_dataout);
-    // end
-    // always_comb begin
-    //     if (dma_en_i)
-    //         $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
+    always_ff @(posedge clk) begin
+        if (wrfin)
+            $display("==================================================");
+        if (whns)
+            $display("%h", fifo_dataout[7:0]);
+    end
+    always_comb begin
+        if (dma_en_i)
+            $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
         
-    // end
+    end
 
 
 endmodule
