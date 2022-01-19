@@ -29,6 +29,7 @@ module Input_wrapper (
   in_wrapper_state_t curr_state, next_state;
   sp_ram_intf in_buff_bus ();
   logic [31:0] epu_addr_shift;
+  logic rvalid;
 
   InOut_SRAM_384k i_Input_SRAM_384k (
       .clk(clk),
@@ -56,6 +57,8 @@ module Input_wrapper (
   end  // Next state (C)
 
   assign epu_addr_shift = epuin_i.addr[19:2];
+
+
 
   always_comb begin
     bus2EPU.R_data = 0;

@@ -13,8 +13,7 @@
 
 
 module EPU_wrapper (
-    input  logic              clk,
-    rst,
+    input  logic              clk, rst,
     output logic              epuint_o,
            inf_Slave.S2AXIin  s2axi_i,
            inf_Slave.S2AXIout s2axi_o
@@ -136,7 +135,9 @@ module EPU_wrapper (
   assign s2axi_o.rid    = ids_r;
   assign s2axi_o.bid    = ids_r;
   assign s2axi_o.bvalid = curr_state == B_CH;
-  assign s2axi_o.wready = curr_state == W_CH;
+  assign s2axi_o.awready = curr_state == IDLE;
+  assign s2axi_o.arready = (curr_state == IDLE) && (~s2axi_i.awvalid);
+  assign s2axi_o.wready  = curr_state == W_CH;
   always_comb begin
     case (buffer_sel)
       IN_SEL: s2axi_o.rdata = in_rdata;
@@ -147,15 +148,16 @@ module EPU_wrapper (
       default: s2axi_o.rdata = `DATA_BITS'h0;
     endcase
   end
-  always_comb begin
-    s2axi_o.awready = 1'b0;
-    s2axi_o.arready = 1'b0;
-    case (curr_state)
-      IDLE: {s2axi_o.awready, s2axi_o.arready} = {1'b1, ~s2axi_i.awvalid};
-      R_CH: {s2axi_o.awready, s2axi_o.arready} = {rhns, 1'b0};
-      B_CH: {s2axi_o.awready, s2axi_o.arready} = {bhns, 1'b0};
-    endcase
-  end
+
+  // always_comb begin
+  //   s2axi_o.awready = 1'b0;
+  //   s2axi_o.arready = 1'b0;
+  //   case (curr_state)
+  //     IDLE: {s2axi_o.awready, s2axi_o.arready} = {1'b1, ~s2axi_i.awvalid};
+  //     R_CH: {s2axi_o.awready, s2axi_o.arready} = 2'b0;//{rhns, 1'b0};
+  //     B_CH: {s2axi_o.awready, s2axi_o.arready} = {bhns, 1'b0};
+  //   endcase
+  // end
 
   always_comb begin
     s2axi_o.rvalid = 1'b0;
@@ -171,13 +173,22 @@ module EPU_wrapper (
     end
   end
 
+logic [1:0] rhns_cont;
+always_ff @(posedge clk or posedge rst) begin
+  if (rst)               rhns_cont <= 2'h0;
+  else if (~rhns)        rhns_cont <= 2'h0;
+  else if (rhns_cont[1]) rhns_cont <= rhns_cont;
+  else if (rhns)         rhns_cont <= rhns_cont + 2'h1;
+end
+
   assign EPUIN.addr = (arhns) ? s2axi_i.araddr : addr_offset;
   always_ff @(posedge clk or posedge rst) begin
     if (rst) addr_offset <= `EPU_ADDR_BITS'b0;
     else if (awhns) addr_offset <= s2axi_i.awaddr;
-    else if (arhns) addr_offset <= s2axi_i.araddr;
-    else if (wrfin | rdfin) addr_offset <= `EPU_ADDR_BITS'b0;
-    else if (whns | rhns) addr_offset <= EPUIN.addr + `EPU_ADDR_BITS'h4;
+    else if (arhns) addr_offset <= s2axi_i.araddr;// + `EPU_ADDR_BITS'h4;
+    else if (wrfin || rdfin) addr_offset <= `EPU_ADDR_BITS'b0;
+    else if (rhns_cont[1]) addr_offset <= addr_offset;
+    else if (whns || rhns) addr_offset <= EPUIN.addr + `EPU_ADDR_BITS'h4;
   end
 
   // Input   : 5000_0000 ~ 5fff_ffff
