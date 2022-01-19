@@ -80,7 +80,7 @@ module Param_wrapper (
       param_buff_bus.cs = epuin_i.CS;
       param_buff_bus.oe = epuin_i.OE;
       param_buff_bus.addr = epu_addr_shift;
-      param_buff_bus.W_req  = (epuin_i.whns) ? `WRITE_ENB : `WRITE_DIS;
+      param_buff_bus.W_req  = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
       param_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
       param_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
