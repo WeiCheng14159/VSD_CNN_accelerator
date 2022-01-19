@@ -2,7 +2,7 @@
 
 module Max_pool (
     input        clk,
-    input        rst,
+    input        rstn,
     input        start,
     output logic finish,
 
@@ -64,8 +64,8 @@ module Max_pool (
 
   //*********************************************//
   //counter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) counter <= 10'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) counter <= 10'b0;
     else if (CurrentState == load_parameter_state) begin
       if (counter == 10'h4) counter <= 10'b0;
       else counter <= counter + 10'b1;
@@ -75,8 +75,8 @@ module Max_pool (
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) row_counter <= 5'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) row_counter <= 5'b0;
     else if ((CurrentState == load_input_state) & (counter == num_input)) begin
       if (row_counter == ((num_row >> 1) - 32'b1)) row_counter <= 5'b0;
       else row_counter <= row_counter + 5'b1;
@@ -87,16 +87,16 @@ module Max_pool (
 
   //*********************************************//
   //load parameter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) param_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) param_intf.addr <= 32'b0;
     else if ((CurrentState == load_parameter_state)) begin
       if (counter == num_input) param_intf.addr <= 32'b0;
       else param_intf.addr <= param_intf.addr + 3'h1;
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) begin
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) begin
       num_row <= 32'b0;
       num_channel <= 32'b0;
       kernel_size <= 32'h0;
@@ -113,8 +113,8 @@ module Max_pool (
 
   //*********************************************//
   //load input
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) input_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) input_intf.addr <= 32'b0;
     else if (CurrentState == load_input_state) begin
       if (kernel_size == 32'h2) begin
         case (counter)
@@ -133,8 +133,8 @@ module Max_pool (
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_wdata <= 8'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_wdata <= 8'b0;
     else if (CurrentState == load_input_state) begin
       if (counter == 10'b0) output_wdata <= 8'h80;
       else begin
@@ -159,14 +159,14 @@ module Max_pool (
 
   //*********************************************//
   //write output
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_intf.addr <= 32'b0;
     else if (CurrentState == write_state)
       output_intf.addr <= output_intf.addr + 32'b1;
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_intf.W_req <= `WRITE_DIS;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_intf.W_req <= `WRITE_DIS;
     else if ((CurrentState == load_input_state) & (counter == num_input))
       output_intf.W_req <= `WRITE_ENB;
     else output_intf.W_req <= `WRITE_DIS;
@@ -174,8 +174,8 @@ module Max_pool (
   //write output
   //*********************************************//
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) CurrentState <= idle_state;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) CurrentState <= idle_state;
     else CurrentState <= NextState;
   end
 

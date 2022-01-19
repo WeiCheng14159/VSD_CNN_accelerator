@@ -98,7 +98,7 @@ module ConvAcc (
   end
 
   Conv_1x1 i_Conv_1x1 (
-      .rst(rst),
+      .rstn(~rst),
       .clk(clk),  // gated_conv_1x1_clk
       .w8(w8),
       .start(start_conv_1x1),
@@ -111,7 +111,7 @@ module ConvAcc (
   );
 
   Conv_3x3 i_Conv_3x3 (
-      .rst(rst),
+      .rstn(~rst),
       .clk(clk),  // gated_conv_3x3_clk
       .w8(w8),
       .start(start_conv_3x3),
@@ -125,7 +125,7 @@ module ConvAcc (
 
   Max_pool i_Max_pool (
       .clk(clk),  // gated_maxpool_clk
-      .rst(rst),
+      .rstn(~rst),
       .start(start_maxpool),
       .finish(finish_maxpool),
       .param_intf(param_maxpool_intf),

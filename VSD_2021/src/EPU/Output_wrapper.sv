@@ -14,6 +14,8 @@ module Output_wrapper (
     output logic                               rvalid_o,
     output logic              [`DATA_BITS-1:0] rdata_o,
     // Connection to EPU
+    input logic                                start_i,
+    input logic                                finish_i,
            sp_ram_intf.memory                  bus2EPU
 );
 
@@ -42,17 +44,14 @@ module Output_wrapper (
     next_state = curr_state;
     case (curr_state)
       IDLE: begin
-        if (epuin_i.arhns & enb_i) next_state = WRAPPER_R;
+        if(start_i) next_state = EPU_RW;
+        else if (epuin_i.arhns & enb_i) next_state = WRAPPER_R;
         else if (epuin_i.awhns & enb_i) next_state = WRAPPER_W;
         else next_state = IDLE;
       end
       WRAPPER_R: if (epuin_i.rlast & enb_i) next_state = IDLE;
       WRAPPER_W: if (epuin_i.wrfin & enb_i) next_state = IDLE;
-      EPU_RW: begin
-        if (epuin_i.arhns & enb_i) next_state = WRAPPER_R;
-        else if (epuin_i.awhns & enb_i) next_state = WRAPPER_W;
-        else next_state = EPU_RW;
-      end
+      EPU_RW: if(finish_i & start_i) next_state = IDLE;
     endcase
   end  // Next state (C)
 
@@ -82,7 +81,7 @@ module Output_wrapper (
       out_buff_bus.cs = epuin_i.CS;
       out_buff_bus.oe = epuin_i.OE;
       out_buff_bus.addr = epuin_i.addr[19:2];
-      out_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
+      out_buff_bus.W_req  = (epuin_i.whns) ? `WRITE_ENB : `WRITE_DIS;
       out_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
       out_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);
