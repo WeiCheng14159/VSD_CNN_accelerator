@@ -55,7 +55,7 @@ module Param_wrapper (
     endcase
   end  // Next state (C)
 
-  assign epu_addr_shift = epuin_i.addr[3:2];
+  assign epu_addr_shift = {28'h0, epuin_i.addr[4:2]};
 
   always_comb begin
     bus2EPU.R_data = 0;
