@@ -237,8 +237,8 @@ module EPU_wrapper (
       conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
     end else if (buffer_sel == EPU_CTRL_SEL) begin
-      if (addr_r == `AXI_ADDR_BITS'h8000_0000) conv_w8 <= s2axi_i.wdata;
-      else if (addr_r == `AXI_ADDR_BITS'h8000_0004) begin
+      if (EPUIN.addr == `AXI_ADDR_BITS'h8000_0000) conv_w8 <= s2axi_i.wdata;
+      else if (EPUIN.addr == `AXI_ADDR_BITS'h8000_0004) begin
         {in_trans, out_trans, conv_start} <= {
           s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]
         };
