@@ -1,0 +1,29 @@
+# technology map for UMC18 Faraday cell lib
+TECHVERSION  1
+U_UNIT 0.001
+#
+#LAYER  ======lef=======    =============gds====================
+#       =====       ====    draw    draw    text    text
+#       layer       type    layer   purpose layer   purpose draw? 
+LAYER   metal1      PIN     46      0       101      0       y
+LAYER   metal2      PIN     48      0       102      0       y
+LAYER   metal3      PIN     50      0       103      0       y
+LAYER   metal4      PIN     52      0       104      0       y
+LAYER   metal5      PIN     54      0       105      0       y
+LAYER   metal6      PIN     56      0       106
+
+#LAYER  ======lef=======    ==========gds========
+#       =====       ====    draw    draw    
+#       layer       type    layer   purpose draw? 
+LAYER   metal1      OBS     46      0       n
+LAYER   metal2      OBS     48      0       n
+LAYER   metal3      OBS     50      0       n
+LAYER   metal4      OBS     52      0       n
+LAYER   metal5      OBS     54      0       n
+LAYER   metal6      OBS     56      0       n
+LAYER   via         OBS     47      0       n
+LAYER   via2        OBS     49      0       n
+LAYER   via3        OBS     51      0       n
+LAYER   via4        OBS     53      0       n
+LAYER   via5        OBS     55      0       n
+#LAYER   boundary    NA      62      3       y  #prboundary       
