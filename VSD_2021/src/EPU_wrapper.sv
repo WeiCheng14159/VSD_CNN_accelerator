@@ -71,7 +71,7 @@ module EPU_wrapper (
   assign rhns = s2axi_o.rvalid & s2axi_i.rready;
   assign bhns = s2axi_o.bvalid & s2axi_i.bready;
   // EPU interface
-  assign EPUIN.rlast = s2axi_o.rlast;
+  assign EPUIN.rdfin = rdfin;
   assign EPUIN.wrfin = wrfin;
   assign EPUIN.awhns = awhns;
   assign EPUIN.arhns = arhns;
