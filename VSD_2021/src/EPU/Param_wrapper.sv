@@ -45,7 +45,8 @@ module Param_wrapper (
         else if (epuin_i.awhns & enb_i) next_state = WRAPPER_W;
         else next_state = IDLE;
       end
-      WRAPPER_R: if (epuin_i.rlast & enb_i) next_state = IDLE;
+      // WRAPPER_R: if (epuin_i.rlast & enb_i) next_state = IDLE;
+      WRAPPER_R: if (epuin_i.rdfin & enb_i) next_state = IDLE;
       WRAPPER_W: if (epuin_i.wrfin & enb_i) next_state = IDLE;
       EPU_RW: begin
         if (epuin_i.arhns & enb_i) next_state = WRAPPER_R;
@@ -81,7 +82,8 @@ module Param_wrapper (
       param_buff_bus.cs = epuin_i.CS;
       param_buff_bus.oe = epuin_i.OE;
       param_buff_bus.addr = epu_addr_shift;
-      param_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
+      // param_buff_bus.W_req  = (epuin_i.whns & ~epuin_i.wrfin) ? `WRITE_ENB : `WRITE_DIS;
+      param_buff_bus.W_req  = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
       param_buff_bus.W_data = epuin_i.wdata;
     end else begin  // IDLE
       param_buff_bus.cs = (epuin_i.arhns | bus2EPU.cs);

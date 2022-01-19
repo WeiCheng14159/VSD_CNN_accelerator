@@ -72,6 +72,7 @@ module EPU_wrapper (
   assign bhns = s2axi_o.bvalid & s2axi_i.bready;
   // EPU interface
   assign EPUIN.rlast = s2axi_o.rlast;
+  assign EPUIN.rdfin = rdfin;
   assign EPUIN.wrfin = wrfin;
   assign EPUIN.awhns = awhns;
   assign EPUIN.arhns = arhns;
@@ -173,10 +174,11 @@ module EPU_wrapper (
 
   assign EPUIN.addr = (arhns) ? s2axi_i.araddr : addr_offset;
   always_ff @(posedge clk or posedge rst) begin
-    if (rst) addr_offset <= {`EPU_ADDR_BITS{1'b0}};
+    if (rst) addr_offset <= `EPU_ADDR_BITS'b0;
     else if (awhns) addr_offset <= s2axi_i.awaddr;
-    else if (arhns) addr_offset <= s2axi_i.araddr + `EPU_ADDR_BITS'h4;
-    else if (wrfin | rdfin) addr_offset <= {`EPU_ADDR_BITS{1'b0}};
+    // else if (arhns) addr_offset <= s2axi_i.araddr + `EPU_ADDR_BITS'h4;
+    else if (arhns) addr_offset <= s2axi_i.araddr;
+    else if (wrfin | rdfin) addr_offset <= `EPU_ADDR_BITS'b0;
     else if (whns | rhns) addr_offset <= EPUIN.addr + `EPU_ADDR_BITS'h4;
   end
 

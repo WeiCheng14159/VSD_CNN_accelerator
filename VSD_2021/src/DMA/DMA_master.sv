@@ -73,7 +73,7 @@ module DMA_master (
     end
 // }}}
 // {{{
-    assign burst_dram = dst_addr_r[31:24] == 8'h20;
+
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst)           rem_qty_r <= `DATA_BITS'h0;
@@ -131,30 +131,30 @@ module DMA_master (
 
 
 // {{{ FIFO (2)
-    
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) fifo_rhns <= 1'b0;
-        else     fifo_rhns <= rhns;
-    end
+logic dram_burst;
+logic [2:0] dcnt;
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)          dram_burst <= 1'b0;
+    else if (dcnt[2]) dram_burst <= 1'b0;
+    else if (awhns)   dram_burst <= dst_addr_r[31:24] == 8'h20;
+end
 
-    assign fifo_datain = m2axi_i.rdata;
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)             dcnt <= 3'h0;
+    else if (dram_burst) dcnt <= dcnt + 3'h1;
+    else if (dma_fin_o)  dcnt <= 3'h0;
+    else if (dcnt[2])    dcnt <= dcnt;    
+end
+
+    assign fifo_datain = (STATE == BUSY) ? m2axi_i.rdata : `DATA_BITS'h0;
     assign fifo_wen    = (STATE == BUSY) && rhns;
-    assign fifo_ren    = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready;
+    assign fifo_ren    = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready || (dcnt == 3'h4);
     // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
 
     assign rlast = rcnt == op_qty_r;
     assign wlast = wcnt == op_qty_r;
 
-logic setrow;
-logic [2:0] dcnt;
-always_ff @(posedge clk or posedge rst) begin
-    if (rst)               dcnt <= 3'h0;
-    else if (dma_fin_o)    dcnt <= 3'h0;
-    else if (dcnt == 3'h5) dcnt <= 3'h1;
-    else if (|dcnt)        dcnt <= dcnt + 3'h1;
-    else if (awhns)        dcnt <= 3'h1;
-    
-end
+
 
 always_ff @(posedge clk or posedge rst) begin
     if (rst)                wcnt <= `AXI_LEN_BITS'h0;
@@ -170,21 +170,6 @@ always_ff @(posedge clk or posedge rst) begin
     else if (rlast)         rcnt <= rcnt;
     else if (fifo_wen)      rcnt <= rcnt + `AXI_LEN_BITS'h1;
 end
-
-
-    // always_comb begin
-    //     case (burst_dram)
-    //         1'b1 : fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h5) || (|fifo_cnt_r && (dcnt == 3'h5));
-    //         // 1'b0 : fifo_ren = (STATE == BUSY) && fifo_full || (|fifo_cnt_r[1:0]);//~fifo_empty;
-    //         1'b0 : fifo_ren = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready;
-    //     endcase
-    // end
-    // always_comb begin
-    //     case (burst_dram)
-    //         1'b1 : wlast = fifo_cnt_r[2] && (dcnt == 3'h5);
-    //         1'b0 : wlast = wcnt == op_qty_r;
-    //     endcase
-    // end
 
 
 

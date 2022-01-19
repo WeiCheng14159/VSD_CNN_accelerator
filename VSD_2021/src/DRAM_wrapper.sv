@@ -42,7 +42,6 @@ module DRAM_wrapper (
     logic [1:0] byte_off;
     logic [`WEB_BITS   -1:0] bwen, hwen, dramwen;
     logic [`DATA_BITS  -1:0] dramdata_r;
-    logic [`DATA_BITS  -1:0] dramdataD_r;
     // logic [`DRAM_A_BITS-1:0] row, col, col_r;
     logic [`DRAM_A_BITS-1:0] col_r;
     logic [ 1:0] off;
@@ -89,7 +88,6 @@ module DRAM_wrapper (
             write     <= 1'b0;
             dramvalid_r <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
-            dramdataD_r <= `DATA_BITS'h0;
         end
         else begin
             addr      <= arhns ? s2axi_i.araddr[22:2] : awhns ? s2axi_i.awaddr[22:2] : addr;
@@ -104,7 +102,6 @@ module DRAM_wrapper (
             write     <= clear ? 1'b0 : (awhns ? 1'b1 : write);
             dramvalid_r <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
-            // dramdataD_r <= (STATE == SETROW) ? s2axi_i.wdata : dramdataD_r;
         end
     end
 // }}}
