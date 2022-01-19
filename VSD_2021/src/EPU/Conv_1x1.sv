@@ -1,7 +1,7 @@
 `include "ConvAcc.svh"
 module Conv_1x1 (
     input  logic        clk,
-    input  logic        rst,
+    input  logic        rstn,
     input  logic [31:0] w8,
     input  logic        start,
     output logic        finish,
@@ -107,8 +107,8 @@ module Conv_1x1 (
   logic [2:0] STATE, NEXT;
 
   //store w8
-  always_ff @(posedge clk or negedge rst) begin
-    w8_tmp <= (~rst) ? 32'b0 : (start) ? w8 : w8_tmp;
+  always_ff @(posedge clk or negedge rstn) begin
+    w8_tmp <= (~rstn) ? 32'b0 : (start) ? w8 : w8_tmp;
   end
 
   assign FULL = (index == input_2D_size);
@@ -130,8 +130,8 @@ module Conv_1x1 (
 
   assign In_2D_cnt_DLY = input_2D_cnt == (input_2D_size - 32'b1);
 
-  always_ff @(posedge clk or negedge rst) begin
-    STATE <= (~rst) ? IDLE : NEXT;
+  always_ff @(posedge clk or negedge rstn) begin
+    STATE <= (~rstn) ? IDLE : NEXT;
   end
 
   always_comb begin
@@ -194,8 +194,8 @@ module Conv_1x1 (
 
   //counter control
   //--------------------------------------------------------------//
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) state_cnt <= 5'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) state_cnt <= 5'd0;
     else begin
       if (STATE == LD_PARM) begin
         state_cnt <= (state_cnt == 5'd3) ? 5'd0 : state_cnt + 5'd1;
@@ -214,8 +214,8 @@ module Conv_1x1 (
   end
 
   //channel counter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) CH_cnt <= 9'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) CH_cnt <= 9'd0;
     else if (STATE == LD_BIAS) CH_cnt <= 9'd0;
     else if (STATE == SW_O) begin
       if (state_cnt == 5'd1) begin
@@ -225,16 +225,16 @@ module Conv_1x1 (
   end
 
   //kernel counter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) K_cnt <= 10'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) K_cnt <= 10'b0;
     else if ((STATE == LD_BIAS) & (state_cnt == 5'd1)) begin
       K_cnt <= K_cnt + 10'b1;
     end
   end
 
   //input 2D  counter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) input_2D_cnt <= 11'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) input_2D_cnt <= 11'd0;
     else if (STATE == LD_BIAS) input_2D_cnt <= 11'd0;
     else if (STATE == SW_O) begin
       if (state_cnt == 5'd1) input_2D_cnt <= input_2D_cnt + 11'd1;
@@ -246,15 +246,15 @@ module Conv_1x1 (
 
   //load parameter
   //--------------------------------------------------------------//
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) param_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) param_intf.addr <= 32'b0;
     else if (STATE == LD_PARM) begin
       param_intf.addr <= (state_cnt == 5'd3) ? 32'b0 : param_intf.addr + 5'd1;
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) begin
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) begin
       num_row <= 32'b0;
       num_CH  <= 32'b0;
       num_K   <= 32'b0;
@@ -270,15 +270,15 @@ module Conv_1x1 (
 
   //load bias
   //--------------------------------------------------------------//
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) bias_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) bias_intf.addr <= 32'b0;
     else if ((STATE == LD_BIAS) & (state_cnt == 5'd0)) begin
       bias_intf.addr <= bias_intf.addr + 3'd1;
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) bias <= 33'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) bias <= 33'd0;
     else if ((STATE == LD_BIAS) & (state_cnt == 5'd1)) begin
       bias <= bias_intf.R_data;
     end
@@ -287,15 +287,15 @@ module Conv_1x1 (
 
   //load weight
   //--------------------------------------------------------------//
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) weight_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) weight_intf.addr <= 32'b0;
     else if ((STATE == LD_WT) & (state_cnt == 5'd0)) begin
       weight_intf.addr <= weight_intf.addr + 1'b1;
     end
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) begin
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) begin
       weight[0] <= 8'b0;
       weight[1] <= 8'b0;
       weight[2] <= 8'b0;
@@ -322,13 +322,13 @@ module Conv_1x1 (
   //load input
   //--------------------------------------------------------------//
   //data_index
-  always_ff @(posedge clk or negedge rst) begin
-    data_index <= (~rst) ? 5'd0 : state_cnt;
+  always_ff @(posedge clk or negedge rstn) begin
+    data_index <= (~rstn) ? 5'd0 : state_cnt;
   end
 
   //Load input
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) begin
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) begin
       data[0] <= 8'b0;
       data[1] <= 8'b0;
       data[2] <= 8'b0;
@@ -344,8 +344,8 @@ module Conv_1x1 (
   end
 
   //input number, check last few input channels
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) num_input <= 4'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) num_input <= 4'd0;
     else if (STATE == LD_BIAS) num_input <= 4'd9;
     else if ((STATE == SW_O) & (state_cnt == 5'd2)) begin
       if (last_CH) begin
@@ -359,8 +359,8 @@ module Conv_1x1 (
   end
 
   //input number counter
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) index <= 11'd0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) index <= 11'd0;
     else if (STATE == LD_BIAS) index <= 11'd0;
     else if (STATE == SW_O) begin
       if (state_cnt == 5'd0) index <= index + 11'd1;
@@ -369,8 +369,8 @@ module Conv_1x1 (
   end
 
   //input address
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) input_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) input_intf.addr <= 32'b0;
     else if (STATE == LD_BIAS) input_intf.addr <= 32'b0;
     else if (STATE == LD_I) begin
       input_intf.addr <= (state_cnt > (num_input - 4'd2)) ?  input_intf.addr : input_intf.addr + input_2D_size;
@@ -383,8 +383,8 @@ module Conv_1x1 (
 
   //Calculate
   //--------------------------------------------------------------//
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) begin
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) begin
       partial_sum[0] <= 32'b0;
       partial_sum[1] <= 32'b0;
       partial_sum[2] <= 32'b0;
@@ -416,15 +416,15 @@ module Conv_1x1 (
   //Store output
   //--------------------------------------------------------------//
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_intf.W_req <= `WRITE_DIS;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_intf.W_req <= `WRITE_DIS;
     else if ((STATE == SW_O) & (state_cnt == 5'd0))
       output_intf.W_req <= `WRITE_ENB;
     else output_intf.W_req <= `WRITE_DIS;
   end
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_intf.addr <= 32'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_intf.addr <= 32'b0;
     else if ((STATE == SW_O) & (state_cnt == 5'd1)) begin
       if (In_2D_cnt_DLY & last_addr) begin  //SW_O to LD_BIAS
         output_intf.addr <= output_intf.addr + 32'b1;
@@ -436,8 +436,8 @@ module Conv_1x1 (
   end
 
 
-  always_ff @(posedge clk or negedge rst) begin
-    if (~rst) output_wdata <= 16'b0;
+  always_ff @(posedge clk or negedge rstn) begin
+    if (~rstn) output_wdata <= 16'b0;
     else if ((STATE == SW_O) & (state_cnt == 5'd0)) begin
       if (CH_cnt == 9'd0) begin
         output_wdata <= bias[15:0] + partial_sum[0];

@@ -5,9 +5,9 @@ module Param_SRAM_16B (
           sp_ram_intf.memory mem
 );
 
-  parameter AddressSize = 2;
+  parameter AddressSize = 3;
   parameter Bits = 32;
-  parameter Words = 4;
+  parameter Words = 8;
   parameter Bytes = 1;
   logic [       Bits-1:0] Memory     [Words-1:0];
 

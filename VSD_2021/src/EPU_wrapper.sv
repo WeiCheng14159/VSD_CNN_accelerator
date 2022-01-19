@@ -268,6 +268,8 @@ module EPU_wrapper (
       .rvalid_o(in_rvalid),
       .rdata_o (in_rdata),
       // Connection to EPU
+      .start_i (conv_start),
+      .finish_i(conv_fin),
       .bus2EPU (in_bus2EPU)
   );
 
@@ -279,7 +281,9 @@ module EPU_wrapper (
       .epuin_i (EPUIN.EPUin),
       .rvalid_o(out_rvalid),
       .rdata_o (out_rdata),
-      // Connection to EPU           
+      // Connection to EPU     
+      .start_i (conv_start),      
+      .finish_i(conv_fin),
       .bus2EPU (out_bus2EPU)
   );
 
@@ -292,6 +296,8 @@ module EPU_wrapper (
       .rvalid_o(weight_rvalid),
       .rdata_o (weight_rdata),
       // Connection to EPU 
+      .start_i (conv_start),
+      .finish_i(conv_fin),
       .bus2EPU (weight_bus2EPU)
   );
 
@@ -304,6 +310,8 @@ module EPU_wrapper (
       .rvalid_o(bias_rvalid),
       .rdata_o (bias_rdata),
       // Connection to EPU 
+      .start_i (conv_start),
+      .finish_i(conv_fin),
       .bus2EPU (bias_bus2EPU)
   );
 
@@ -316,6 +324,8 @@ module EPU_wrapper (
       .rvalid_o(param_rvalid),
       .rdata_o (param_rdata),
       // Connection to EPU 
+      .start_i (conv_start),
+      .finish_i(conv_fin),
       .bus2EPU (param_bus2EPU)
   );
 
