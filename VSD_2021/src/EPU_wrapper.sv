@@ -232,6 +232,10 @@ module EPU_wrapper (
       {in_trans, out_trans, conv_start} <= 3'b0;
       conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
+    end else if(conv_fin) begin
+      {in_trans, out_trans, conv_start} <= 3'b0;
+      conv_w8 <= 32'h0;
+      conv_mode <= 4'h0;
     end else if (buffer_sel == EPU_CTRL_SEL) begin
       if (addr_r == `AXI_ADDR_BITS'h8000_0000) conv_w8 <= s2axi_i.wdata;
       else if (addr_r == `AXI_ADDR_BITS'h8000_0004) begin
