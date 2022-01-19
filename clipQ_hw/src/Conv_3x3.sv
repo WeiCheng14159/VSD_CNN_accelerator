@@ -3,7 +3,7 @@
 
 module  Conv_3x3(
 	input					clk,
-	input					rst,
+	input					rstn,
 	input			[31:0]	w8,
 	input					start,
 	output	logic			finish,
@@ -84,15 +84,15 @@ module  Conv_3x3(
 
 	assign sum = output_rdata + partial_sum[0];
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			w8_temp <= 32'b0;
 		else if(start)
 			w8_temp <= w8;
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)begin
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)begin
 			partial_sum[0] <= 16'b0;
 			partial_sum[1] <= 16'b0;
 			partial_sum[2] <= 16'b0;
@@ -120,8 +120,8 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//counter
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			counter <= 3'b0;
 		else if(CurrentState == load_parameter_state)begin
 			if(counter == 3'h3)
@@ -155,8 +155,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			row_counter <= 5'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input))begin
 			if(row_counter == (num_row - 32'b1))
@@ -166,8 +166,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			col_counter <= 5'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 32'b1)))begin
 			if(col_counter == (num_row - 32'b1))
@@ -177,8 +177,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			cha_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 32'b1)) & (col_counter == (num_row - 32'b1)))begin
 			if(cha_counter == (num_channel - 32'b1))
@@ -188,8 +188,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			ker_counter <= 10'b0;
 		else if((CurrentState == load_input_state) & (counter == num_input) & (row_counter == (num_row - 32'b1)) & (col_counter == (num_row - 32'b1)) & (cha_counter == (num_channel - 32'b1)))begin
 			if(ker_counter == (num_kernel - 32'b1))
@@ -203,8 +203,8 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//load parameter
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			param_intf.addr <= 32'b0;
 		else if((CurrentState == load_parameter_state))begin
 			if(counter == 3'h3)
@@ -214,8 +214,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)begin
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)begin
 			num_row <= 32'b0;
 			num_channel <= 32'b0;
 			num_kernel <= 32'b0;
@@ -233,15 +233,15 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//load bias
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			bias_intf.addr <= 32'b0;
 		else if((CurrentState == load_bias_state) & (counter == 3'b0))
 			bias_intf.addr <= bias_intf.addr + 32'b1;
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			bias <= 32'b0;
 		else if((CurrentState == load_bias_state) & (counter == 3'h1))
 			bias <= bias_intf.R_data;
@@ -251,15 +251,15 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//load weight
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			weight_intf.addr <= 32'b0;
 		else if((CurrentState == load_weight_state) & (counter == 3'b0))
 			weight_intf.addr <= weight_intf.addr + 32'b1;
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)begin
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)begin
 			weight[0] <= 8'b0;
 			weight[1] <= 8'b0;
 			weight[2] <= 8'b0;
@@ -332,8 +332,8 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//load input
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			num_input <= 3'b0;
 		else if(CurrentState == load_weight_state)
 			num_input <= 3'h4;
@@ -353,8 +353,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			index <= 4'b0;
 		else if(CurrentState == load_input_state)begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0))begin
@@ -405,8 +405,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			input_intf.addr <= 32'b0;
 		else if(CurrentState == load_weight_state)
 			input_intf.addr <= cha_counter * input_2D_size;
@@ -465,8 +465,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)begin
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)begin
 			data[0] <= 8'b0;
 			data[1] <= 8'b0;
 			data[2] <= 8'b0;
@@ -511,8 +511,8 @@ module  Conv_3x3(
 
 	//*********************************************//
 	//write output
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			output_intf.addr <= 32'b0;
 		else if((CurrentState == write_state) & (counter == 3'h2))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 10'b0))
@@ -524,8 +524,8 @@ module  Conv_3x3(
 		end
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			output_intf.W_req <= `WRITE_DIS;
 		else if((CurrentState == write_state) & (counter == 3'h1))
 			output_intf.W_req <= `WRITE_ENB;
@@ -533,8 +533,8 @@ module  Conv_3x3(
 			output_intf.W_req <= `WRITE_DIS;
 	end
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			output_wdata <= 16'b0;
 		else if((CurrentState == write_state) & (counter == 3'h1))begin
 			if((row_counter == 5'b0) & (col_counter == 5'b0) & (cha_counter == 10'b0))begin
@@ -580,8 +580,8 @@ module  Conv_3x3(
 	//write output
 	//*********************************************//
 
-	always_ff @(posedge clk or negedge rst) begin
-		if(~rst)
+	always_ff @(posedge clk or negedge rstn) begin
+		if(~rstn)
 			CurrentState <= idle_state;
 		else 
 			CurrentState <= NextState;
