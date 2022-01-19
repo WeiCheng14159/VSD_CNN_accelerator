@@ -310,7 +310,7 @@ module DRAM_wrapper (
     FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
         .clk     (clk         ),
         .rst     (~rst        ),
-        .clr_i   (0),
+        .clr_i   (1'b0),
         .wen_i   (fifo_wen    ),
         .ren_i   (fifo_ren    ),
         .data_i  (fifo_datain ),
