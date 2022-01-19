@@ -5,6 +5,7 @@
 `ifdef SYN
 `include "top_syn.v"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "InOut_dp_SRAM/SJMA180_32768X16X1BM8.v"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
 `include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns / 10ps
@@ -12,6 +13,7 @@
 `elsif PR
 `include "top_pr.v"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8.v"
+`include "InOut_dp_SRAM/SJMA180_32768X16X1BM8.v"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4.v"
 `include "Bias_SRAM/SUMA180_384X32X1BM4.v"
 `timescale 1ns / 10ps
@@ -19,6 +21,7 @@
 `else
 `include "top.sv"
 `include "InOut_SRAM/SUMA180_32768X16X1BM8_rtl.sv"
+`include "InOut_dp_SRAM/SJMA180_32768X16X1BM8_rtl.sv"
 `include "Weight_SRAM/SUMA180_16384X18X1BM4_rtl.sv"
 `include "Bias_SRAM/SUMA180_384X32X1BM4_rtl.sv"
 `endif
@@ -97,37 +100,37 @@ module top_tb;
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
         else if (slice == 1)
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
         else if (slice == 2)
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
         else if (slice == 3)
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
         else if (slice == 4)
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
         else if (slice == 5)
           ret = $fscanf(
               gf,
               "%h\n",
-              TOP.i_Input_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[num]
+              TOP.i_Input_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[num]
           );
 
         num = num + 1;
@@ -248,17 +251,21 @@ module top_tb;
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars();
     $fsdbDumpvars(1, TOP.param_intf);
-    $fsdbDumpvars(1, TOP.input_intf);
+    $fsdbDumpvars(1, TOP.input_intf_0);
+    $fsdbDumpvars(1, TOP.input_intf_1);
     $fsdbDumpvars(1, TOP.weight_intf);
-    $fsdbDumpvars(1, TOP.output_intf);
+    $fsdbDumpvars(1, TOP.output_intf_0);
+    $fsdbDumpvars(1, TOP.output_intf_1);
     $fsdbDumpvars(1, TOP.bias_intf);
 `elsif FSDB_ALL
     $fsdbDumpfile(`FSDB_FILE);
     $fsdbDumpvars("+struct", "+mda", TOP);
     $fsdbDumpvars(1, TOP.param_intf);
-    $fsdbDumpvars(1, TOP.input_intf);
+    $fsdbDumpvars(1, TOP.input_intf_0);
+    $fsdbDumpvars(1, TOP.input_intf_1);
     $fsdbDumpvars(1, TOP.weight_intf);
-    $fsdbDumpvars(1, TOP.output_intf);
+    $fsdbDumpvars(1, TOP.output_intf_0);
+    $fsdbDumpvars(1, TOP.output_intf_1);
     $fsdbDumpvars(1, TOP.bias_intf);
     // $fsdbDumpvars("+struct", "+mda", TOP.i_param_mem);
     // $fsdbDumpvars("+struct", "+mda", TOP.i_Input_SRAM_384k);
@@ -274,17 +281,17 @@ module top_tb;
       for (i = word_begin; i < word_end; i = i + 1) begin
         slice = i / `INOUT_BLOCK_WORD_SIZE;
         if (slice == 0)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[0].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
         else if (slice == 1)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[1].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
         else if (slice == 2)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[2].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
         else if (slice == 3)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[3].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
         else if (slice == 4)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[4].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
         else if (slice == 5)
-          out = TOP.i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SUMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
+          out = TOP.i_Output_SRAM_384k.SRAM_blk[5].i_SRAM_16b_32768w_64k.i_SJMA180_32768X16X1BM8.Memory[i % `INOUT_BLOCK_WORD_SIZE][7:0];
 
         if (out === GOLDEN[i] | (out+1) === GOLDEN[i] | (out-1) === GOLDEN[i]) begin
           $display("DM[%4d] = %h, pass", i, out);

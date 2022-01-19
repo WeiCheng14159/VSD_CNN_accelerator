@@ -10,8 +10,10 @@ module  Max_pool(
 	sp_ram_intf.compute param_intf,
 	sp_ram_intf.compute bias_intf,
 	sp_ram_intf.compute weight_intf,
-	sp_ram_intf.compute input_intf,
-	sp_ram_intf.compute output_intf
+	sp_ram_intf.compute input_intf_0,
+	sp_ram_intf.compute input_intf_1,
+	sp_ram_intf.compute output_intf_0,
+	sp_ram_intf.compute output_intf_1
 );
 
 	logic	[5:0]	num_row;
@@ -55,13 +57,13 @@ module  Max_pool(
 	assign weight_intf.W_data = 32'b0;
 	assign weight_intf.oe = 1'b1;
 	// Input 
-	assign input_rdata = input_intf.R_data[7:0];
-	assign input_intf.W_req = `WRITE_DIS;
-	assign input_intf.W_data = 16'b0;
-	assign input_intf.oe = 1'b1;
+	assign input_rdata = input_intf_0.R_data[7:0];
+	assign input_intf_0.W_req = `WRITE_DIS;
+	assign input_intf_0.W_data = 16'b0;
+	assign input_intf_0.oe = 1'b1;
 	// Output
-	assign output_intf.W_data = {24'h0, output_wdata};
-	assign output_intf.oe = 1'b1;
+	assign output_intf_0.W_data = {24'h0, output_wdata};
+	assign output_intf_0.oe = 1'b1;
 
 	//*********************************************//
 	//counter
@@ -129,24 +131,24 @@ module  Max_pool(
 	//load input
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			input_intf.addr <= 32'b0;
+			input_intf_0.addr <= 32'b0;
 		else if(CurrentState == load_input_state)begin
 			if(kernel_size == 32'h2)begin
 				case(counter)
-					10'h0: input_intf.addr <= input_intf.addr + 32'b1;
-					10'h1: input_intf.addr <= input_intf.addr + num_row - 32'b1;
-					10'h2: input_intf.addr <= input_intf.addr + 32'b1;
+					10'h0: input_intf_0.addr <= input_intf_0.addr + 32'b1;
+					10'h1: input_intf_0.addr <= input_intf_0.addr + num_row - 32'b1;
+					10'h2: input_intf_0.addr <= input_intf_0.addr + 32'b1;
 					10'h3: begin
 						if(row_counter == ((num_row >> 1) - 32'b1))
-							input_intf.addr <= input_intf.addr + 32'b1;
+							input_intf_0.addr <= input_intf_0.addr + 32'b1;
 						else
-							input_intf.addr <= input_intf.addr - num_row + 32'b1;
+							input_intf_0.addr <= input_intf_0.addr - num_row + 32'b1;
 					end
 				endcase
 			end
 			else begin
 				if(counter != num_input)
-					input_intf.addr <= input_intf.addr + 32'b1;
+					input_intf_0.addr <= input_intf_0.addr + 32'b1;
 			end
 		end
 	end
@@ -181,18 +183,18 @@ module  Max_pool(
 	//write output
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			output_intf.addr <= 32'b0;
+			output_intf_0.addr <= 32'b0;
 		else if(CurrentState == write_state)
-			output_intf.addr <= output_intf.addr + 32'b1;
+			output_intf_0.addr <= output_intf_0.addr + 32'b1;
 	end
 
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			output_intf.W_req <= `WRITE_DIS;
+			output_intf_0.W_req <= `WRITE_DIS;
 		else if((CurrentState == load_input_state) & (counter == num_input))
-			output_intf.W_req <= `WRITE_ENB;
+			output_intf_0.W_req <= `WRITE_ENB;
 		else 
-			output_intf.W_req <= `WRITE_DIS;
+			output_intf_0.W_req <= `WRITE_DIS;
 	end
 	//write output
 	//*********************************************//
@@ -225,7 +227,7 @@ module  Max_pool(
 					NextState = load_input_state;
 			end
 			write_state:begin
-				if(output_intf.addr == (output_size - 32'b1))
+				if(output_intf_0.addr == (output_size - 32'b1))
 					NextState = finish_state;
 				else
 					NextState = load_input_state;
@@ -240,32 +242,32 @@ module  Max_pool(
 		case(CurrentState)
 			idle_state:begin
 				param_intf.cs = 1'b0;
-				input_intf.cs = 1'b0;
-				output_intf.cs = 1'b0;
+				input_intf_0.cs = 1'b0;
+				output_intf_0.cs = 1'b0;
 				finish = 1'b0;
 			end
 			load_parameter_state:begin
 				param_intf.cs = 1'b1;
-				input_intf.cs = 1'b0;
-				output_intf.cs = 1'b0;
+				input_intf_0.cs = 1'b0;
+				output_intf_0.cs = 1'b0;
 				finish = 1'b0;
 			end
 			load_input_state:begin
 				param_intf.cs = 1'b0;
-				input_intf.cs = 1'b1;
-				output_intf.cs = 1'b0;
+				input_intf_0.cs = 1'b1;
+				output_intf_0.cs = 1'b0;
 				finish = 1'b0;
 			end
 			write_state:begin
 				param_intf.cs = 1'b0;
-				input_intf.cs = 1'b0;
-				output_intf.cs = 1'b1;
+				input_intf_0.cs = 1'b0;
+				output_intf_0.cs = 1'b1;
 				finish = 1'b0;
 			end
 			default:begin
 				param_intf.cs = 1'b0;
-				input_intf.cs = 1'b0;
-				output_intf.cs = 1'b0;
+				input_intf_0.cs = 1'b0;
+				output_intf_0.cs = 1'b0;
 				finish = 1'b1;
 			end
 		endcase

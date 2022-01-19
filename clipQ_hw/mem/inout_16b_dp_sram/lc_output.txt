@@ -1,0 +1,42 @@
+
+Initializing...
+lc_shell> read_lib SJMA180_32768X16X1BM8_BC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_BC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'BCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SJMA180_32768X16X1BM8_BC' read successfully
+1
+lc_shell> write_lib SJMA180_32768X16X1BM8_BC -format db -output SJMA180_32768X16X1BM8_BC.db
+Wrote the 'SJMA180_32768X16X1BM8_BC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_BC.db' successfully
+1
+lc_shell> read_lib SJMA180_32768X16X1BM8_TC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_TC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'TCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SJMA180_32768X16X1BM8_TC' read successfully
+1
+lc_shell> write_lib SJMA180_32768X16X1BM8_TC -format db -output SJMA180_32768X16X1BM8_TC.db
+Wrote the 'SJMA180_32768X16X1BM8_TC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_TC.db' successfully
+1
+lc_shell> read_lib SJMA180_32768X16X1BM8_WC.lib
+Reading '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_WC.lib' ...
+Warning: Line 45, The default_operating_conditions is not defined. operating_conditions 'WCCOM' is set
+        as the default_operating_conditions. (LBDB-663)
+Warning: Line 45, The 'internal_power_calculation' attribute in char_config group is required for NLPM library. 
+        No default can be applied to this attribute. (LBDB-366)
+Technology library 'SJMA180_32768X16X1BM8_WC' read successfully
+1
+lc_shell> write_lib SJMA180_32768X16X1BM8_WC -format db -output SJMA180_32768X16X1BM8_WC.db
+Wrote the 'SJMA180_32768X16X1BM8_WC' library to '/home/wei/VSD_mask_proj/clipQ_hw/mem/inout_16b_dp_sram/SJMA180_32768X16X1BM8_WC.db' successfully
+1
+lc_shell> exit
+Maximum memory usage for this session: 81.97 MB
+Maximum memory usage for this session including child processes: 81.97 MB
+CPU usage for this session:      1 seconds (  0.00 hours)
+Elapsed time for this session:    162 seconds (  0.05 hours)
+Thank you for using Library Compiler.
+

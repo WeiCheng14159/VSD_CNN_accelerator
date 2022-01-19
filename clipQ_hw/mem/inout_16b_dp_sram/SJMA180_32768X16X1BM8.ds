@@ -1,0 +1,198 @@
+/******************************************************************************
+
+             Synchronous Dual Port SRAM Compiler 
+
+                   UMC 0.18um Generic Logic Process 
+   __________________________________________________________________________
+
+
+       (C) Copyright 2002-2009 Faraday Technology Corp. All Rights Reserved.
+
+     This source code is an unpublished work belongs to Faraday Technology
+     Corp.  It is considered a trade secret and is not to be divulged or
+     used by parties who have not received written authorization from
+     Faraday Technology Corp.
+
+     Faraday's home page can be found at:
+     http://www.faraday-tech.com/
+    
+________________________________________________________________________________
+
+      Module Name       :  SJMA180_32768X16X1BM8  
+      Word              :  32768                  
+      Bit               :  16                     
+      Byte              :  1                      
+      Mux               :  8                      
+      Power Ring Type   :  port                   
+      Power Ring Width  :  2 (um)                 
+      Output Loading    :  0.5 (pf)               
+      Input Data Slew   :  0.5 (ns)               
+      Input Clock Slew  :  0.5 (ns)               
+
+________________________________________________________________________________
+
+      Library          : FSA0M_A
+      Memaker          : 200901.2.1
+      Date             : 2022/01/19 09:49:44
+
+________________________________________________________________________________
+
+******************************************************************************/
+
+
+
+   Description:
+
+     The FSA0M_A_SJ is a synchronous, single port register file. It was created
+     according to UMC's 0.18um 1P5M Mixed-Mode and RFCMOS process design rules and can be 
+     incorporated with Faraday's 0.18um standard cells. Different combinations 
+     of words, bits, and aspect ratios can be used to generate the most desirable
+     configurations.
+    
+     By requesting the desired size and timing constraints, the FSA0M_A_SJ 
+     compiler is capable of providing suitable synchronous RAM layout instances
+     in seconds. It can automatically generate data sheets, Verilog / VHDL
+     behavioral simulation models, SCS or Viewlogic symbols, place & route models,
+     and test patterns for use in ASIC designs. The duty cycle length can be 
+     neglected as long as the setup / hold time and minimum high / low pulse
+     widths are satisfied.  This allows the flexibility of a clock falling edge
+     during each operation. Both word write and byte write operations are
+     supported.
+
+
+
+   Features:
+
+       - Synchronous read and write operations
+       - Fully customized layout density 
+       - Available for 1.8V +/- 10% 
+       - Automatic power down to eliminate DC current
+       - Clocked address inputs and CSA(B) to RAM at CKA(B) rising edge
+       - Clocked WEA(B) input pin to RAM at CKA(B) rising edge
+       - Clocked DIA(B) input pins to RAM at CKA(B) rising edge
+       - Byte write or word write operations available
+       - Verilog / VHDL timing / simulation model generator
+       - SPICE netlist generator
+       - GDSII layout database
+       - Memory compiler preview UI (Memaker)
+       - BIST circuitry supported
+       - Multi-block options for the best aspect ratio
+      
+
+   Input Pins:
+ 
+       Pin Name   Capacitance  Descriptions                                    
+       A[14:0]    0.008 pF     Address signals of width 15                     
+       B[14:0]    0.008 pF     Address signals of width 15                     
+       CKA        0.042 pF     Clock signal for addresses, WEAN, CSA, and DIA  
+       CKB        0.042 pF     Clock signal for addresses, WEBN, CSB, and DIB  
+       CSA        0.027 pF     Chip select, active high                        
+       CSB        0.027 pF     Chip select, active high                        
+       OEA        0.004 pF     Output enable signal, active high               
+       OEB        0.004 pF     Output enable signal, active high               
+       DIA[15:0]  0.007 pF     Input data of width 16                          
+       DIB[15:0]  0.007 pF     Input data of width 16                          
+       WEAN       0.007 pF     Write enable signals of 1 bytes, active low     
+       WEBN       0.007 pF     Write enable signals of 1 bytes, active low     
+
+
+   Output Pins: 
+
+       Pin Name   Capacitance  Descriptions                         
+       DOA[15:0]  0.024 pF     Output data of width 16 (tri-state)  
+       DOB[15:0]  0.024 pF     Output data of width 16 (tri-state)  
+
+   Approximated Area Information: 
+
+       RAM area = 3614.380 um (Width) x 1711.680 um (Height) = 6.187 mm^2
+       Power ring width = 2 um
+
+
+   Process metal options:
+
+       
+       ------------------------------------------------------------
+       |Five (5) metal layers |  M5 (thick) + M1 ~ M4 (thin)      |
+       |-----------------------------------------------------------
+       |Six  (6) metal layers |  M6 (thick) + M1 ~ M5 (thin)      |
+       |-----------------------------------------------------------
+
+
+   Recommended operating conditions:
+
+       Symbol  BC    TC   WC    Units  
+       VCC     1.98  1.8  1.62  V      
+       TJ      -40   25   125   C      
+
+       Notes:
+         1. VCC: Power supply for memory block
+         2. TJ : Junction operating temperature
+
+
+
+   Operating Conditions:
+
+       Corner  Process  Voltage(v)  Temperature(C)  
+       BC      PFNF     1.98        -40             
+       TC      PTNT     1.8         25              
+       WC      PSNS     1.62        125             
+
+
+   Clock Slew Rate & Loading Look Up Table (5x5):
+       Index                    1      2      3      4      5
+       Clock Slew (ns)*     0.020  0.500  1.000  1.500  2.000
+       Output Loading(pF)   0.010  0.050  0.150  0.500  1.300
+
+   Clock & Data Slew Rate Look Up Table (5x5):
+       Index                    1      2      3      4      5
+       Data  Slew (ns)*     0.020  0.500  1.000  1.500  2.000
+       Clock Slew (ns)*     0.020  0.500  1.000  1.500  2.000
+
+       * For BC: 10.0% ~ 90.0%
+       * For TC: 10.0% ~ 90.0%
+       * For WC: 10.0% ~ 90.0%
+
+   Power Consumption Per Port:
+
+       Power Type       BC      TC      WC      Unit                
+       Standby Current  11.452  15.430  89.550  uA (CSA = CSB = 0)  
+       DC Current       11.452  15.430  89.550  uA (CSA = CSB = 1)  
+       Max. AC Current  0.310   0.272   0.231   mA/MHz              
+
+       Total current   = AC current * Freq + DC current   
+       Notes:
+        1. All cycles are active
+        2. All address bits switching
+        3. All data bits switching
+        4. Worst of read / write operation
+ 
+ 
+   Timing Information:
+
+       - CKA(B) input slope = 0.5 ns.
+       - Data input slope = 0.5 ns.
+       - All timing parameters are measured from 50% of input.
+       - Output reference voltage "H" = 50% of VDD, "L" = 50% of VDD.
+       - Output loading = 0.5 pF.
+       - Delay timing parameters in nano second.
+
+   symbol  BC    TC    WC    Descriptions                                         
+   taa     2.42  3.47  6.02  Data access time from CKA(B) rising                  
+   toh     1.33  1.80  2.85  Output data hold time after CKA(B) rising            
+   trc     3.57  4.87  7.86  Read cycle time                                      
+   tcss    0.69  0.91  1.52  CSA(B) setup time before CKA(B) rising               
+   tcshr   0.00  0.00  0.00  CSA(B) hold time after CKA(B) rising in read cycle   
+   tcshw   0.00  0.00  0.00  CSA(B) hold time after CKA(B) rising in write cycle  
+   twh     0.09  0.11  0.16  WEA(B)N hold time after CKA(B) rising                
+   tah     0.09  0.12  0.18  Address hold time after CKA(B) rising                
+   tas     0.52  0.81  1.38  Address setup time before CKA(B) rising              
+   twc     4.00  5.39  8.56  Write cycle time                                     
+   tws     0.28  0.43  0.72  WEA(B)N setup time before CKA(B) rising              
+   tdh     0.26  0.27  0.29  Input data hold time after CKA(B) rising             
+   tds     0.09  0.10  0.19  Input data setup time before CKA(B) rising           
+   twdv    1.40  1.90  3.01  Output data valid after CKA(B) rising                
+   twdx    2.00  2.70  4.28  Output data invalid after CKA(B) rising              
+   thpw    1.33  1.80  2.85  Clock high pulse width                               
+   tlpw    1.33  1.80  2.85  Clock low pulse width                                
+   toe     1.18  1.66  2.58  Output data valid after OEA(B) rising                
+   toz     0.80  1.06  1.57  Output data go to Hi-Z ater OEA(B) falling           

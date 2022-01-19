@@ -1,5 +1,6 @@
 `include "sp_ram_intf.sv"
 `include "InOut_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB)
+`include "InOut_dp_SRAM_384k.sv"  // Input SRAM or Output SRAM (384 KB) (dual port)
 `include "Weight_SRAM_180k.sv"  // Weight SRAM (180 KB)
 `include "Bias_SRAM_2k.sv"  // Bias SRAM (2KB)
 `include "Param_SRAM_16B.sv"  // Param SRAM (16B)
@@ -17,9 +18,11 @@ module top
 
   // Interface
   sp_ram_intf param_intf ();
-  sp_ram_intf input_intf ();
+  sp_ram_intf input_intf_0 ();
+  sp_ram_intf input_intf_1 ();
   sp_ram_intf weight_intf ();
-  sp_ram_intf output_intf ();
+  sp_ram_intf output_intf_0 ();
+  sp_ram_intf output_intf_1 ();
   sp_ram_intf bias_intf ();
   
   Param_SRAM_16B i_param_mem (
@@ -27,14 +30,16 @@ module top
       .mem(param_intf)
   );
 
-  InOut_SRAM_384k i_Input_SRAM_384k (
+  InOut_dp_SRAM_384k i_Input_SRAM_384k (
       .clk(clk),
-      .mem(input_intf)
+      .mem0(input_intf_0),
+      .mem1(input_intf_1)
   );
 
-  InOut_SRAM_384k i_Output_SRAM_384k (
+  InOut_dp_SRAM_384k i_Output_SRAM_384k (
       .clk(clk),
-      .mem(output_intf)
+      .mem0(output_intf_0),
+      .mem1(output_intf_1)
   );
 
   Weight_SRAM_180k i_Weight_SRAM_180k (
@@ -57,8 +62,10 @@ module top
       .param_intf(param_intf),
       .bias_intf(bias_intf),
       .weight_intf(weight_intf),
-      .input_intf(input_intf),
-      .output_intf(output_intf)
+      .input_intf_0(input_intf_0),
+      .input_intf_1(input_intf_1),
+      .output_intf_0(output_intf_0),
+      .output_intf_1(output_intf_1)
   );
 
 endmodule
