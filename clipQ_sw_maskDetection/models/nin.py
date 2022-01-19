@@ -63,8 +63,6 @@ class QConv2d(nn.Module):
     def forward(self, x):
         # x = self.bn(x)
 
-        # print("INPUT~~~~~~~~~~~~~~~~~~~~~~", x.shape)
-        # print(self.layer, x[0])
         if self.full == 0:
             x = NbitActive.apply(x)
 
@@ -90,9 +88,6 @@ class QConv2d(nn.Module):
             if not os.path.exists('./H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1)):
                 out_ch_fileW8(x[0], './H_data/conv{:d}/Out8.hex'.format(int(self.layer)-1), 5)
 
-        # print(self.layer, x[0])
-        # print("OUTPUT~~~~~~~~~~~~~~~~~~~~~~", x.shape)
-
         return x
 
 
@@ -106,7 +101,6 @@ class QMaxPool2d(nn.Module):
         self.MaxPool = nn.MaxPool2d(kernel_size=kernel_size, stride=stride, padding=padding)
 
     def forward(self, x):
-        # print(self.layer, x[0])
         if self.w:
             # for write input.hex
             if not os.path.exists('./H_data/pool{:d}/In8.hex'.format(int(self.layer))):
@@ -118,7 +112,6 @@ class QMaxPool2d(nn.Module):
             # for write Output.hex
             if not os.path.exists('./H_data/pool{:d}/Out8.hex'.format(int(self.layer))):
                 out_ch_fileW8(x[0], './H_data/pool{:d}/Out8.hex'.format(int(self.layer)), 5)
-        # print(self.layer, x[0])
         return x
 
 
@@ -130,33 +123,8 @@ class Net(nn.Module):
                     padding=1, layer=1, full=f, w=write),
             QConv2d(60, 2, kernel_size=1, stride=1,
                     padding=0, layer=2, full=f, w=write),
-            # QConv2d(60, 2, kernel_size=1, stride=1,
-            #         padding=0, layer=3, full=f, w=write),
-            # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
             QMaxPool2d(kernel_size=32, stride=2,
-                    padding=0, layer=0, w=write),
-
-            # QConv2d(192, 96, kernel_size=3, stride=1,
-            #         padding=1, layer=4, full=f, w=write),
-            # QConv2d(96, 192, kernel_size=1, stride=1,
-            #         padding=0, layer=5, full=f, w=write),
-            # QConv2d(192, 2, kernel_size=1, stride=1,
-            #         padding=0, layer=6, full=f, w=write),
-            # # nn.AvgPool2d(kernel_size=2, stride=2, padding=0),
-            # # nn.MaxPool2d(kernel_size=2, stride=2, padding=0),
-            # QMaxPool2d(kernel_size=16, stride=2,
-            #         padding=0, layer=1, w=write),
-
-            # QConv2d(192, 384, kernel_size=3, stride=1,
-            #         padding=1, layer=7, full=f, w=write),
-            # QConv2d(384, 192, kernel_size=1, stride=1,
-            #         padding=0, layer=8, full=f, w=write),
-            # QConv2d(192, 2, kernel_size=1,
-            #         stride=1, padding=0, layer=9, full=f, w=write),
-            # # nn.AvgPool2d(kernel_size=8, stride=1, padding=0),
-            # # nn.MaxPool2d(kernel_size=8, stride=1, padding=0),
-            # QMaxPool2d(kernel_size=8, stride=1,
-            #         padding=0, layer=2, w=write),
+                    padding=0, layer=0, w=write)
         )
 
     def forward(self, x):
