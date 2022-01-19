@@ -87,10 +87,17 @@ int main(void) {
   // Move bias data
   quantity = (&__bias_end - &__bias_start);
   dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
-  // cpu_move(&__bias_start, &__bias_data_in_dram_start, quantity);
+
+  // Load W8 into EPU
+  *epu_w8_addr = 0x09F8EA00;
+
+  // Send EPU control signal
+  *epu_ctrl_addr = 0x1 | (0x3 << 1);
+  asm("wfi");
+
   // Move output data back to DRAM
-  // quantity = (&__out8_end - &__out8_start);
-  // cpu_move(&__out8_start, &__out8_data_in_dram_start, quantity);
+  quantity = (&__out8_end - &__out8_start);
+  cpu_move(&__out8_start, &_test_start, 10);
 
   return 0;
 }
