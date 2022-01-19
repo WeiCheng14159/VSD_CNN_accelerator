@@ -11,7 +11,7 @@ module DMA (
     inf_Master.M2AXIout m2axi_o,
     inf_Slave.S2AXIin   s2axi_i,
     inf_Slave.S2AXIout  s2axi_o,
-    output              int_o
+    output logic [1:0]  int_o
 );
 
     logic [`ADDR_BITS-1:0] src_addr, dst_addr;
@@ -27,8 +27,7 @@ module DMA (
     always_ff @(posedge clk or posedge rst) begin
         latch_int <= rst ? 1'b0 : dma_fin | latch_fin;
     end
-
-    assign int_o = dma_fin;
+    assign int_o = {dma_fin, dma_en};
 
     // output 
     // assign int_o = 0;

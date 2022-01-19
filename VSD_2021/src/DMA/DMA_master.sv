@@ -3,8 +3,6 @@
 `include "../FIFO.sv"
 
 
-
-
 module DMA_master (
     input clk, rst,
     inf_Master.M2AXIin          m2axi_i,
@@ -25,7 +23,8 @@ module DMA_master (
     // Handshake
     logic arhns, awhns, rhns, whns, bhns;
     logic rdfin, wrfin;
-    logic wlast;
+    logic rlast;  // DMA read the last data
+    logic wlast;  // DMA write the last data
     // FIFO
     logic [`DATA_BITS-1:0] fifo_datain, fifo_dataout;
     logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
@@ -40,7 +39,7 @@ module DMA_master (
     logic [`ADDR_BITS-1:0] src_addr_r;  // araddr
     logic [`ADDR_BITS-1:0] dst_addr_r;  // awaddr
     // length 
-    logic [`AXI_LEN_BITS-1:0] lcnt;
+    logic [`AXI_LEN_BITS-1:0] wcnt, rcnt;
     
     // Handshake
     assign awhns = m2axi_i.awready && m2axi_o.awvalid;
@@ -48,7 +47,7 @@ module DMA_master (
     assign bhns  = m2axi_o.bready  && m2axi_i.bvalid;
     assign arhns = m2axi_i.arready && m2axi_o.arvalid;
     assign rhns  = m2axi_o.rready  && m2axi_i.rvalid;
-    assign rdfin = rhns & m2axi_i.rlast;
+    assign rdfin = rhns && m2axi_i.rlast;
     assign wrfin = whns && m2axi_o.wlast;
     // DMA
     assign done = (~|rem_qty_r) && (STATE == B_CH);
@@ -100,11 +99,11 @@ module DMA_master (
             dst_addr_r <= dst_addr_r + `ADDR_BITS'h400;
         end
     end
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst)            lcnt <= `AXI_LEN_BITS'h0;
-        else if (arhns)     lcnt <= `AXI_LEN_BITS'h0;
-        else if (fifo_rhns) lcnt <= lcnt + `AXI_LEN_BITS'h1;
-    end
+    // always_ff @(posedge clk or posedge rst) begin
+    //     if (rst)            lcnt <= `AXI_LEN_BITS'h0;
+    //     else if (arhns)     lcnt <= `AXI_LEN_BITS'h0;
+    //     else if (fifo_rhns) lcnt <= lcnt + `AXI_LEN_BITS'h1;
+    // end
 
 // }}}
 // {{{ AXI
@@ -121,39 +120,16 @@ module DMA_master (
     assign m2axi_o.wdata   = fifo_dataout;
     // assign m2axi_o.wlast   = (lcnt == op_qty_r);
     assign m2axi_o.wlast   = wlast;
-
-    always_comb begin
-        {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
-        {m2axi_o.rready, m2axi_o.bready} = 2'b0;
-        case (STATE)
-            IDLE  : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b0;
-            end
-            CHECK : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b0;                
-            end
-            AR_CH : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b100;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b0;        
-            end
-            AW_CH : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b010;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b10;          
-            end            
-            BUSY  : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = {2'b0, fifo_ren};
-                {m2axi_o.rready, m2axi_o.bready} = {~fifo_full, 1'b0};
-                // {m2axi_o.rready, m2axi_o.bready} = {fifo_empty, 1'b0}; 
-            end
-            B_CH  : begin
-                {m2axi_o.arvalid, m2axi_o.awvalid, m2axi_o.wvalid} = 3'b0;
-                {m2axi_o.rready, m2axi_o.bready} = 2'b1;
-            end
-        endcase
-    end
+    // valid
+    assign m2axi_o.arvalid = STATE == AR_CH;
+    assign m2axi_o.awvalid = STATE == AW_CH;
+    assign m2axi_o.wvalid  = (STATE == BUSY) && fifo_ren;
+    // ready
+    assign m2axi_o.rready  = (STATE == BUSY) && (~fifo_full);
+    assign m2axi_o.bready  = STATE == B_CH;
 // }}}
+
+
 // {{{ FIFO (2)
     
     always_ff @(posedge clk or posedge rst) begin
@@ -162,16 +138,13 @@ module DMA_master (
     end
 
     assign fifo_datain = m2axi_i.rdata;
-    assign fifo_wen = (STATE == BUSY) && rhns;
+    assign fifo_wen    = (STATE == BUSY) && rhns;
+    assign fifo_ren    = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready;
     // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
-    logic wready;
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst) wready <= 1'b0;
-        else if (wrfin) wready <= 1'b0;
-        else if (m2axi_i.wready) wready <= 1'b1;
-    end
 
-// assign fifo_ren = (STATE == BUSY) && ~fifo_empty;
+    assign rlast = rcnt == op_qty_r;
+    assign wlast = wcnt == op_qty_r;
+
 logic setrow;
 logic [2:0] dcnt;
 always_ff @(posedge clk or posedge rst) begin
@@ -183,36 +156,37 @@ always_ff @(posedge clk or posedge rst) begin
     
 end
 
-
-    always_comb begin
-        case (burst_dram)
-            1'b1 : fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h5) || (|fifo_cnt_r && (dcnt == 3'h5));
-            1'b0 : fifo_ren = (STATE == BUSY) && fifo_full || (|fifo_cnt_r[1:0]);//~fifo_empty;
-        endcase
-    end
-    always_comb begin
-        case (burst_dram)
-            1'b1 : wlast = fifo_cnt_r[2] && (dcnt == 3'h5);
-            1'b0 : wlast = &fifo_cnt_r[1:0];
-        endcase
-    end
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)                wcnt <= `AXI_LEN_BITS'h0;
+    else if (STATE == B_CH) wcnt <= `AXI_LEN_BITS'h0;
+    else if (wlast)         wcnt <= wcnt;
+    else if (fifo_ren)      wcnt <= wcnt + `AXI_LEN_BITS'h1;
+end
 
 
-    
-    // assign fifo_ren = (STATE == BUSY) & fifo_full | (|fifo_cnt_r);
-    always_ff @(posedge clk or posedge rst) begin
-        if (rst)
-            fifo_cnt_r <= {(FIFO_DEPTH + 1){1'b0}};
-        else if (rdfin)
-            fifo_cnt_r <= {{(FIFO_DEPTH){1'b0}}, 1'b1};
-        else if (|fifo_cnt_r) begin
-            case (burst_dram)
-                1'b0 : fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH){1'b0}}, 1'b1};
-                1'b1 : fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH){1'b0}}, (dcnt == 3'h5)};
-            endcase
-        end
-        // else if () fifo_cnt_r <= fifo_cnt_r + {{(FIFO_DEPTH-1){1'b0}}, 1'b1};
-    end
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)                rcnt <= `AXI_LEN_BITS'h0;
+    else if (STATE == B_CH) rcnt <= `AXI_LEN_BITS'h0;
+    else if (rlast)         rcnt <= rcnt;
+    else if (fifo_wen)      rcnt <= rcnt + `AXI_LEN_BITS'h1;
+end
+
+
+    // always_comb begin
+    //     case (burst_dram)
+    //         1'b1 : fifo_ren = (STATE == BUSY) && fifo_full && (dcnt == 3'h5) || (|fifo_cnt_r && (dcnt == 3'h5));
+    //         // 1'b0 : fifo_ren = (STATE == BUSY) && fifo_full || (|fifo_cnt_r[1:0]);//~fifo_empty;
+    //         1'b0 : fifo_ren = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready;
+    //     endcase
+    // end
+    // always_comb begin
+    //     case (burst_dram)
+    //         1'b1 : wlast = fifo_cnt_r[2] && (dcnt == 3'h5);
+    //         1'b0 : wlast = wcnt == op_qty_r;
+    //     endcase
+    // end
+
+
 
 
     FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
