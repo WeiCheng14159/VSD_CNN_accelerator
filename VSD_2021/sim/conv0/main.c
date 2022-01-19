@@ -72,7 +72,7 @@ int main(void) {
 
   // Move output data back to DRAM
   quantity = (&__out8_end - &__out8_start);
-  dma_move(&__out8_data_in_dram_start, &_test_start, quantity);
+  dma_move(&__out8_start, &_test_start, quantity);
 
   return 0;
 }
