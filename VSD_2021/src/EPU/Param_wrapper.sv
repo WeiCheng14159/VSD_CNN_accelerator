@@ -48,13 +48,13 @@ module Param_wrapper (
         else if (epuin_i.awhns & enb_i) next_state = WRAPPER_W;
         else next_state = IDLE;
       end
-      WRAPPER_R: if (epuin_i.rlast & enb_i) next_state = IDLE;
+      WRAPPER_R: if (epuin_i.rdfin & enb_i) next_state = IDLE;
       WRAPPER_W: if (epuin_i.wrfin & enb_i) next_state = IDLE;
       EPU_RW: if(finish_i & start_i) next_state = IDLE;
     endcase
   end  // Next state (C)
 
-  assign epu_addr_shift = epuin_i.addr[4:2];
+  assign epu_addr_shift = {28'h0, epuin_i.addr[4:2]};
 
   always_comb begin
     bus2EPU.R_data = 0;

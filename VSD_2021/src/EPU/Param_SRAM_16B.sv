@@ -7,7 +7,7 @@ module Param_SRAM_16B (
 
   parameter AddressSize = 3;
   parameter Bits = 32;
-  parameter Words = 8;
+  parameter Words = 5;
   parameter Bytes = 1;
   logic [       Bits-1:0] Memory     [Words-1:0];
 

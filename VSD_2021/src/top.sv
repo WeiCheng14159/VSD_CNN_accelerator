@@ -47,7 +47,7 @@ module top (
     logic [`INT_BITS-1:0] interrupt;
     // logic int_taken;
     logic int_sctrl;
-    logic int_dma;
+    logic [1:0] int_dma;
     logic int_epu;
     assign interrupt = {int_epu,
                         int_sctrl,

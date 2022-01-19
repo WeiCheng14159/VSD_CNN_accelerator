@@ -32,7 +32,7 @@ module CPU (
     output logic                  read1_o, write1_o,
     // 2021.11.23
     // Interrupt
-    input        [`INT_BITS-1:0] interrupt_i
+    input        [`INT_BITS -1:0] interrupt_i
 );
 
     inf_IF_ID  inf_IF_ID();
@@ -56,7 +56,9 @@ module CPU (
     logic cpuwait;
     logic dm_clear;
     // Interrupt, CSR
-    logic [`ADDR_BITS-1:0] csr_pc, csr_retpc;
+    logic [`ADDR_BITS-1:0] csr_pc;      // isr
+    logic [`ADDR_BITS-1:0] csr_retpc;   // go to PLIC 
+    logic [`ADDR_BITS-1:0] csr_mretpc;  // go to IF_s
     logic csr_stall;
     logic csr_wfi, csr_mret, csr_int;
     logic [`INT_ID_BITS-1:0] int_id;
@@ -130,8 +132,7 @@ module CPU (
         .csr_int_i         (csr_int        ),
         .csr_mret_i        (csr_mret       ),
         .csr_pc_i          (csr_pc         ),
-        .csr_retpc_i       (csr_retpc      )
-
+        .csr_mretpc_i      (csr_mretpc     )
     );
     ID_S i_id (
         /* Debug */
@@ -174,11 +175,14 @@ module CPU (
     PLIC i_plic (
         .clk         (clk        ),
         .rst         (rst        ),
-        .csr_wfi_i   (csr_wfi    ),
         .ifid_en_i   (ifid_en    ),
+        .csr_wfi_i   (csr_wfi    ),
+        .csr_mret_i  (csr_mret   ),
+        .csr_retpc_i (csr_retpc  ),
         .interrupt_i (interrupt_i),
         .int_taken_o (int_taken  ),
-        .int_id_o    (int_id     )
+        .int_id_o    (int_id     ),
+        .mretpc_o    (csr_mretpc )
     );
 
     CSR i_csr (

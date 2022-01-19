@@ -47,7 +47,7 @@ module Bias_wrapper (
         else if (epuin_i.awhns & enb_i) next_state = WRAPPER_W;
         else next_state = IDLE;
       end
-      WRAPPER_R: if (epuin_i.rlast & enb_i) next_state = IDLE;
+      WRAPPER_R: if (epuin_i.rdfin & enb_i) next_state = IDLE;
       WRAPPER_W: if (epuin_i.wrfin & enb_i) next_state = IDLE;
       EPU_RW: if(finish_i & start_i) next_state = IDLE;
     endcase
