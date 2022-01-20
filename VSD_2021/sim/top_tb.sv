@@ -142,7 +142,15 @@ module top_tb;
     $readmemh({prog_path, "/dram3.hex"}, i_DRAM.Memory_byte3);
 
     num = 0;
+`ifdef conv0
+    gf = $fopen({prog_path, "/Out8.hex"}, "r");
+`elsif conv1
+    gf = $fopen({prog_path, "/Out8.hex"}, "r");
+`elsif pool0
+    gf = $fopen({prog_path, "/Out8.hex"}, "r");
+`else
     gf = $fopen({prog_path, "/golden.hex"}, "r");
+`endif
     while (!$feof(gf))
     begin
       $fscanf(gf, "%h\n", GOLDEN[num]);
@@ -184,6 +192,7 @@ module top_tb;
     $display("\nDone\n");
     err = 0;
 
+    if(num > 4096) num = 4096;
     for (i = 0; i < num; i++)
     begin
       if (`dram_word(`TEST_START + i) !== GOLDEN[i])
