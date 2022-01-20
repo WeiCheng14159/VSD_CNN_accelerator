@@ -222,12 +222,12 @@ end
         endcase
     end
     always_ff @(posedge clk or negedge rst) begin
-        if (rst) 
+        if (~rst) 
             dramwen_r <= 4'h0;
         else begin
             case (wstrb)
-                `AXI_STRB_HWORD : dramwen_r = hwen;
-                `AXI_STRB_BYTE  : dramwen_r = bwen;
+                `AXI_STRB_HWORD : dramwen_r <= hwen;
+                `AXI_STRB_BYTE  : dramwen_r <= bwen;
             endcase
         end
     end
