@@ -68,47 +68,54 @@ module Output_wrapper (
     bus2EPU.R_data = 0;
     rdata_o = 0;
     rvalid_o = 1'b0;
-    if (curr_state == EPU_RW) begin
-      bus2EPU.R_data      = out_buff_bus.R_data;
-      out_buff_bus.cs     = bus2EPU.cs;
-      out_buff_bus.oe     = bus2EPU.oe;
-      out_buff_bus.addr   = bus2EPU.addr;
-      out_buff_bus.W_req  = bus2EPU.W_req;
-      out_buff_bus.W_data = bus2EPU.W_data;
-    end else if (curr_state == WP_AR) begin
-      rvalid_o            = 1'b0;
-      out_buff_bus.cs     = epuin_i.CS;
-      out_buff_bus.oe     = epuin_i.OE;
-      out_buff_bus.addr   = epu_addr_shift;
-      out_buff_bus.W_req  = `WRITE_DIS;
-      out_buff_bus.W_data = 0;
-    end else if (curr_state == WP_R) begin
-      rvalid_o            = 1'b1;
-      rdata_o             = out_buff_bus.R_data;
-      out_buff_bus.cs     = epuin_i.CS;
-      out_buff_bus.oe     = epuin_i.OE;
-      out_buff_bus.addr   = epu_addr_shift;
-      out_buff_bus.W_req  = `WRITE_DIS;
-      out_buff_bus.W_data = 0;
-    end else if (curr_state == WP_AW) begin
-      out_buff_bus.cs = epuin_i.CS;
-      out_buff_bus.oe = epuin_i.OE;
-      out_buff_bus.addr = 0;
-      out_buff_bus.W_req = `WRITE_DIS;
-      out_buff_bus.W_data = 0;
-    end else if (curr_state == WP_W) begin
-      out_buff_bus.cs = epuin_i.CS;
-      out_buff_bus.oe = epuin_i.OE;
-      out_buff_bus.addr = epu_addr_shift;
-      out_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
-      out_buff_bus.W_data = epuin_i.wdata;
-    end else begin  // IDLE
-      out_buff_bus.cs = 1'b0;
-      out_buff_bus.oe = 1'b0;
-      out_buff_bus.addr = 0;
-      out_buff_bus.W_req = `WRITE_DIS;
-      out_buff_bus.W_data = 0;
-    end
+    case (curr_state)
+      EPU_RW: begin
+        bus2EPU.R_data      = out_buff_bus.R_data;
+        out_buff_bus.cs     = bus2EPU.cs;
+        out_buff_bus.oe     = bus2EPU.oe;
+        out_buff_bus.addr   = bus2EPU.addr;
+        out_buff_bus.W_req  = bus2EPU.W_req;
+        out_buff_bus.W_data = bus2EPU.W_data;
+      end
+      WP_AR: begin
+        rvalid_o            = 1'b0;
+        out_buff_bus.cs     = epuin_i.CS;
+        out_buff_bus.oe     = epuin_i.OE;
+        out_buff_bus.addr   = epu_addr_shift;
+        out_buff_bus.W_req  = `WRITE_DIS;
+        out_buff_bus.W_data = 0;
+      end
+      WP_R: begin
+        rvalid_o            = 1'b1;
+        rdata_o             = out_buff_bus.R_data;
+        out_buff_bus.cs     = epuin_i.CS;
+        out_buff_bus.oe     = epuin_i.OE;
+        out_buff_bus.addr   = epu_addr_shift;
+        out_buff_bus.W_req  = `WRITE_DIS;
+        out_buff_bus.W_data = 0;
+      end
+      WP_AW: begin
+        out_buff_bus.cs = epuin_i.CS;
+        out_buff_bus.oe = epuin_i.OE;
+        out_buff_bus.addr = 0;
+        out_buff_bus.W_req = `WRITE_DIS;
+        out_buff_bus.W_data = 0;
+      end
+      WP_W: begin
+        out_buff_bus.cs = epuin_i.CS;
+        out_buff_bus.oe = epuin_i.OE;
+        out_buff_bus.addr = epu_addr_shift;
+        out_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
+        out_buff_bus.W_data = epuin_i.wdata;
+      end
+      default: begin  // IDLE
+        out_buff_bus.cs = 1'b0;
+        out_buff_bus.oe = 1'b0;
+        out_buff_bus.addr = 0;
+        out_buff_bus.W_req = `WRITE_DIS;
+        out_buff_bus.W_data = 0;
+      end
+    endcase
   end
 
 endmodule

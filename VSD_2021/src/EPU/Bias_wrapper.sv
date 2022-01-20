@@ -65,47 +65,54 @@ module Bias_wrapper (
     bus2EPU.R_data = 0;
     rdata_o = 0;
     rvalid_o = 1'b0;
-    if (curr_state == EPU_RW) begin
-      bus2EPU.R_data       = bias_buff_bus.R_data;
-      bias_buff_bus.cs     = bus2EPU.cs;
-      bias_buff_bus.oe     = bus2EPU.oe;
-      bias_buff_bus.addr   = bus2EPU.addr;
-      bias_buff_bus.W_req  = bus2EPU.W_req;
-      bias_buff_bus.W_data = bus2EPU.W_data;
-    end else if (curr_state == WP_AR) begin
-      rvalid_o             = 1'b0;
-      bias_buff_bus.cs     = epuin_i.CS;
-      bias_buff_bus.oe     = epuin_i.OE;
-      bias_buff_bus.addr   = epu_addr_shift;
-      bias_buff_bus.W_req  = `WRITE_DIS;
-      bias_buff_bus.W_data = 0;
-    end else if (curr_state == WP_R) begin
-      rvalid_o             = 1'b1;
-      rdata_o              = bias_buff_bus.R_data;
-      bias_buff_bus.cs     = epuin_i.CS;
-      bias_buff_bus.oe     = epuin_i.OE;
-      bias_buff_bus.addr   = epu_addr_shift;
-      bias_buff_bus.W_req  = `WRITE_DIS;
-      bias_buff_bus.W_data = 0;
-    end else if (curr_state == WP_AW) begin
-      bias_buff_bus.cs = epuin_i.CS;
-      bias_buff_bus.oe = epuin_i.OE;
-      bias_buff_bus.addr = 0;
-      bias_buff_bus.W_req = `WRITE_DIS;
-      bias_buff_bus.W_data = 0;
-    end else if (curr_state == WP_W) begin
-      bias_buff_bus.cs = epuin_i.CS;
-      bias_buff_bus.oe = epuin_i.OE;
-      bias_buff_bus.addr = epu_addr_shift;
-      bias_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
-      bias_buff_bus.W_data = epuin_i.wdata;
-    end else begin  // IDLE
-      bias_buff_bus.cs = 1'b0;
-      bias_buff_bus.oe = 1'b0;
-      bias_buff_bus.addr = 0;
-      bias_buff_bus.W_req = `WRITE_DIS;
-      bias_buff_bus.W_data = 0;
-    end
+    case (curr_state)
+      EPU_RW: begin
+        bus2EPU.R_data       = bias_buff_bus.R_data;
+        bias_buff_bus.cs     = bus2EPU.cs;
+        bias_buff_bus.oe     = bus2EPU.oe;
+        bias_buff_bus.addr   = bus2EPU.addr;
+        bias_buff_bus.W_req  = bus2EPU.W_req;
+        bias_buff_bus.W_data = bus2EPU.W_data;
+      end
+      WP_AR: begin
+        rvalid_o             = 1'b0;
+        bias_buff_bus.cs     = epuin_i.CS;
+        bias_buff_bus.oe     = epuin_i.OE;
+        bias_buff_bus.addr   = epu_addr_shift;
+        bias_buff_bus.W_req  = `WRITE_DIS;
+        bias_buff_bus.W_data = 0;
+      end
+      WP_R: begin
+        rvalid_o             = 1'b1;
+        rdata_o              = bias_buff_bus.R_data;
+        bias_buff_bus.cs     = epuin_i.CS;
+        bias_buff_bus.oe     = epuin_i.OE;
+        bias_buff_bus.addr   = epu_addr_shift;
+        bias_buff_bus.W_req  = `WRITE_DIS;
+        bias_buff_bus.W_data = 0;
+      end
+      WP_AW: begin
+        bias_buff_bus.cs = epuin_i.CS;
+        bias_buff_bus.oe = epuin_i.OE;
+        bias_buff_bus.addr = 0;
+        bias_buff_bus.W_req = `WRITE_DIS;
+        bias_buff_bus.W_data = 0;
+      end
+      WP_W: begin
+        bias_buff_bus.cs = epuin_i.CS;
+        bias_buff_bus.oe = epuin_i.OE;
+        bias_buff_bus.addr = epu_addr_shift;
+        bias_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
+        bias_buff_bus.W_data = epuin_i.wdata;
+      end
+      default: begin  // IDLE
+        bias_buff_bus.cs = 1'b0;
+        bias_buff_bus.oe = 1'b0;
+        bias_buff_bus.addr = 0;
+        bias_buff_bus.W_req = `WRITE_DIS;
+        bias_buff_bus.W_data = 0;
+      end
+    endcase
   end
 
 endmodule

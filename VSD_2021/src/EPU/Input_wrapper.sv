@@ -68,47 +68,54 @@ module Input_wrapper (
     bus2EPU.R_data = 0;
     rdata_o = 0;
     rvalid_o = 1'b0;
-    if (curr_state == EPU_RW) begin
-      bus2EPU.R_data     = in_buff_bus.R_data;
-      in_buff_bus.cs     = bus2EPU.cs;
-      in_buff_bus.oe     = bus2EPU.oe;
-      in_buff_bus.addr   = bus2EPU.addr;
-      in_buff_bus.W_req  = bus2EPU.W_req;
-      in_buff_bus.W_data = bus2EPU.W_data;
-    end else if (curr_state == WP_AR) begin
-      rvalid_o           = 1'b0;
-      in_buff_bus.cs     = epuin_i.CS;
-      in_buff_bus.oe     = epuin_i.OE;
-      in_buff_bus.addr   = epu_addr_shift;
-      in_buff_bus.W_req  = `WRITE_DIS;
-      in_buff_bus.W_data = 0;
-    end else if (curr_state == WP_R) begin
-      rvalid_o           = 1'b1;
-      rdata_o            = in_buff_bus.R_data;
-      in_buff_bus.cs     = epuin_i.CS;
-      in_buff_bus.oe     = epuin_i.OE;
-      in_buff_bus.addr   = epu_addr_shift;
-      in_buff_bus.W_req  = `WRITE_DIS;
-      in_buff_bus.W_data = 0;
-    end else if (curr_state == WP_AW) begin
-      in_buff_bus.cs = epuin_i.CS;
-      in_buff_bus.oe = epuin_i.OE;
-      in_buff_bus.addr = 0;
-      in_buff_bus.W_req = `WRITE_DIS;
-      in_buff_bus.W_data = 0;
-    end else if (curr_state == WP_W) begin
-      in_buff_bus.cs = epuin_i.CS;
-      in_buff_bus.oe = epuin_i.OE;
-      in_buff_bus.addr = epu_addr_shift;
-      in_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
-      in_buff_bus.W_data = epuin_i.wdata;
-    end else begin  // IDLE
-      in_buff_bus.cs = 1'b0;
-      in_buff_bus.oe = 1'b0;
-      in_buff_bus.addr = 0;
-      in_buff_bus.W_req = `WRITE_DIS;
-      in_buff_bus.W_data = 0;
-    end
+    case (curr_state)
+      EPU_RW: begin
+        bus2EPU.R_data     = in_buff_bus.R_data;
+        in_buff_bus.cs     = bus2EPU.cs;
+        in_buff_bus.oe     = bus2EPU.oe;
+        in_buff_bus.addr   = bus2EPU.addr;
+        in_buff_bus.W_req  = bus2EPU.W_req;
+        in_buff_bus.W_data = bus2EPU.W_data;
+      end
+      WP_AR: begin
+        rvalid_o           = 1'b0;
+        in_buff_bus.cs     = epuin_i.CS;
+        in_buff_bus.oe     = epuin_i.OE;
+        in_buff_bus.addr   = epu_addr_shift;
+        in_buff_bus.W_req  = `WRITE_DIS;
+        in_buff_bus.W_data = 0;
+      end
+      WP_R: begin
+        rvalid_o           = 1'b1;
+        rdata_o            = in_buff_bus.R_data;
+        in_buff_bus.cs     = epuin_i.CS;
+        in_buff_bus.oe     = epuin_i.OE;
+        in_buff_bus.addr   = epu_addr_shift;
+        in_buff_bus.W_req  = `WRITE_DIS;
+        in_buff_bus.W_data = 0;
+      end
+      WP_AW: begin
+        in_buff_bus.cs = epuin_i.CS;
+        in_buff_bus.oe = epuin_i.OE;
+        in_buff_bus.addr = 0;
+        in_buff_bus.W_req = `WRITE_DIS;
+        in_buff_bus.W_data = 0;
+      end
+      WP_W: begin
+        in_buff_bus.cs = epuin_i.CS;
+        in_buff_bus.oe = epuin_i.OE;
+        in_buff_bus.addr = epu_addr_shift;
+        in_buff_bus.W_req = epuin_i.whns ? `WRITE_ENB : `WRITE_DIS;
+        in_buff_bus.W_data = epuin_i.wdata;
+      end
+      default: begin  // IDLE
+        in_buff_bus.cs = 1'b0;
+        in_buff_bus.oe = 1'b0;
+        in_buff_bus.addr = 0;
+        in_buff_bus.W_req = `WRITE_DIS;
+        in_buff_bus.W_data = 0;
+      end
+    endcase
   end
 
 endmodule
