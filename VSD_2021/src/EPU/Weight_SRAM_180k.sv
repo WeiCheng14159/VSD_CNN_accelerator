@@ -4,11 +4,11 @@
 // Combine five 36kB SRAM into 180kB SRAM
 
 module Weight_SRAM_180k (
+    input logic              rst,
     input logic clk,
     sp_ram_intf.memory mem
 );
 
-  logic        CK;
   logic        CS;
   logic        OE;
   logic        WEB;
@@ -19,7 +19,6 @@ module Weight_SRAM_180k (
   logic [16:0] latched_A;
   logic [17:0] _DO       [0:4];
 
-  assign CK = clk;
   assign CS = mem.cs;
   assign OE = mem.oe;
   assign A = mem.addr[16:0];
@@ -27,7 +26,10 @@ module Weight_SRAM_180k (
   assign WEB = mem.W_req;
   assign mem.R_data = {{14{DO[17]}}, DO};
 
-  always_ff @(posedge CK) latched_A <= A;
+  always_ff @(posedge clk, posedge rst) begin
+    if(rst) latched_A <= 0;
+    else latched_A <= A;
+  end 
 
   always_comb begin
     DO = 18'b0;
@@ -55,7 +57,7 @@ module Weight_SRAM_180k (
       assign _WEB = A[16:14] == g[2:0] ? WEB : 1'b1;
 
       SRAM_18b_16384w_36k i_SRAM_18b_16384w_36k (
-          .CK (CK),
+          .CK (clk),
           .CS (_CS),
           .OE (_OE),
           .WEB(_WEB),
