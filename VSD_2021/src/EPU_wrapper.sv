@@ -38,7 +38,6 @@ module EPU_wrapper (
   logic [`AXI_BURST_BITS-1:0] burst_r;
   // Other
   logic [  `AXI_LEN_BITS-1:0] cnt_r;
-  logic [`AXI_ADDR_BITS -1:0] addr_i, addr_offset;
   logic [`DATA_BITS-1:0]
       in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
   logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
@@ -59,7 +58,7 @@ module EPU_wrapper (
     EPU_CTRL_SEL = 1 << EPU_CTRL_SEL_B
   } buffer_sel_t;
 
-  buffer_sel_t buffer_sel, buffer_sel_r, buffer_sel_i;
+  buffer_sel_t buffer_sel;
 
   // Handshake
   assign rdfin = s2axi_o.rlast & rhns;
@@ -76,6 +75,7 @@ module EPU_wrapper (
   assign EPUIN.arhns = arhns;
   assign EPUIN.wdata = s2axi_i.wdata;
   assign EPUIN.whns = whns;
+  assign EPUIN.rhns = rhns;
   // Interrupt
   assign epuint_o = conv_fin;
 
@@ -173,22 +173,12 @@ module EPU_wrapper (
     end
   end
 
-logic [1:0] rhns_cont;
-always_ff @(posedge clk or posedge rst) begin
-  if (rst)               rhns_cont <= 2'h0;
-  else if (~rhns)        rhns_cont <= 2'h0;
-  else if (rhns_cont[1]) rhns_cont <= rhns_cont;
-  else if (rhns)         rhns_cont <= rhns_cont + 2'h1;
-end
-
-  assign EPUIN.addr = (arhns) ? s2axi_i.araddr : addr_offset;
   always_ff @(posedge clk or posedge rst) begin
-    if (rst) addr_offset <= `EPU_ADDR_BITS'b0;
-    else if (awhns) addr_offset <= s2axi_i.awaddr;
-    else if (arhns) addr_offset <= s2axi_i.araddr;// + `EPU_ADDR_BITS'h4;
-    else if (wrfin || rdfin) addr_offset <= `EPU_ADDR_BITS'b0;
-    else if (rhns_cont[1]) addr_offset <= addr_offset;
-    else if (whns || rhns) addr_offset <= EPUIN.addr + `EPU_ADDR_BITS'h4;
+    if (rst) EPUIN.addr <= `EPU_ADDR_BITS'b0;
+    else if (awhns) EPUIN.addr <= s2axi_i.awaddr;
+    else if (arhns) EPUIN.addr <= s2axi_i.araddr;
+    else if (wrfin || rdfin) EPUIN.addr <= `EPU_ADDR_BITS'b0;
+    else if (whns || rhns) EPUIN.addr <= EPUIN.addr + `EPU_ADDR_BITS'h4;
   end
 
   // Input   : 5000_0000 ~ 5fff_ffff
@@ -215,17 +205,11 @@ end
     else EPU_ADDR_DECODE = SEL_NO;
   endfunction
 
-  assign buffer_sel_r = EPU_ADDR_DECODE(addr_r);
-  assign buffer_sel   = (curr_state == IDLE) ? buffer_sel_i : buffer_sel_r;
-  always_comb begin
-    if (arhns) buffer_sel_i = EPU_ADDR_DECODE(s2axi_i.araddr);
-    else if (awhns) buffer_sel_i = EPU_ADDR_DECODE(s2axi_i.awaddr);
-    else buffer_sel_i = SEL_NO;
-  end
+  assign buffer_sel   = EPU_ADDR_DECODE(addr_r);
 
   always_comb begin
     case (curr_state)
-      IDLE:    {EPUIN.OE, EPUIN.CS} = {arhns, (awhns | arhns)};
+      IDLE:    {EPUIN.OE, EPUIN.CS} = 2'b0;
       R_CH:    {EPUIN.OE, EPUIN.CS} = 2'b11;
       W_CH:    {EPUIN.OE, EPUIN.CS} = 2'b01;
       B_CH:    {EPUIN.OE, EPUIN.CS} = 2'b0;
