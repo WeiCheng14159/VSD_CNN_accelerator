@@ -55,7 +55,6 @@ int main(void) {
   // Move param data
   quantity = (&__param_end - &__param_start);
   dma_move(&__param_data_in_dram_start, &__param_start, quantity);
-  dma_move(&__param_start, &__param_data_in_dram_start, quantity);
   // Move w2 data
   quantity = (&__w2_end - &__w2_start);
   dma_move(&__w2_data_in_dram_start, &__w2_start, quantity);
