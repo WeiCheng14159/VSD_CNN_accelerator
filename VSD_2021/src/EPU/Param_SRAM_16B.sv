@@ -10,16 +10,16 @@ module Param_SRAM_16B (
   parameter Bits = 32;
   parameter Words = 5;
   parameter Bytes = 1;
-  logic [       Bits-1:0] Memory     [Words-1:0];
+  logic   [       Bits-1:0] Memory     [Words-1:0];
 
-  logic                   CS;
-  logic                   OE;
-  logic                   WEB;
-  logic [ Bytes*Bits-1:0] DI;
-  logic [ Bytes*Bits-1:0] DO;
-  logic [ Bytes*Bits-1:0] latched_DO;
-  logic [AddressSize-1:0] A;
-  integer i;
+  logic                     CS;
+  logic                     OE;
+  logic                     WEB;
+  logic   [ Bytes*Bits-1:0] DI;
+  logic   [ Bytes*Bits-1:0] DO;
+  logic   [ Bytes*Bits-1:0] latched_DO;
+  logic   [AddressSize-1:0] A;
+  integer                   i;
 
   assign A = mem.addr[AddressSize-1:0];
   assign CS = mem.cs;
@@ -29,9 +29,9 @@ module Param_SRAM_16B (
   assign mem.R_data = DO;
 
   always_ff @(posedge clk, posedge rst) begin
-    if(rst) begin
+    if (rst) begin
       latched_DO <= {(Bytes * Bits) {1'b0}};
-      for(i=0;i<Words;i=i+1) begin
+      for (i = 0; i < Words; i = i + 1) begin
         Memory[i] <= {(Bytes * Bits) {1'b0}};
       end
     end else if (CS) begin

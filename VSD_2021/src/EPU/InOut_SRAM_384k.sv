@@ -29,9 +29,9 @@ module InOut_SRAM_384k (
   assign mem.R_data = {{16{DO[15]}}, DO};
 
   always_ff @(posedge clk, posedge rst) begin
-    if(rst) latched_A <= 0;
+    if (rst) latched_A <= 0;
     else latched_A <= A;
-  end 
+  end
 
   always_comb begin
     DO = 16'b0;

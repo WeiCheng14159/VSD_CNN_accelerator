@@ -13,7 +13,8 @@
 
 
 module EPU_wrapper (
-    input  logic              clk, rst,
+    input  logic              clk,
+    rst,
     output logic              epuint_o,
            inf_Slave.S2AXIin  s2axi_i,
            inf_Slave.S2AXIout s2axi_o
@@ -149,16 +150,6 @@ module EPU_wrapper (
     endcase
   end
 
-  // always_comb begin
-  //   s2axi_o.awready = 1'b0;
-  //   s2axi_o.arready = 1'b0;
-  //   case (curr_state)
-  //     IDLE: {s2axi_o.awready, s2axi_o.arready} = {1'b1, ~s2axi_i.awvalid};
-  //     R_CH: {s2axi_o.awready, s2axi_o.arready} = 2'b0;//{rhns, 1'b0};
-  //     B_CH: {s2axi_o.awready, s2axi_o.arready} = {bhns, 1'b0};
-  //   endcase
-  // end
-
   always_comb begin
     s2axi_o.rvalid = 1'b0;
     if (curr_state == R_CH) begin
@@ -188,14 +179,14 @@ module EPU_wrapper (
   // Param   : 7200_0000 ~ 72ff_ffff
   // ConvAcc : 8000_0000 ~ 8fff_ffff
   always_comb begin
-    case(addr_r[`AXI_ADDR_BITS-1-:8])
+    case (addr_r[`AXI_ADDR_BITS-1-:8])
       8'h50:   buffer_sel = IN_SEL;
       8'h60:   buffer_sel = OUT_SEL;
       8'h70:   buffer_sel = WEIGHT_SEL;
       8'h71:   buffer_sel = BIAS_SEL;
       8'h72:   buffer_sel = PARAM_SEL;
       8'h80:   buffer_sel = EPU_CTRL_SEL;
-      default: buffer_sel = SEL_NO; 
+      default: buffer_sel = SEL_NO;
     endcase
   end
 
@@ -219,16 +210,17 @@ module EPU_wrapper (
       {in_trans, out_trans, conv_start} <= 3'b0;
       conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
-    end else if(conv_fin) begin
+    end else if (conv_fin) begin
       {in_trans, out_trans, conv_start} <= 3'b0;
       conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
-    end else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80) conv_w8 <= s2axi_i.wdata;
+    end else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80)
+      conv_w8 <= s2axi_i.wdata;
     else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h81) begin
-        {in_trans, out_trans, conv_start} <= {
-          s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]
-        };
-        conv_mode <= s2axi_i.wdata[4:1];
+      {in_trans, out_trans, conv_start} <= {
+        s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]
+      };
+      conv_mode <= s2axi_i.wdata[4:1];
     end
   end
 
@@ -263,7 +255,7 @@ module EPU_wrapper (
       .rvalid_o(out_rvalid),
       .rdata_o (out_rdata),
       // Connection to EPU     
-      .start_i (conv_start),      
+      .start_i (conv_start),
       .finish_i(conv_fin),
       .bus2EPU (out_bus2EPU)
   );
