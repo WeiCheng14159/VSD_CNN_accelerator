@@ -3,7 +3,6 @@ unsigned int copy_count = 0;
 const unsigned int sensor_size = 64;
 volatile unsigned int *sensor_addr          = (int *) 0x10000000;
 volatile unsigned int *epu_in_buff_addr     = (int *) 0x50000000;
-
 volatile unsigned int *epu_out_buff_addr    = (int *) 0x60000000;
 volatile unsigned int *epu_weight_buff_addr = (int *) 0x70000000;
 volatile unsigned int *epu_bias_buff_addr   = (int *) 0x71000000;
@@ -12,6 +11,13 @@ volatile unsigned int *epu_w8_addr          = (int *) 0x80000000;
 volatile unsigned int *epu_ctrl_addr        = (int *) 0x80000004;
 
 extern void dma_move(unsigned int *source, unsigned int *dest, unsigned int quantity);
+
+enum EPU_MODE {
+    IDLE      = 0x0,
+    CONV_1x1  = 0x1,
+    MAX_POOL  = 0x2,
+    CONV_3x3  = 0x3
+};
 
 // void dma_move(int *source, int *dest, int quantity);
 void cpu_move(int *source, int *dest, int quantity);
@@ -48,6 +54,7 @@ int main(void) {
   extern unsigned int __out8_data_in_dram_start;
 
   int quantity;
+  int epu_mode = CONV_3x3;
 
   // Move input data
   quantity = (&__in8_end - &__in8_start) - 1;
@@ -66,7 +73,7 @@ int main(void) {
   *epu_w8_addr = 0x08FAE800;
 
   // Send EPU control signal
-  *epu_ctrl_addr = 0x1 | (0x3 << 1);
+  *epu_ctrl_addr = 0x1 | (epu_mode << 1);
   asm("wfi");
 
   // Move output data back to DRAM
