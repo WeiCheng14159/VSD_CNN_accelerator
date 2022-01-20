@@ -6,11 +6,11 @@
 // Combine six 64kB SRAM into 384kB SRAM
 
 module InOut_SRAM_384k (
+    input logic              rst,
     input logic              clk,
           sp_ram_intf.memory mem
 );
 
-  logic        CK;
   logic        CS;
   logic        OE;
   logic        WEB;
@@ -21,7 +21,6 @@ module InOut_SRAM_384k (
   logic [17:0] latched_A;
   logic [15:0] _DO       [0:5];
 
-  assign CK = clk;
   assign CS = mem.cs;
   assign OE = mem.oe;
   assign A = mem.addr[17:0];
@@ -29,7 +28,10 @@ module InOut_SRAM_384k (
   assign WEB = mem.W_req;
   assign mem.R_data = {{16{DO[15]}}, DO};
 
-  always_ff @(posedge CK) latched_A <= A;
+  always_ff @(posedge clk, posedge rst) begin
+    if(rst) latched_A <= 0;
+    else latched_A <= A;
+  end 
 
   always_comb begin
     DO = 16'b0;
@@ -40,8 +42,8 @@ module InOut_SRAM_384k (
       3'h3: DO = _DO[3];
       3'h4: DO = _DO[4];
       3'h5: DO = _DO[5];
-      3'h6: DO = 16'bz;
-      3'h7: DO = 16'bz;
+      3'h6: DO = 16'b0;
+      3'h7: DO = 16'b0;
     endcase
   end
 
@@ -57,7 +59,7 @@ module InOut_SRAM_384k (
       assign _WEB = A[17:15] == g[2:0] ? WEB : 1'b1;
 
       SRAM_16b_32768w_64k i_SRAM_16b_32768w_64k (
-          .CK (CK),
+          .CK (clk),
           .CS (_CS),
           .OE (_OE),
           .WEB(_WEB),
