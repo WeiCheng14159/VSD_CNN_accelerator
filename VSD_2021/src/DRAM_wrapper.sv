@@ -4,9 +4,9 @@
 localparam DRAM_ADDR = 11;
 
 module DRAM_wrapper (
-    input clk, rst,
-    inf_Slave.S2AXIin  s2axi_i,
-    inf_Slave.S2AXIout s2axi_o,
+    input                         clk, rst,
+    inf_Slave.S2AXIin             s2axi_i,
+    inf_Slave.S2AXIout            s2axi_o,
     input        [`DATA_BITS-1:0] DRAM_Q_i,
     input                         DRAM_valid_i,
     output logic                  DRAM_CSn_o,
@@ -21,7 +21,7 @@ module DRAM_wrapper (
                SETROW   = 3'h1,
                READCOL  = 3'h2,
                WRITECOL = 3'h3,
-               SAMEROW  = 3'h4,
+               CHANGE   = 3'h4,
                PRECHG   = 3'h5,
                DONE     = 3'h6;
     logic [2:0] STATE, NEXT;
@@ -41,17 +41,17 @@ module DRAM_wrapper (
     logic [1:0] byte_off;
     logic [`WEB_BITS   -1:0] bwen, hwen, dramwen_r;
     logic [`DATA_BITS  -1:0] dramdata_r;
-    // logic [`DRAM_A_BITS-1:0] row, col, col_r;
-    logic [`DRAM_A_BITS-1:0] col_r;
-    logic [ 1:0] off;
-    logic dramvalid_r;
+    logic [`DRAM_A_BITS-1:0] row_r, col_r;
+    logic dramvalid;
+    logic write;  // latch write signal
+    logic clear;  // clear write
+    logic col_over, row_change;
+    logic samerow;
+
     // Counter
-    logic flag;
+    logic flag;  // go to the next step
     logic [2:0] dcnt;  // wait 5 cycle
     logic [`AXI_LEN_BITS-1:0] rcnt;   // cnt for read
-    // Other
-    logic write;
-    logic clear;  // clear write
 
 // {{{ Handshake
     assign arhns = s2axi_i.arvalid && s2axi_o.arready;
@@ -75,7 +75,7 @@ assign test = s2axi_i.wdata;
     assign clear = ((STATE == READCOL) || (STATE == WRITECOL)) & dcnt[2];
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
-            addr      <= 21'h0;
+           // addr      <= 21'h0;
             ids       <= `AXI_IDS_BITS'h0;
             burst     <= `AXI_BURST_BITS'h0;
             len_r     <= `AXI_LEN_BITS'h0;
@@ -83,12 +83,12 @@ assign test = s2axi_i.wdata;
             wstrb     <= `AXI_STRB_BITS'h0;
             wdata_r   <= `DATA_BITS'h0;
             write     <= 1'b0;
-            dramvalid_r <= 1'b0;
+            dramvalid <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
         end
         else begin
-            addr      <= arhns ? s2axi_i.araddr[22:2] : awhns ? s2axi_i.awaddr[22:2] : addr;
-            byte_off  <= arhns ? s2axi_i.araddr[ 1:0] : awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
+           // addr      <= arhns ? s2axi_i.araddr[22:2] : awhns ? s2axi_i.awaddr[22:2] : addr;
+          //  byte_off  <= arhns ? s2axi_i.araddr[ 1:0] : awhns ? s2axi_i.awaddr[ 1:0] : byte_off;
             ids       <= arhns ? s2axi_i.arid    : awhns ? s2axi_i.awid    : ids;
             burst     <= arhns ? s2axi_i.arburst : awhns ? s2axi_i.awburst : burst;
             len_r     <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len_r;
@@ -96,14 +96,14 @@ assign test = s2axi_i.wdata;
             wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
             // wdata     <= awhns ? s2axi_i.wdata   : wdata;
             wdata_r   <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
-            write     <= (STATE == WRITECOL) ? 1'b0 : (awhns ? 1'b1 : write);
-            dramvalid_r <= DRAM_valid_i;
+            write     <= (STATE == PRECHG) ? 1'b0 : (awhns ? 1'b1 : write);
+            dramvalid <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
         end
     end
 // }}}
 // {{{ Counter, flag
-    assign flag = (STATE == READCOL) ? dramvalid_r : dcnt[2];
+    assign flag = (STATE == READCOL) ? dramvalid : dcnt[2];
     always_ff @(posedge clk or negedge rst) begin
         if (~rst) begin
             dcnt <= 3'h0;
@@ -117,7 +117,7 @@ assign test = s2axi_i.wdata;
                 end
                 SETROW   : begin
                     dcnt <= flag ? 3'h0 : (dcnt + 3'h1);
-                    rcnt <= `AXI_LEN_BITS'h0;
+                    rcnt <= rcnt;//`AXI_LEN_BITS'h0;
                 end
                 READCOL  : begin
                     dcnt <= flag ? 3'h0 : (dcnt + 3'h1);
@@ -126,6 +126,10 @@ assign test = s2axi_i.wdata;
                 WRITECOL : begin
                     dcnt <= flag ? 3'h0 : (dcnt + 3'h1);
                     rcnt <= `AXI_LEN_BITS'h0;
+                end
+                CHANGE   : begin
+                    dcnt <= flag ? 3'h0 : (dcnt + 3'h1);
+                    rcnt <= rcnt;
                 end
                 PRECHG   : begin
                     dcnt <= flag ? 3'h0 : (dcnt + 3'h1);
@@ -150,10 +154,17 @@ assign test = s2axi_i.wdata;
                     default : NEXT = SETROW;
                 endcase
             end
-            READCOL  : NEXT = flag & rdfin ? PRECHG : READCOL;
-            // WRITECOL : NEXT = flag         ? PRECHG : WRITECOL;
-            WRITECOL : NEXT = flag & wrfin ? PRECHG : WRITECOL; 
-            PRECHG   : NEXT = flag         ? IDLE : PRECHG;
+            // READCOL  : NEXT = flag & rdfin ? PRECHG : READCOL;
+READCOL  : begin
+    case ({(flag && rdfin), row_change})
+        2'b01   : NEXT = CHANGE;
+        2'b10   : NEXT = PRECHG;
+        default : NEXT = READCOL;
+    endcase
+end
+            WRITECOL : NEXT = flag & wrfin ? PRECHG : WRITECOL;
+            CHANGE   : NEXT = flag         ? SETROW : CHANGE;
+            PRECHG   : NEXT = flag         ? IDLE   : PRECHG;
             default  : NEXT = STATE;
         endcase
     end
@@ -166,15 +177,42 @@ assign test = s2axi_i.wdata;
     assign rrow = s2axi_i.araddr[22:12];
     assign ccol = s2axi_i.araddr[11:2];
 
+    assign col_over = &col_r[`DRAM_A_BITS-2:0];
 
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)               col_r <= `DRAM_A_BITS'h0;
-        else if (arhns)         col_r <= s2axi_i.araddr[11:2];
-        else if (awhns)         col_r <= s2axi_i.awaddr[11:2];
-        else if (rhns || whns)  col_r <= col_r + `DRAM_A_BITS'h1;
+        if (~rst)        row_change <= 1'b0;
+        else if (~write) row_change <= col_over && DRAM_valid_i;
+    end
+
+    logic row_inc;
+    always_comb begin
+        case (STATE)
+            CHANGE  : row_inc = flag;
+            default : row_inc = 1'b0;
+        endcase
+    end
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)              col_r <= `DRAM_A_BITS'h0;
+        else if (row_inc)      col_r <= `DRAM_A_BITS'h0;
+        else if (arhns)        col_r <= s2axi_i.araddr[11:2];
+        else if (awhns)        col_r <= s2axi_i.awaddr[11:2];
+        else if (rhns || whns) col_r <= col_r + `DRAM_A_BITS'h1;
+    end
+
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)         row_r <= `DRAM_A_BITS'h0;
+        else if (row_inc) row_r <= row_r + `DRAM_A_BITS'h1;
+        else if (arhns)   row_r <= s2axi_i.araddr[22:12];
+        else if (awhns)   row_r <= s2axi_i.awaddr[22:12];
+
     end
 
     // DRAM_WEn
+    always_ff @(posedge clk or negedge rst) begin
+        if (~rst)       byte_off <= 2'h0;
+        else if (arhns) byte_off <= s2axi_i.araddr[1:0];
+        else if (awhns) byte_off <= s2axi_i.awaddr[1:0];
+    end
     always_comb begin
         case (byte_off)
             2'h0 : {bwen, hwen} = {4'b1110, 4'b1100};
@@ -193,19 +231,17 @@ assign test = s2axi_i.wdata;
             endcase
         end
     end
-
+// {{{
     always_comb begin
+        DRAM_A_o    = `DRAM_A_BITS'h0;
+        DRAM_D_o    = `DATA_BITS'h0;
+        DRAM_CSn_o  = 1'b1;
+        DRAM_RASn_o = 1'b1;
+        DRAM_CASn_o = 1'b1;
+        DRAM_WEn_o  = 4'hf;
         case (STATE)
-            IDLE     : begin
-                DRAM_A_o    = `ADDR_BITS'h0;
-                DRAM_D_o    = `DATA_BITS'h0;
-                DRAM_CSn_o  = 1'b1;
-                DRAM_RASn_o = 1'b1;
-                DRAM_CASn_o = 1'b1;
-                DRAM_WEn_o  = 4'hf;
-            end
             SETROW   : begin
-                DRAM_A_o    = addr[20:10]; 
+                DRAM_A_o    = row_r; //addr[20:10]; 
                 DRAM_D_o    = s2axi_i.wdata;
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = |dcnt;
@@ -228,24 +264,18 @@ assign test = s2axi_i.wdata;
                 DRAM_CASn_o = |dcnt;
                 DRAM_WEn_o  = ~|dcnt ? dramwen_r : 4'hf;
             end
-            PRECHG   : begin
-                DRAM_A_o    = addr[20:10]; 
+
+            PRECHG, CHANGE : begin
+                DRAM_A_o    = row_r;//addr[20:10]; 
                 DRAM_D_o    = `DATA_BITS'h0;
                 DRAM_CSn_o  = 1'b0;
                 DRAM_RASn_o = |dcnt;
                 DRAM_CASn_o = 1'b1;
-                DRAM_WEn_o  = ~|dcnt ? 4'h0 : 4'hf;
-            end
-            default  : begin
-                DRAM_A_o    = 11'h0;
-                DRAM_D_o    = `DATA_BITS'h0;
-                DRAM_CSn_o  = 1'b1;
-                DRAM_RASn_o = 1'b1;
-                DRAM_CASn_o = 1'b1;
-                DRAM_WEn_o  = 4'hf;
+                DRAM_WEn_o  = {4{|dcnt}}; //~|dcnt ? 4'h0 : 4'hf;
             end
         endcase
     end
+// }}}
 // }}}
 
 // {{{ AXI
@@ -255,17 +285,22 @@ assign test = s2axi_i.wdata;
     assign s2axi_o.rlast = rcnt == len_r;
     assign s2axi_o.bid   = ids;
     assign s2axi_o.bresp = `AXI_RESP_OKAY;
-    assign s2axi_o.arready = (STATE == IDLE) && ~s2axi_i.awvalid;
-    assign s2axi_o.awready = STATE == IDLE;
+    // ready
     always_comb begin
         case(STATE)
-            SETROW   : s2axi_o.wready = 1'b0;
-            WRITECOL : s2axi_o.wready = flag;
-            default  : s2axi_o.wready = 1'b0;
+            IDLE     : {s2axi_o.arready, s2axi_o.awready, s2axi_o.wready} = {~s2axi_i.awvalid, 2'b10};
+            WRITECOL : {s2axi_o.arready, s2axi_o.awready, s2axi_o.wready} = {2'b0, flag};
+            default  : {s2axi_o.arready, s2axi_o.awready, s2axi_o.wready} = 3'b0;
         endcase
     end
-    assign s2axi_o.rvalid = (STATE == READCOL) && dramvalid_r;
-    assign s2axi_o.bvalid = (STATE == PRECHG)  && (~|dcnt);
+    // valid
+    always_comb begin
+        case (STATE)
+            READCOL : {s2axi_o.rvalid, s2axi_o.bvalid} = {dramvalid, 1'b0};
+            PRECHG  : {s2axi_o.rvalid, s2axi_o.bvalid} = {1'b0, ~|dcnt};
+            default : {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
+        endcase
+    end
 // }}}
 
 
