@@ -19,13 +19,13 @@ module  Max_pool(
 	logic	[5:0]	num_row;
 	logic	[7:0]	num_channel;
 	logic	[31:0]	kernel_size;
-	logic	[ 9:0]	num_input;
+	logic	[10:0]	num_input;
 	logic 	[31:0]	output_size;
 
 	logic   [ 7:0]	input_rdata;
 	logic	[ 7:0]	output_wdata;
 
-	logic 	[ 9:0]	counter;
+	logic 	[10:0]	counter;
 	logic 	[ 4:0]	row_counter;
 
 	logic	[ 2:0]	CurrentState;
@@ -37,8 +37,8 @@ module  Max_pool(
 				write_state = 3'h3,
 				finish_state = 3'h4;
 	
-	assign num_input = (kernel_size == 32'h2) ? 10'h4 : 10'h40;
-	assign output_size = (kernel_size == 32'h2) ? (((num_row * num_row) >> 2) * num_channel) : (((num_row * num_row) >> 6) * num_channel);
+	assign num_input = (kernel_size == 32'h2) ? 11'h4 : ((kernel_size == 32'h2) ? 11'h40 : 11'h400);
+	assign output_size = (kernel_size == 32'h2) ? (((num_row * num_row) >> 2) * num_channel) : ((kernel_size == 32'h2) ? (((num_row * num_row) >> 6) * num_channel) : 32'h2);
 
 	// Param
 	assign param_intf.W_req = `WRITE_DIS;
@@ -69,18 +69,18 @@ module  Max_pool(
 	//counter
 	always_ff @(posedge clk or negedge rst) begin
 		if(~rst)
-			counter <= 10'b0;
+			counter <= 11'b0;
 		else if(CurrentState == load_parameter_state)begin
-			if(counter == 10'h4)
-				counter <= 10'b0;
+			if(counter == 11'h4)
+				counter <= 11'b0;
 			else 
-				counter <= counter + 10'b1;
+				counter <= counter + 11'b1;
 		end
 		else if(CurrentState == load_input_state)begin
 			if(counter == num_input)
-				counter <= 10'b0;
+				counter <= 11'b0;
 			else 
-				counter <= counter + 10'b1;
+				counter <= counter + 11'b1;
 		end
 	end
 
@@ -118,9 +118,9 @@ module  Max_pool(
 		end
 		else if((CurrentState == load_parameter_state))begin
 			case(counter)
-				10'h1: num_row <= param_intf.R_data;
-				10'h2: num_channel <= param_intf.R_data;
-				10'h4: kernel_size <= param_intf.R_data;
+				11'h1: num_row <= param_intf.R_data;
+				11'h2: num_channel <= param_intf.R_data;
+				11'h4: kernel_size <= param_intf.R_data;
 			endcase
 		end
 	end
@@ -135,10 +135,10 @@ module  Max_pool(
 		else if(CurrentState == load_input_state)begin
 			if(kernel_size == 32'h2)begin
 				case(counter)
-					10'h0: input_intf_0.addr <= input_intf_0.addr + 32'b1;
-					10'h1: input_intf_0.addr <= input_intf_0.addr + num_row - 32'b1;
-					10'h2: input_intf_0.addr <= input_intf_0.addr + 32'b1;
-					10'h3: begin
+					11'h0: input_intf_0.addr <= input_intf_0.addr + 32'b1;
+					11'h1: input_intf_0.addr <= input_intf_0.addr + num_row - 32'b1;
+					11'h2: input_intf_0.addr <= input_intf_0.addr + 32'b1;
+					11'h3: begin
 						if(row_counter == ((num_row >> 1) - 32'b1))
 							input_intf_0.addr <= input_intf_0.addr + 32'b1;
 						else
@@ -157,7 +157,7 @@ module  Max_pool(
 		if(~rst)
 			output_wdata <= 8'b0;
 		else if(CurrentState == load_input_state)begin
-			if(counter == 10'b0)
+			if(counter == 11'b0)
 				output_wdata <= 8'h80;
 			else begin
 				case({output_wdata[7],input_rdata[7]})
@@ -215,7 +215,7 @@ module  Max_pool(
 					NextState = idle_state;
 			end
 			load_parameter_state:begin
-				if(counter == 10'h4)
+				if(counter == 11'h4)
 					NextState = load_input_state;
 				else
 					NextState = load_parameter_state;
