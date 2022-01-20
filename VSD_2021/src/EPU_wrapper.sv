@@ -209,11 +209,11 @@ module EPU_wrapper (
     endcase
   end
 
-  // ConvAcc: 8000_0000 EPU W8
-  //          8000_0004 [  0] EPU start
-  //                    [4:1] EPU mode
-  //                    [  5] Input buffer transpose
-  //                    [  6] Output buffer transpose
+  // ConvAcc: 8000_0000 ~ 80FF_FFFF [31:0] EPU W8
+  //          8100_0000 ~ 81FF_FFFF [   0] EPU start
+  //                                [ 4:1] EPU mode
+  //                                [   5] Input buffer transpose
+  //                                [   6] Output buffer transpose
   always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
       {in_trans, out_trans, conv_start} <= 3'b0;
@@ -223,18 +223,12 @@ module EPU_wrapper (
       {in_trans, out_trans, conv_start} <= 3'b0;
       conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
-    end else if (buffer_sel == EPU_CTRL_SEL) begin
-      if (EPUIN.addr == `AXI_ADDR_BITS'h8000_0000) conv_w8 <= s2axi_i.wdata;
-      else if (EPUIN.addr == `AXI_ADDR_BITS'h8000_0004) begin
+    end else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80) conv_w8 <= s2axi_i.wdata;
+    else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h81) begin
         {in_trans, out_trans, conv_start} <= {
           s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]
         };
         conv_mode <= s2axi_i.wdata[4:1];
-      end
-    end else begin
-      {in_trans, out_trans, conv_start} <= {in_trans, out_trans, conv_start};
-      conv_w8 <= conv_w8;
-      conv_mode <= conv_mode;
     end
   end
 

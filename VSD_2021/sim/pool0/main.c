@@ -8,7 +8,7 @@ volatile unsigned int *epu_weight_buff_addr = (int *) 0x70000000;
 volatile unsigned int *epu_bias_buff_addr   = (int *) 0x71000000;
 volatile unsigned int *epu_param_buff_addr  = (int *) 0x72000000;
 volatile unsigned int *epu_w8_addr          = (int *) 0x80000000;
-volatile unsigned int *epu_ctrl_addr        = (int *) 0x80000004;
+volatile unsigned int *epu_ctrl_addr        = (int *) 0x81000000;
 
 extern void dma_move(unsigned int *source, unsigned int *dest, unsigned int quantity);
 
