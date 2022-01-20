@@ -76,70 +76,70 @@ rtl1: $(BUILD)
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
 	+prog_path=../data/conv1 \
 
-rtl2: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv2 \
-
-
-rtl3: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv3 \
-
-
-rtl4: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv4 \
-
-rtl5: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv5 \
-
-rtl6: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv6 \
-
-rtl7: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv7 \
-
-rtl8: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/conv8 \
+# rtl2: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv2 \
+# 
+# 
+# rtl3: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv3 \
+# 
+# 
+# rtl4: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv4 \
+# 
+# rtl5: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv5 \
+# 
+# rtl6: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv6 \
+# 
+# rtl7: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv7 \
+# 
+# rtl8: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/conv8 \
 
 # Run RTL simulation
 pool0: $(BUILD)
@@ -151,23 +151,23 @@ pool0: $(BUILD)
 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
 	+prog_path=../data/pool0 \
 
-pool1: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/pool1 \
-
-pool2: $(BUILD)
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+prog_path=../data/pool2 \
+# pool1: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/pool1 \
+# 
+# pool2: $(BUILD)
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(INC_DIR) \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+prog_path=../data/pool2 \
 
 # Run synthesize with Design Compiler
 synthesize: $(BUILD) syn_init
@@ -200,89 +200,89 @@ syn1: $(BUILD) syn_init
 	+ncmaxdelays \
 	+prog_path=../data/conv1 \
 
-syn2: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv2 \
-
-syn3: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv3 \
-
-syn4: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv4 \
-
-syn5: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv5 \
-
-syn6: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv6 \
-
-syn7: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv7 \
-
-syn8: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/conv8 \
+# syn2: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv2 \
+# 
+# syn3: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv3 \
+# 
+# syn4: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv4 \
+# 
+# syn5: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv5 \
+# 
+# syn6: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv6 \
+# 
+# syn7: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv7 \
+# 
+# syn8: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/conv8 \
 
 syn00: $(BUILD) syn_init
 	cd $(BUILD_DIR); \
@@ -296,29 +296,29 @@ syn00: $(BUILD) syn_init
 	+ncmaxdelays \
 	+prog_path=../data/pool0 \
 
-syn01: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/pool1 \
-
-syn02: $(BUILD) syn_init
-	cd $(BUILD_DIR); \
-	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
-	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
-	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
-	+define+SYN \
-	+nc64bit \
-	+access+r \
-	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
-	+ncmaxdelays \
-	+prog_path=../data/pool2 \
+# syn01: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/pool1 \
+# 
+# syn02: $(BUILD) syn_init
+# 	cd $(BUILD_DIR); \
+# 	ncverilog $(SIM_DIR)/$(TB_TOP).sv \
+# 	-sdf_file $(SYN_DIR)/$(TOP)_syn.sdf \
+# 	+incdir+$(SRC_DIR)+$(SIM_DIR)+$(SYN_DIR)+$(INC_DIR) \
+# 	+define+SYN \
+# 	+nc64bit \
+# 	+access+r \
+# 	+define+FSDB_FILE=\"$(TOP).fsdb\"$(FSDB_DEF) \
+# 	+ncmaxdelays \
+# 	+prog_path=../data/pool2 \
 
 # Remove all files
 clean:
