@@ -52,7 +52,15 @@ int main(void) {
   // Move input data
   quantity = (&__in8_end - &__in8_start);
   dma_move(&__in8_data_in_dram_start, &__in8_start, quantity);
-  dma_move(&__in8_start, &__in8_data_in_dram_start, quantity);
+  // Move param data
+  quantity = (&__param_end - &__param_start);
+  dma_move(&__param_data_in_dram_start, &__param_start, quantity);
+  // Move w2 data
+  quantity = (&__w2_end - &__w2_start);
+  dma_move(&__w2_data_in_dram_start, &__w2_start, quantity);
+  // Move bias data
+  quantity = (&__bias_end - &__bias_start);
+  dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
 
 
 
