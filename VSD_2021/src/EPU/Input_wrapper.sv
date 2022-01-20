@@ -34,6 +34,7 @@ module Input_wrapper (
 
   InOut_SRAM_384k i_Input_SRAM_384k (
       .clk(clk),
+      .rst(rst),
       .mem(in_buff_bus)
   );
 
