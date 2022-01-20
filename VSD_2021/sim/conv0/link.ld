@@ -1,7 +1,7 @@
 OUTPUT_ARCH( "riscv" )
 
 _STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x1000;
-_TEST_SIZE = DEFINED(_TEST_SIZE) ? _TEST_SIZE : 0x1000;
+_TEST_SIZE = DEFINED(_TEST_SIZE) ? _TEST_SIZE : 0x10000;
 
 /*****************************************************************************
  * Define memory layout
@@ -11,7 +11,7 @@ MEMORY {
   imem   : ORIGIN = 0x00010000, LENGTH = 0x00010000
   dmem   : ORIGIN = 0x00020000, LENGTH = 0x00010000
   dram_i : ORIGIN = 0x20000000, LENGTH = 0x00400000
-  dram_d : ORIGIN = 0x20400000, LENGTH = 0x00800000
+  dram_d : ORIGIN = 0x20400000, LENGTH = 0x00400000
   in8_d  : ORIGIN = 0x50000000, LENGTH = 0x00100000
   out8_d : ORIGIN = 0x60000000, LENGTH = 0x00100000
   w2_d   : ORIGIN = 0x70000000, LENGTH = 0x00100000
