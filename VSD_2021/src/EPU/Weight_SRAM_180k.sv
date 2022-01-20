@@ -5,8 +5,8 @@
 
 module Weight_SRAM_180k (
     input logic              rst,
-    input logic clk,
-    sp_ram_intf.memory mem
+    input logic              clk,
+          sp_ram_intf.memory mem
 );
 
   logic        CS;
@@ -27,9 +27,9 @@ module Weight_SRAM_180k (
   assign mem.R_data = {{14{DO[17]}}, DO};
 
   always_ff @(posedge clk, posedge rst) begin
-    if(rst) latched_A <= 0;
+    if (rst) latched_A <= 0;
     else latched_A <= A;
-  end 
+  end
 
   always_comb begin
     DO = 18'b0;

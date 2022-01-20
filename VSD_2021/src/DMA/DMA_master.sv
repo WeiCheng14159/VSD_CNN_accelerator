@@ -186,17 +186,17 @@ end
 // }}}
 
 
-    always_ff @(posedge clk) begin
-        if (wrfin)
-            $display("==================================================");
-        if (whns)
-            $display("%h", fifo_dataout[7:0]);
-    end
-    always_comb begin
-        if (dma_en_i)
-            $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
+    // always_ff @(posedge clk) begin
+    //     if (wrfin)
+    //         $display("==================================================");
+    //     if (whns)
+    //         $display("%h", fifo_dataout[7:0]);
+    // end
+    // always_comb begin
+    //     if (dma_en_i)
+    //         $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
         
-    end
+    // end
 
 
 endmodule
