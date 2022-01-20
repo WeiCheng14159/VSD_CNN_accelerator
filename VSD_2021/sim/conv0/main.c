@@ -50,42 +50,28 @@ int main(void) {
   int quantity;
 
   // Move input data
-  quantity = (&__in8_end - &__in8_start);
+  quantity = (&__in8_end - &__in8_start) - 1;
   dma_move(&__in8_data_in_dram_start, &__in8_start, quantity);
   // Move param data
-  quantity = (&__param_end - &__param_start);
+  quantity = (&__param_end - &__param_start) - 1;
   dma_move(&__param_data_in_dram_start, &__param_start, quantity);
   // Move w2 data
-  quantity = (&__w2_end - &__w2_start);
+  quantity = (&__w2_end - &__w2_start) - 1;
   dma_move(&__w2_data_in_dram_start, &__w2_start, quantity);
   // Move bias data
-  quantity = (&__bias_end - &__bias_start);
+  quantity = (&__bias_end - &__bias_start) - 1;
   dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
 
+  // Load W8 into EPU
+  *epu_w8_addr = 0x08FAE800;
 
+  // Send EPU control signal
+  *epu_ctrl_addr = 0x1 | (0x3 << 1);
+  asm("wfi");
 
-
-  // // Move param data
-  // quantity = (&__param_end - &__param_start);
-  // dma_move(&__param_data_in_dram_start, &__param_start, quantity);
-  // dma_move(&__param_start, &__param_data_in_dram_start, quantity);
-  // // Move w2 data
-  // quantity = (&__w2_end - &__w2_start);
-  // dma_move(&__w2_data_in_dram_start, &__w2_start, quantity);
-  // // Move bias data
-  // quantity = (&__bias_end - &__bias_start);
-  // dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
-
-  // // Load W8 into EPU
-  // *epu_w8_addr = 0x09F8EA00;
-
-  // // Send EPU control signal
-  // *epu_ctrl_addr = 0x1 | (0x3 << 1);
-  // asm("wfi");
-
-  // // Move output data back to DRAM
-  // quantity = (&__out8_end - &__out8_start);
-  // dma_move(&__out8_start, &_test_start, quantity);
+  // Move output data back to DRAM
+  quantity = (&__out8_end - &__out8_start) - 1;
+  dma_move(&__out8_start, &_test_start, quantity);
 
   return 0;
 }
