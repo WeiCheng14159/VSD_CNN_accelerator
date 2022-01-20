@@ -34,6 +34,7 @@ module Output_wrapper (
 
   InOut_SRAM_384k i_Output_SRAM_384k (
       .clk(clk),
+      .rst(rst),
       .mem(out_buff_bus)
   );
 

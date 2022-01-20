@@ -33,6 +33,7 @@ module Weight_wrapper (
 
   Weight_SRAM_180k i_Weight_SRAM_180k (
       .clk(clk),
+      .rst(rst),
       .mem(weight_buff_bus)
   );
 

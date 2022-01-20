@@ -33,6 +33,7 @@ module Param_wrapper (
 
   Param_SRAM_16B i_Param_SRAM_16B (
       .clk(clk),
+      .rst(rst),
       .mem(param_buff_bus)
   );
 
