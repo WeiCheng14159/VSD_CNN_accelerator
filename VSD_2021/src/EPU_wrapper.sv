@@ -187,25 +187,17 @@ module EPU_wrapper (
   // Bias    : 7100_0000 ~ 71ff_ffff
   // Param   : 7200_0000 ~ 72ff_ffff
   // ConvAcc : 8000_0000 ~ 8fff_ffff
-  function automatic buffer_sel_t EPU_ADDR_DECODE(
-      logic [`AXI_ADDR_BITS -1:0] addr);
-    EPU_ADDR_DECODE = SEL_NO;
-    if (addr >= `AXI_ADDR_BITS'h5000_0000 && addr <= `AXI_ADDR_BITS'h5fff_ffff)
-      EPU_ADDR_DECODE = IN_SEL;
-    else if (addr >= `AXI_ADDR_BITS'h6000_0000 && addr <= `AXI_ADDR_BITS'h6fff_ffff)
-      EPU_ADDR_DECODE = OUT_SEL;
-    else if (addr >= `AXI_ADDR_BITS'h7000_0000 && addr <= `AXI_ADDR_BITS'h70ff_ffff)
-      EPU_ADDR_DECODE = WEIGHT_SEL;
-    else if (addr >= `AXI_ADDR_BITS'h7100_0000 && addr <= `AXI_ADDR_BITS'h71ff_ffff)
-      EPU_ADDR_DECODE = BIAS_SEL;
-    else if (addr >= `AXI_ADDR_BITS'h7200_0000 && addr <= `AXI_ADDR_BITS'h72ff_ffff)
-      EPU_ADDR_DECODE = PARAM_SEL;
-    else if (addr >= `AXI_ADDR_BITS'h8000_0000 && addr <= `AXI_ADDR_BITS'h8fff_ffff)
-      EPU_ADDR_DECODE = EPU_CTRL_SEL;
-    else EPU_ADDR_DECODE = SEL_NO;
-  endfunction
-
-  assign buffer_sel   = EPU_ADDR_DECODE(addr_r);
+  always_comb begin
+    case(addr_r[`AXI_ADDR_BITS-1-:8])
+      8'h50:   buffer_sel = IN_SEL;
+      8'h60:   buffer_sel = OUT_SEL;
+      8'h70:   buffer_sel = WEIGHT_SEL;
+      8'h71:   buffer_sel = BIAS_SEL;
+      8'h72:   buffer_sel = PARAM_SEL;
+      8'h80:   buffer_sel = EPU_CTRL_SEL;
+      default: buffer_sel = SEL_NO; 
+    endcase
+  end
 
   always_comb begin
     case (curr_state)
