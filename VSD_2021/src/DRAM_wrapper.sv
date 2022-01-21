@@ -21,9 +21,8 @@ module DRAM_wrapper (
                SETROW   = 3'h1,
                READCOL  = 3'h2,
                WRITECOL = 3'h3,
-               CHANGE   = 3'h4,
-               PRECHG   = 3'h5,
-               DONE     = 3'h6;
+               CHKROW   = 3'h4,  // check wheather the row is same or not
+               CHANGE   = 3'h5, PRECHG = 3'h6, DONE = 3'h7;
     logic [2:0] STATE, NEXT;
     // Handshake
     logic arhns, rhns, awhns, whns, bhns;
@@ -46,6 +45,7 @@ module DRAM_wrapper (
     logic dramvalid;
     logic write;  // latch write signal
     logic clear;  // clear write
+    logic samerow;
     logic col_over, row_change;
     logic wrcol_done;
 // FIFO
@@ -77,9 +77,8 @@ logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
             len_r       <= `AXI_LEN_BITS'h0;
             size        <= `AXI_SIZE_BITS'h0;
             wstrb       <= `AXI_STRB_BITS'h0;
-            wdata_r     <= `DATA_BITS'h0;
+            // wdata_r     <= `DATA_BITS'h0;
             write       <= 1'b0;
-
             dramvalid   <= 1'b0;
             dramdata_r  <= `DATA_BITS'h0;
         end
@@ -89,17 +88,23 @@ logic fifo_wen, fifo_ren, fifo_empty, fifo_full;
             len_r     <= arhns ? s2axi_i.arlen   : awhns ? s2axi_i.awlen   : len_r;
             size      <= arhns ? s2axi_i.arsize  : awhns ? s2axi_i.awsize  : size;
             wstrb     <= awhns ? s2axi_i.wstrb   : wstrb;
-            // wdata     <= awhns ? s2axi_i.wdata   : wdata;
-            wdata_r     <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
+            // wdata_r     <= s2axi_i.wvalid ? s2axi_i.wdata : wdata_r;
             write       <= (STATE == PRECHG) ? 1'b0 : (awhns ? 1'b1 : write);
-            
             dramvalid   <= DRAM_valid_i;
             dramdata_r  <= DRAM_valid_i ? DRAM_Q_i : dramdata_r; 
         end
     end
 // }}}
 // {{{ Counter, flag, wrcol_done
-    assign flag = (STATE == READCOL) ? dramvalid : dcnt[2];
+    // assign flag = (STATE == READCOL) ? dramvalid : dcnt[2];
+    always_comb begin
+        case (STATE)
+            READCOL : flag = dramvalid;
+            CHKROW  : flag = dcnt[2];    // charge 
+            default : flag = dcnt[2];
+        endcase
+    end
+
     always_comb begin
         case (|len_r)
             1'b0 : wrcol_done = flag && wrfin;
@@ -172,6 +177,13 @@ WRITECOL : begin
         default : NEXT = WRITECOL;
     endcase
 end
+CHKROW   : begin
+    case ({samerow, awhns, arhns, flag})
+        3'b110  : NEXT = WRITECOL;
+        3'b101  : NEXT = READCOL;
+        default : PRECHAG
+    endcase
+end
             // WRITECOL : NEXT = wrcol_done   ? PRECHG : WRITECOL;
             CHANGE   : NEXT = flag         ? SETROW : CHANGE;
             PRECHG   : NEXT = flag         ? IDLE   : PRECHG;
@@ -217,11 +229,12 @@ end
         endcase
     end
     always_ff @(posedge clk or negedge rst) begin
-        if (~rst)              col_r <= `DRAM_A_BITS'h0;
-        else if (row_inc)      col_r <= `DRAM_A_BITS'h0;
-        else if (arhns)        col_r <= s2axi_i.araddr[11:2];
-        else if (awhns)        col_r <= s2axi_i.awaddr[11:2];
-        else if (rhns || whns) col_r <= col_r + `DRAM_A_BITS'h1;
+        if (~rst)          col_r <= `DRAM_A_BITS'h0;
+        else if (row_inc)  col_r <= `DRAM_A_BITS'h0;
+        else if (arhns)    col_r <= s2axi_i.araddr[11:2];
+        else if (awhns)    col_r <= s2axi_i.awaddr[11:2];
+        else if (rhns)     col_r <= col_r + `DRAM_A_BITS'h1;
+        else if (fifo_ren) col_r <= col_r + `DRAM_A_BITS'h1;
     end
 
     always_ff @(posedge clk or negedge rst) begin
@@ -339,7 +352,7 @@ always_comb begin
 end
 */
 assign fifo_datain = s2axi_i.wdata;
-assign fifo_clr    = ahns;
+assign fifo_clr    = ahns;//wrcol_done;
 
 FIFO #(.FIFO_DEPTH(FIFO_DEPTH)) i_fifo (
     .clk     (clk         ),
