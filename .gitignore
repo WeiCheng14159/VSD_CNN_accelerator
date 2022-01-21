@@ -1,3 +1,4 @@
+*.rc
 *.log
 *.key
 *.conf
