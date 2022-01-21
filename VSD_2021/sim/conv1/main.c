@@ -7,8 +7,9 @@ volatile unsigned int *epu_out_buff_addr    = (int *) 0x60000000;
 volatile unsigned int *epu_weight_buff_addr = (int *) 0x70000000;
 volatile unsigned int *epu_bias_buff_addr   = (int *) 0x71000000;
 volatile unsigned int *epu_param_buff_addr  = (int *) 0x72000000;
-volatile unsigned int *epu_w8_addr          = (int *) 0x80000000;
-volatile unsigned int *epu_ctrl_addr        = (int *) 0x81000000;
+volatile unsigned int *epu_ctrl_addr        = (int *) 0x80000000;
+volatile unsigned int *epu_w8_l_addr        = (int *) 0x81000000;
+volatile unsigned int *epu_w8_u_addr        = (int *) 0x82000000;
 
 extern void dma_move(unsigned int *source, unsigned int *dest, unsigned int quantity);
 
@@ -70,7 +71,9 @@ int main(void) {
   dma_move(&__bias_data_in_dram_start, &__bias_start, quantity);
 
   // Load W8 into EPU
-  *epu_w8_addr = 0x0EE6C600;
+  unsigned int w8 = 0x0EE6C600;
+  *epu_w8_l_addr = w8;
+  *epu_w8_u_addr = w8 >> 16;
 
   // Send EPU control signal
   *epu_ctrl_addr = 0x1 | (epu_mode << 1);

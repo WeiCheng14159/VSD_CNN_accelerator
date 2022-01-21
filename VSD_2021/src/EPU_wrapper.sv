@@ -33,10 +33,12 @@ module EPU_wrapper (
   logic rdfin, wrfin;
   // Sample
   logic [`AXI_ADDR_BITS -1:0] addr_r;
+  logic [`AXI_LEN_BITS  -1:0] addr_offset;
   logic [`AXI_IDS_BITS  -1:0] ids_r;
   logic [`AXI_LEN_BITS  -1:0] len_r;
   logic [`AXI_STRB_BITS -1:0] wstrb_r;
   logic [`AXI_BURST_BITS-1:0] burst_r;
+  logic [`AXI_DATA_BITS -1:0] wdata_r;
   // Other
   logic [  `AXI_LEN_BITS-1:0] cnt_r;
   logic [`DATA_BITS-1:0]
@@ -48,9 +50,9 @@ module EPU_wrapper (
   logic [3:0] conv_mode;
   inf_EPUIN EPUIN ();
 
-  localparam IN_SEL_B = 0, OUT_SEL_B = 1, WEIGHT_SEL_B = 2, BIAS_SEL_B = 3, PARAM_SEL_B = 4, EPU_CTRL_SEL_B = 5;
-  typedef enum logic [EPU_CTRL_SEL_B:0] {
-    SEL_NO       = 0,
+  localparam IN_SEL_B = 0, OUT_SEL_B = 1, WEIGHT_SEL_B = 2, BIAS_SEL_B = 3, PARAM_SEL_B = 4, EPU_CTRL_SEL_B = 5, SEL_NO_B = 6;
+  typedef enum logic [SEL_NO_B:0] {
+    SEL_NO       = 1 << SEL_NO_B,
     IN_SEL       = 1 << IN_SEL_B,
     OUT_SEL      = 1 << OUT_SEL_B,
     WEIGHT_SEL   = 1 << WEIGHT_SEL_B,
@@ -87,12 +89,14 @@ module EPU_wrapper (
       len_r   <= `AXI_LEN_BITS'h0;
       wstrb_r <= `AXI_STRB_BITS'h0;
       burst_r <= `AXI_BURST_BITS'h0;
+      wdata_r <= `AXI_DATA_BITS'h0;
     end else begin
       addr_r  <= arhns ? s2axi_i.araddr : awhns ? s2axi_i.awaddr : addr_r;
       ids_r   <= arhns ? s2axi_i.arid : awhns ? s2axi_i.awid : ids_r;
       len_r   <= arhns ? s2axi_i.arlen : awhns ? s2axi_i.awlen : len_r;
       wstrb_r <= awhns ? s2axi_i.wstrb : wstrb_r;
       burst_r <= awhns ? s2axi_i.awburst : arhns ? s2axi_i.arburst : burst_r;
+      wdata_r <= whns ? s2axi_i.wdata : wdata_r;
     end
   end
 
@@ -140,36 +144,44 @@ module EPU_wrapper (
   assign s2axi_o.arready = (curr_state == IDLE) && (~s2axi_i.awvalid);
   assign s2axi_o.wready  = curr_state == W_CH;
   always_comb begin
-    case (buffer_sel)
-      IN_SEL: s2axi_o.rdata = in_rdata;
-      OUT_SEL: s2axi_o.rdata = out_rdata;
-      WEIGHT_SEL: s2axi_o.rdata = weight_rdata;
-      BIAS_SEL: s2axi_o.rdata = bias_rdata;
-      PARAM_SEL: s2axi_o.rdata = param_rdata;
-      default: s2axi_o.rdata = `DATA_BITS'h0;
+    unique case (1'b1)
+      buffer_sel[IN_SEL_B]:    s2axi_o.rdata = in_rdata;
+      buffer_sel[OUT_SEL_B]:   s2axi_o.rdata = out_rdata;
+      buffer_sel[WEIGHT_SEL_B]:s2axi_o.rdata = weight_rdata;
+      buffer_sel[BIAS_SEL_B]:  s2axi_o.rdata = bias_rdata;
+      buffer_sel[PARAM_SEL_B]: s2axi_o.rdata = param_rdata;
+      buffer_sel[SEL_NO_B]:    s2axi_o.rdata = `DATA_BITS'h0;
+      buffer_sel[EPU_CTRL_SEL_B]:s2axi_o.rdata = `DATA_BITS'h0;
     endcase
   end
 
   always_comb begin
     s2axi_o.rvalid = 1'b0;
     if (curr_state == R_CH) begin
-      case (buffer_sel)
-        IN_SEL: s2axi_o.rvalid = in_rvalid;
-        OUT_SEL: s2axi_o.rvalid = out_rvalid;
-        WEIGHT_SEL: s2axi_o.rvalid = weight_rvalid;
-        BIAS_SEL: s2axi_o.rvalid = bias_rvalid;
-        PARAM_SEL: s2axi_o.rvalid = param_rvalid;
-        default: s2axi_o.rvalid = 1'b0;
+      unique case (1'b1)
+        buffer_sel[IN_SEL_B]: s2axi_o.rvalid = in_rvalid;
+        buffer_sel[OUT_SEL_B]: s2axi_o.rvalid = out_rvalid;
+        buffer_sel[WEIGHT_SEL_B]: s2axi_o.rvalid = weight_rvalid;
+        buffer_sel[BIAS_SEL_B]: s2axi_o.rvalid = bias_rvalid;
+        buffer_sel[PARAM_SEL_B]: s2axi_o.rvalid = param_rvalid;
+        buffer_sel[SEL_NO_B]: s2axi_o.rvalid = 1'b0;
+        buffer_sel[EPU_CTRL_SEL_B]: s2axi_o.rvalid = 1'b0;
       endcase
     end
   end
 
+  assign EPUIN.addr = addr_r + {addr_offset, 2'b00};
   always_ff @(posedge clk or posedge rst) begin
-    if (rst) EPUIN.addr <= `EPU_ADDR_BITS'b0;
-    else if (awhns) EPUIN.addr <= s2axi_i.awaddr;
-    else if (arhns) EPUIN.addr <= s2axi_i.araddr;
-    else if (wrfin || rdfin) EPUIN.addr <= `EPU_ADDR_BITS'b0;
-    else if (whns || rhns) EPUIN.addr <= EPUIN.addr + `EPU_ADDR_BITS'h4;
+    if (rst) addr_offset <= `AXI_LEN_BITS'b0;
+    else begin
+      case ({
+        (awhns | arhns), (whns | rhns)
+      })
+        2'b10:   addr_offset <= `AXI_LEN_BITS'b0;
+        2'b01:   addr_offset <= addr_offset + 1'b1;
+        default: ;
+      endcase
+    end
   end
 
   // Input   : 5000_0000 ~ 5fff_ffff
@@ -180,12 +192,12 @@ module EPU_wrapper (
   // ConvAcc : 8000_0000 ~ 8fff_ffff
   always_comb begin
     case (addr_r[`AXI_ADDR_BITS-1-:8])
-      8'h50:   buffer_sel = IN_SEL;
-      8'h60:   buffer_sel = OUT_SEL;
-      8'h70:   buffer_sel = WEIGHT_SEL;
-      8'h71:   buffer_sel = BIAS_SEL;
-      8'h72:   buffer_sel = PARAM_SEL;
-      8'h80:   buffer_sel = EPU_CTRL_SEL;
+      8'h50: buffer_sel = IN_SEL;
+      8'h60: buffer_sel = OUT_SEL;
+      8'h70: buffer_sel = WEIGHT_SEL;
+      8'h71: buffer_sel = BIAS_SEL;
+      8'h72: buffer_sel = PARAM_SEL;
+      8'h80, 8'h81, 8'h82: buffer_sel = EPU_CTRL_SEL;
       default: buffer_sel = SEL_NO;
     endcase
   end
@@ -200,27 +212,43 @@ module EPU_wrapper (
     endcase
   end
 
-  // ConvAcc: 8000_0000 ~ 80FF_FFFF [31:0] EPU W8
-  //          8100_0000 ~ 81FF_FFFF [   0] EPU start
+  // ConvAcc: 8000_0000 ~ 80FF_FFFF [   0] EPU start
   //                                [ 4:1] EPU mode
   //                                [   5] Input buffer transpose
   //                                [   6] Output buffer transpose
+  //          8100_0000 ~ 81FF_FFFF [15: 0] EPU W8
+  //          8200_0000 ~ 82FF_FFFF [31:16] EPU W8
   always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
       {in_trans, out_trans, conv_start} <= 3'b0;
-      conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
     end else if (conv_fin) begin
       {in_trans, out_trans, conv_start} <= 3'b0;
-      conv_w8 <= 32'h0;
       conv_mode <= 4'h0;
-    end else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80)
-      conv_w8 <= s2axi_i.wdata;
-    else if (EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h81) begin
-      {in_trans, out_trans, conv_start} <= {
-        s2axi_i.wdata[5], s2axi_i.wdata[6], s2axi_i.wdata[0]
-      };
-      conv_mode <= s2axi_i.wdata[4:1];
+    end else if ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80) & bhns) begin
+      {in_trans, out_trans, conv_start} <= {wdata_r[5], wdata_r[6], wdata_r[0]};
+      conv_mode <= wdata_r[4:1];
+    end
+  end
+
+  // assign conv_w8_lower = ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h81) & EPUIN.whns);
+  // assign conv_w8_upper = ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h82) & EPUIN.whns);
+  always_ff @(posedge clk or posedge rst) begin
+    if (rst) begin
+      conv_w8 <= 32'h0;
+    end else begin
+      if (conv_fin) begin
+        conv_w8 <= 32'h0;
+      end else begin
+        case ({
+          ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h82) & bhns),
+          ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h81) & bhns)
+        })
+          2'b10:   conv_w8[31:16] <= wdata_r[15:0];
+          2'b01:   conv_w8[15:0] <= wdata_r[15:0];
+          default: conv_w8 <= conv_w8;
+        endcase
+      end
     end
   end
 
