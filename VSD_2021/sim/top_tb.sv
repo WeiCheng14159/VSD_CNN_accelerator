@@ -50,7 +50,7 @@ module top_tb;
 
   logic clk;
   logic rst;
-  logic [31:0] GOLDEN[4096];
+  logic [31:0] GOLDEN[80000];
   logic [7:0] Memory_byte0[32768];
   logic [7:0] Memory_byte1[32768];
   logic [7:0] Memory_byte2[32768];
@@ -192,7 +192,7 @@ module top_tb;
     $display("\nDone\n");
     err = 0;
 
-    if(num > 4096) num = 4096;
+    // if(num > 4096) num = 4096;
     for (i = 0; i < num; i++)
     begin
       if (`dram_word(`TEST_START + i) !== GOLDEN[i])
