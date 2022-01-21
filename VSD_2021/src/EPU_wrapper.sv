@@ -20,6 +20,18 @@ module EPU_wrapper (
            inf_Slave.S2AXIout s2axi_o
 );
 
+
+    // assign s2axi_o.rlast = 1'b1;
+    // assign s2axi_o.rresp = `AXI_RESP_OKAY;
+    // assign s2axi_o.bresp = `AXI_RESP_OKAY;
+    // assign s2axi_o.rdata = `AXI_DATA_BITS'h0; 
+    // assign s2axi_o.rid   = `AXI_IDS_BITS'h0;
+    // assign s2axi_o.bid   = `AXI_IDS_BITS'h0;
+    // assign {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b0;
+    // assign {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
+
+
+// /*
   typedef enum logic [1:0] {
     IDLE = 2'h0,
     R_CH = 2'h1,
@@ -355,5 +367,5 @@ module EPU_wrapper (
       .input_intf (EPU_in_bus),
       .output_intf(EPU_out_bus)
   );
-
+// */
 endmodule
