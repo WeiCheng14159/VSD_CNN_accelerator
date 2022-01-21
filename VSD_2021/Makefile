@@ -35,7 +35,7 @@ $(syn_dir):
 	mkdir -p $(syn_dir)
 
 $(pr_dir):
-	mkdir -p $(pr_dir))
+	mkdir -p $(pr_dir)
 
 # RTL simulation
 rtl_all: clean rtl0 rtl1
