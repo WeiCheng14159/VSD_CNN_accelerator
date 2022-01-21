@@ -2,16 +2,15 @@
 `include "../include/AXI_define.svh"
 `include "../FIFO.sv"
 
-
 module DMA_master (
-    input clk, rst,
-    inf_Master.M2AXIin          m2axi_i,
-    inf_Master.M2AXIout         m2axi_o,
-    input                       dma_en_i,
-    input  [`AXI_ADDR_BITS-1:0] src_addr_i,
-    input  [`AXI_ADDR_BITS-1:0] dst_addr_i,
-    input  [`DATA_BITS    -1:0] data_qty_i,
-    output                      dma_fin_o
+    input                             clk, rst,
+    inf_Master.M2AXIin                m2axi_i,
+    inf_Master.M2AXIout               m2axi_o,
+    input                             dma_en_i,
+    input        [`AXI_ADDR_BITS-1:0] src_addr_i,
+    input        [`AXI_ADDR_BITS-1:0] dst_addr_i,
+    input        [`DATA_BITS    -1:0] data_qty_i,
+    output logic                      dma_fin_o
 );
     localparam FIFO_DEPTH = 2;
     localparam IDLE  = 3'h0,
@@ -47,9 +46,6 @@ module DMA_master (
     assign rhns  = m2axi_o.rready  && m2axi_i.rvalid;
     assign rdfin = rhns && m2axi_i.rlast;
     assign wrfin = whns && m2axi_o.wlast;
-    // DMA
-    assign done = (~|rem_qty_r) && (STATE == B_CH);
-    assign dma_fin_o = STATE == FIN;  // interrupt
 
 
 // {{{ STATE
@@ -70,8 +66,18 @@ module DMA_master (
         endcase
     end
 // }}}
-// {{{
 
+// {{{ DMA
+   // assign done = (~|rem_qty_r) && (STATE == B_CH);
+   // assign dma_fin_o = STATE == FIN;  // interrupt
+    always_comb begin
+        done      = 1'b0;
+        dma_fin_o = 1'b0;
+        case (STATE)
+            B_CH : done      = ~|rem_qty_r;
+            FIN  : dma_fin_o = 1'b1;
+        endcase
+    end
 
     always_ff @(posedge clk or posedge rst) begin
         if (rst)           rem_qty_r <= `DATA_BITS'h0;
@@ -185,18 +191,18 @@ end
     );
 // }}}
 
-
-    // always_ff @(posedge clk) begin
-    //     if (wrfin)
-    //         $display("==================================================");
-    //     if (whns)
-    //         $display("%h", fifo_dataout[7:0]);
-    // end
-    // always_comb begin
-    //     if (dma_en_i)
-    //         $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
-        
-    // end
+/*
+    always_ff @(posedge clk) begin
+        if (wrfin)
+            $display("==================================================");
+        if (whns)
+            $display("%h", fifo_dataout[7:0]);
+    end
+    always_comb begin
+        if (dma_en_i)
+            $display("src: %h, dst: %h, qty: %h\n--------------------------------------------------", src_addr_i, dst_addr_i, data_qty_i);
+    end
+*/
 
 
 endmodule
