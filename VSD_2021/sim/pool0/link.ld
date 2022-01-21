@@ -1,7 +1,7 @@
 OUTPUT_ARCH( "riscv" )
 
 _STACK_SIZE = DEFINED(_STACK_SIZE) ? _STACK_SIZE : 0x1000;
-_TEST_SIZE = DEFINED(_TEST_SIZE) ? _TEST_SIZE : 0x10000;
+_TEST_SIZE = DEFINED(_TEST_SIZE) ? _TEST_SIZE : 0x10;
 
 /*****************************************************************************
  * Define memory layout
