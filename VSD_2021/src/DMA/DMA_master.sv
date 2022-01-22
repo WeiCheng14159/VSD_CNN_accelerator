@@ -150,7 +150,8 @@ always_ff @(posedge clk or posedge rst) begin
     else if (dcnt[2])    dcnt <= dcnt;    
 end
 
-    assign fifo_datain = (STATE == BUSY) ? m2axi_i.rdata : `DATA_BITS'h0;
+    // assign fifo_datain = (STATE == BUSY) ? m2axi_i.rdata : `DATA_BITS'h0;
+    assign fifo_datain = m2axi_i.rdata;
     assign fifo_wen    = (STATE == BUSY) && ~fifo_full  && m2axi_i.rvalid;//rhns;
     assign fifo_ren    = (STATE == BUSY) && ~fifo_empty && m2axi_i.wready || (dcnt == 3'h4);
     // assign fifo_ren = (STATE == BUSY) && fifo_full | (|fifo_cnt_r);
