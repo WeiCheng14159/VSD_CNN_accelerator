@@ -353,3 +353,5 @@ clean:
 	make -C $(sim_dir)/prog1/ clean; \
 	make -C $(sim_dir)/prog2/ clean; \
 	make -C $(sim_dir)/conv0/ clean; \
+	make -C $(sim_dir)/conv1/ clean; \
+	make -C $(sim_dir)/pool0/ clean; \
