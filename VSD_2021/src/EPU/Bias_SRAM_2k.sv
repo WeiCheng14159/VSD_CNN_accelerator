@@ -8,7 +8,6 @@ module Bias_SRAM_2k (
           sp_ram_intf.memory mem
 );
 
-  logic        CK;
   logic        CS;
   logic        OE;
   logic        WEB;
@@ -16,7 +15,6 @@ module Bias_SRAM_2k (
   logic [31:0] DI;
   logic [31:0] DO;
 
-  assign CK = clk;
   assign CS = mem.cs;
   assign OE = mem.oe;
   assign A = mem.addr[8:0];
@@ -25,7 +23,7 @@ module Bias_SRAM_2k (
   assign mem.R_data = DO;
 
   SRAM_32b_384w_2k i_SRAM_32b_384w_2k (
-      .CK (CK),
+      .CK (clk),
       .CS (CS),
       .OE (OE),
       .WEB(WEB),

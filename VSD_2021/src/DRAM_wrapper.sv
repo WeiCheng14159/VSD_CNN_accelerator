@@ -176,7 +176,6 @@ WRITECOL : begin
         default : NEXT = WRITECOL;
     endcase
 end
-
             // WRITECOL : NEXT = wrcol_done   ? PRECHG : WRITECOL;
             CHANGE   : NEXT = flag         ? SETROW : CHANGE;
             PRECHG   : NEXT = flag         ? IDLE   : PRECHG;

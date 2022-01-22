@@ -25,7 +25,7 @@ module InOut_switcher (
       from_in_buff_i.addr      = to_EPU_out_buff_o.addr;
       from_in_buff_i.W_req     = to_EPU_out_buff_o.W_req;
       from_in_buff_i.W_data    = to_EPU_out_buff_o.W_data;
-    end else /*if (!in_trans_i & !out_trans_i)*/ begin
+    end else  /*if (!in_trans_i & !out_trans_i)*/ begin
       // input buffer <-> EPU input
       to_EPU_in_buff_o.R_data  = from_in_buff_i.R_data;
       from_in_buff_i.cs        = to_EPU_in_buff_o.cs;
