@@ -7,8 +7,8 @@ module Master(
     inf_Master.M2AXIin            m2axi_i,
     inf_Master.M2AXIout           m2axi_o,
     // Cache
-    input                         creq_i,
     input                         arlenone_i,
+    input                         cwreq_i, crreq_i,
     input                         cwrite_i,
     input        [`TYPE_BITS-1:0] cwtype_i,
     input        [`DATA_BITS-1:0] cdatain_i,
@@ -20,11 +20,8 @@ module Master(
     // STATE
     logic [2:0] STATE, NEXT;
     parameter IDLE  = 3'h0,
-              AR_CH = 3'h1,
-              R_CH  = 3'h2,
-              AW_CH = 3'h3,
-              W_CH  = 3'h4,
-              B_CH  = 3'h5;
+              AR_CH = 3'h1, R_CH = 3'h2,
+              AW_CH = 3'h3, W_CH = 3'h4, B_CH = 3'h5;
     // Handshake
     logic awhns, arhns, rhns, whns, bhns;
     // Other
@@ -75,6 +72,7 @@ module Master(
         STATE <= ~rst ? IDLE : NEXT;
     end
     always_comb begin
+        NEXT = IDLE;
         case (STATE)
             IDLE    : begin
                 case ({m2axi_o.arvalid, m2axi_o.awvalid})
@@ -98,14 +96,13 @@ module Master(
                 else 
                     NEXT = IDLE;
             end
-            default : NEXT = IDLE;
         endcase
     end
 // }}}	
 
-    // assign req_rd = (creq_i & ~cwrite_i) | arlenone_i;
-    assign req_rd = creq_i && ~cwrite_i;
-    assign req_wr = creq_i & cwrite_i;
+// {{{ AXI
+    assign req_rd = crreq_i;//creq_i && ~cwrite_i;
+    assign req_wr = cwreq_i;//creq_i && cwrite_i;
 
     logic [2:0] validout;
     logic [1:0] readyout;
@@ -135,15 +132,15 @@ module Master(
     end
     always_comb begin
         case (STATE)
-            IDLE    : wait_o = req_wr | req_rd;
+            IDLE    : wait_o = req_wr || req_rd;
             AR_CH   : wait_o = 1'b1;
             //R_CH    : wait_o = ~rdfin;
             R_CH    : wait_o = ~rhns;
             AW_CH   : wait_o = 1'b1;
             W_CH    : wait_o = ~wrfin;
-            B_CH    : wait_o = req_wr | req_rd;
+            B_CH    : wait_o = req_wr || req_rd;
             default : wait_o = 1'b0;
         endcase
     end
-
+// }}}
 endmodule

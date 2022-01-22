@@ -9,22 +9,21 @@
 `include "./data_array_wrapper.sv"
 
 module L1C_data (
-    input clk,
-    input rst,
+    input                               clk, rst,
     // Core to CPU wrapper
-    input [`DATA_BITS      -1:0] core_addr,
-    input                        core_req,
-    input                        core_write,
-    input [`DATA_BITS      -1:0] core_in,
-    input [`CACHE_TYPE_BITS-1:0] core_type,
+    input [`DATA_BITS             -1:0] core_addr,
+    input                               core_req,
+    input                               core_write,
+    input [`DATA_BITS             -1:0] core_in,
+    input [`CACHE_TYPE_BITS       -1:0] core_type,
     // Mem to CPU wrapper
-    input [`DATA_BITS-1:0] D_out,
-    input                  D_wait,
+    input [`DATA_BITS             -1:0] D_out,
+    input                               D_wait,
     // CPU wrapper to core
-    output logic [`DATA_BITS-1:0] core_out,
-    output logic                  core_wait,
+    output logic [`DATA_BITS      -1:0] core_out,
+    output logic                        core_wait,
     // CPU wrapper to Mem
-    output logic                        D_req,
+    output logic                        D_wreq, D_rreq,
     output logic [`DATA_BITS      -1:0] D_addr,
     output logic                        D_write,
     output logic [`DATA_BITS      -1:0] D_in,
@@ -48,11 +47,9 @@ module L1C_data (
     // STATE
     parameter INIT  = 3'h0,
               CHK   = 3'h1,
-              WHIT  = 3'h2,
-              WMISS = 3'h3,
+              WHIT  = 3'h2, WMISS = 3'h3,
               RMISS = 3'h4,
-              NOUSE = 3'h5,
-              FIN   = 3'h6;
+              NOUSE = 3'h5, FIN   = 3'h6;
     logic [2:0] STATE, NEXT;
     // Sample
     logic [`ADDR_BITS      -1:0] c_addr;
@@ -65,7 +62,8 @@ module L1C_data (
     logic [1:0] blk_off, byte_off;
     logic [2:0] cnt;
     logic hit;
-    logic flag;
+    logic rvalid;
+
     logic cacheable;  // 0x1000_0000 ~ 0x1000_03ff and 0x4000_0000 ~ 0x4000_ffff -> uncacheable
 
 // {{{ Sample
@@ -85,22 +83,26 @@ module L1C_data (
         end
     end
 // }}}
-// {{{ counter, flag
+// {{{ counter
+    logic rmiss_flag;
+    assign rmiss_flag = cnt[2];
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)          cnt <= 3'h0;
-        else if (flag)    cnt <= 3'h0;
-        else if (~D_wait) cnt <= cnt + 3'h1; 
-        else              cnt <= cnt;
+        if (rst)                 rvalid <= 1'b0;
+        else if (STATE == RMISS) rvalid <= ~D_wait;
+        else                     rvalid <= 1'b0;
     end
-    always_comb begin
-        case (STATE)
-            WMISS   : flag = ~D_wait;
-            WHIT    : flag = ~D_wait;
-            RMISS   : flag = cnt[2];
-            NOUSE   : flag = ~D_wait;
-            default : flag = 1'b1;
-        endcase
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) 
+            cnt <= 3'h0;
+        else begin
+            case (STATE)
+                // RMISS   : cnt <= rmiss_flag  ? 3'h0 : cnt + {2'h0, ~D_wait};
+                RMISS   : cnt <= rmiss_flag ? 3'h0 : cnt + {2'h0, rvalid};
+                default : cnt <= ~D_wait ? 3'h0 : cnt + {2'h0, ~D_wait};
+            endcase
+        end
     end
+
 // }}}
 // {{{ STATE
     always_ff @(posedge clk or posedge rst) begin
@@ -108,10 +110,8 @@ module L1C_data (
     end
     always_comb begin
         case (STATE)
-            // INIT    : NEXT = core_req ? CHK : INIT;
             INIT    : begin
                 casez ({core_req, core_write, valid[index], ~cacheable})
-                    // 4'b1001 : NEXT = CHK;
                     4'b110? : NEXT = WMISS;
                     4'b1000 : NEXT = RMISS;
                     4'b0??? : NEXT = INIT;
@@ -127,10 +127,10 @@ module L1C_data (
                     default : NEXT = RMISS;
                 endcase
             end
-            WHIT    : NEXT = flag ? FIN : WHIT;
-            WMISS   : NEXT = flag ? FIN : WMISS;
-            RMISS   : NEXT = flag ? FIN : RMISS;
-            NOUSE   : NEXT = flag ? FIN : NOUSE;
+            WHIT    : NEXT = ~D_wait    ? FIN : WHIT;
+            WMISS   : NEXT = ~D_wait    ? FIN : WMISS;
+            RMISS   : NEXT = rmiss_flag ? FIN : RMISS;
+            NOUSE   : NEXT = ~D_wait    ? FIN : NOUSE;
             FIN     : NEXT = INIT;
             default : NEXT = INIT;
         endcase
@@ -163,13 +163,17 @@ module L1C_data (
             default : web = 4'h0;
         endcase
     end
-    always_comb begin
-        case (blk_off)
-            2'h0 : da_write = {12'hfff, web};
-            2'h1 : da_write = {8'hff, web, 4'hf};
-            2'h2 : da_write = {4'hf, web, 8'hff};
-            2'h3 : da_write = {web, 12'hfff};
-        endcase
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)
+            da_write <= 16'hffff;
+        else begin
+            case (blk_off)
+                2'h0 : da_write <= {12'hfff, web};
+                2'h1 : da_write <= {8'hff, web, 4'hf};
+                2'h2 : da_write <= {4'hf, web, 8'hff};
+                2'h3 : da_write <= {web, 12'hfff};
+            endcase
+        end
     end
 // }}}
 // {{{ tag_array_wrapper
@@ -186,6 +190,12 @@ module L1C_data (
 // }}}
 // {{{ data_array_wrapper
     // DA_read, DA_write, DA_in
+    logic [`DATA_BITS-1:0] d_out_r;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst)          d_out_r <= `DATA_BITS'h0;
+        else if (~D_wait) d_out_r <= D_out;
+    end
+
     assign DA_read = (STATE == CHK) ? hit & ~c_write : 1'b0; // read hit
     always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
@@ -195,12 +205,19 @@ module L1C_data (
         else begin
             case (STATE)
                 WHIT    : begin
-                    DA_write <= flag ? da_write : `CACHE_WRITE_BITS'hffff;
+                    DA_write <= ~D_wait ? da_write : `CACHE_WRITE_BITS'hffff;
                     DA_in    <= ~|cnt ? {c_in, c_in, c_in, c_in} : DA_in;
                 end
                 RMISS   : begin
+
                     DA_write <= &cnt[1:0] ? `CACHE_WRITE_BITS'h0 : `CACHE_WRITE_BITS'hffff;
-                    DA_in[{cnt[1:0], 5'h0}+:32] <= D_out;
+                    // DA_in[{cnt[1:0], 5'h0}+:32] <= D_out;
+                    case (cnt[1:0])
+                        2'h3 : DA_in[127:96] <= d_out_r;
+                        2'h2 : DA_in[ 95:64] <= d_out_r;
+                        2'h1 : DA_in[ 63:32] <= d_out_r;
+                        2'h0 : DA_in[ 31: 0] <= d_out_r;
+                    endcase
                 end
                 default : begin
                     DA_write <= `CACHE_WRITE_BITS'hffff;
@@ -222,27 +239,31 @@ module L1C_data (
 // {{{ CPU
     assign core_wait = (STATE == INIT) ? core_req : (STATE == FIN) ? 1'b0 : 1'b1;
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)                 core_out <= `DATA_BITS'h0;
-        else if (STATE == CHK)   core_out <= read_data;
-        else if (STATE == RMISS) core_out <= flag ? read_data : core_out;
-        else if (STATE == NOUSE) core_out <= D_out;
+        if (rst)
+            core_out <= `DATA_BITS'h0;
+        else begin
+            case (STATE)
+                CHK   : core_out <= read_data;  // RHIT
+                RMISS : core_out <= rmiss_flag ? read_data : core_out;
+                NOUSE : core_out <= D_out;
+            endcase
+        end
     end
 // }}}
 // {{{ CPU_wrapper
-
     assign arlenone_o = ~cacheable;
     assign D_addr  = (STATE == RMISS) ? {c_addr[`DATA_BITS-1:4], 4'h0} : c_addr;
     assign D_type  = c_write ? c_type : `CACHE_WORD;
-    assign D_in    = c_write ? c_in   : `DATA_BITS'h0;
+    assign D_in    = c_in;//c_write ? c_in   : `DATA_BITS'h0;
     assign D_write = c_write;
+
     always_comb begin
+        {D_wreq, D_rreq} = 2'b0;
         case (STATE)
-            CHK     : D_req = ~c_write && ~hit && ~cacheable;
-            WMISS   : D_req = ~|cnt;
-            WHIT    : D_req = ~|cnt;
-            RMISS   : D_req = ~flag;
-            NOUSE   : D_req = 1'b0;
-            default : D_req = 1'b0;
+            CHK   : D_rreq = ~c_write && ~hit && ~cacheable;
+            WMISS : D_wreq = ~|cnt;
+            WHIT  : D_wreq = ~|cnt;
+            RMISS : D_rreq = cnt < 3'h3;
         endcase
     end
 // }}}
@@ -285,9 +306,9 @@ module L1C_data (
         end
         else begin
             L1CD_rhits <= (STATE == CHK) & hit & ~core_write ? L1CD_rhits + 'h1 : L1CD_rhits;
-            L1CD_whits <= (STATE == WHIT)  & flag ? L1CD_whits + 'h1 : L1CD_whits;
-            L1CD_rmiss <= (STATE == RMISS) & flag ? L1CD_rmiss + 'h1 : L1CD_rmiss;
-            L1CD_wmiss <= (STATE == WMISS) & flag ? L1CD_wmiss + 'h1 : L1CD_wmiss;
+            L1CD_whits <= (STATE == WHIT)  & ~D_wait ? L1CD_whits + 'h1 : L1CD_whits;
+            L1CD_rmiss <= (STATE == RMISS) & rmiss_flag ? L1CD_rmiss + 'h1 : L1CD_rmiss;
+            L1CD_wmiss <= (STATE == WMISS) & ~D_wait ? L1CD_wmiss + 'h1 : L1CD_wmiss;
         end
     end
 // }}}
