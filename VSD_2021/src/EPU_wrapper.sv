@@ -343,7 +343,7 @@ module EPU_wrapper (
   );
 
   InOut_switcher i_InOut_switcher (
-      .inout_trans_i    (inout_trans_i),
+      .inout_trans_i    (inout_trans),
       .from_in_buff_i   (in_bus2EPU),
       .from_out_buff_i  (out_bus2EPU),
       .to_EPU_in_buff_o (EPU_in_bus),
