@@ -18,7 +18,7 @@ module Output_wrapper (
     input logic                                finish_i,
            sp_ram_intf.memory                  bus2EPU
 );
-
+  localparam FIFO_DEPTH = 1;
   typedef enum logic [2:0] {
     IDLE      = 3'h0,
     EPU_RW    = 3'h1,
@@ -51,7 +51,8 @@ module Output_wrapper (
         else if (epuin_i.awhns) next_state = WP_AW;
       end
       WP_AR: next_state = enb_i ? WP_R : IDLE; 
-      WP_AW: next_state = enb_i ? WP_W : IDLE; 
+      WP_AW: next_state = enb_i ? WP_W : IDLE;
+      // WP_R: next_state = epuin_i.rdfin && enb_i ? IDLE : WP_R;
       WP_R: begin 
         if (epuin_i.rdfin & enb_i) next_state = IDLE; 
         else if(epuin_i.rhns) next_state = WP_AR;

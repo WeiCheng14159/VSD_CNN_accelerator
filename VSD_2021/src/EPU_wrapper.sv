@@ -28,7 +28,7 @@ module EPU_wrapper (
     // assign s2axi_o.bid   = `AXI_IDS_BITS'h0;
     // assign {s2axi_o.awready, s2axi_o.arready, s2axi_o.wready} = 3'b0;
     // assign {s2axi_o.rvalid, s2axi_o.bvalid} = 2'b0;
-
+    // assign epuint_o = 1'b0;
 
 // /*
   typedef enum logic [1:0] {
@@ -362,4 +362,5 @@ module EPU_wrapper (
       .output_intf(EPU_out_bus)
   );
 // */
+
 endmodule

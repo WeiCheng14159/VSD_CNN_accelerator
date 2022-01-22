@@ -144,6 +144,7 @@ module R_ch (
             default      : ready_m = 1'b1;
         endcase
     end
+
     // M0
     assign id_m0_o   = ids_s[`AXI_ID_BITS-1:0];
     assign data_m0_o = data_s;
