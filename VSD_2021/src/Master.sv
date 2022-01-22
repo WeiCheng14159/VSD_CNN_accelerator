@@ -28,7 +28,7 @@ module Master(
     logic rdfin, wrfin;
     logic req_rd, req_wr;
     logic [`AXI_STRB_BITS-1:0] wstrb;
-    logic [`AXI_DATA_BITS-1:0] rdata;
+
 // }}}
     // Handshake
     assign awhns = m2axi_i.awready & m2axi_o.awvalid;
@@ -40,10 +40,7 @@ module Master(
     assign rdfin = rhns & m2axi_i.rlast;
     assign wrfin = whns & m2axi_o.wlast;
     // Sample
-    always_ff@(posedge clk or negedge rst) begin
-        if (~rst) rdata <= `AXI_DATA_BITS'b0;
-        else      rdata <= (rhns) ? m2axi_i.rdata : rdata;
-    end
+
     always_comb begin
         case (cwtype_i[1:0])
             2'b00   : wstrb = `AXI_STRB_BYTE;
@@ -65,7 +62,7 @@ module Master(
     assign m2axi_o.wstrb   = wstrb;
     assign m2axi_o.wlast   = 1'b1;
     assign m2axi_o.wdata   = cdatain_i;
-    assign dataout_o       = rhns ? m2axi_i.rdata : rdata;
+    assign dataout_o       = m2axi_i.rdata;
 
 // {{{ STATE
     always_ff @(posedge clk or negedge rst) begin
