@@ -1,5 +1,5 @@
 #####CLK PERIOD CAN BE ADJUSTED UP TO 20.0 IF SYNTHESIS GOES WRONG#####
-create_clock -name clk -period 8.0 [get_ports clk]
+create_clock -name clk -period 10.0 [get_ports clk]
 set_dont_touch_network      [all_clocks]
 set_fix_hold                [all_clocks]
 set_clock_uncertainty  0.1  [all_clocks]

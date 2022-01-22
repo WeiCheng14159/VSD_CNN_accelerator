@@ -72,7 +72,7 @@ rtl1: | $(bld_dir)
   +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
-# Convolution layer by layer
+# Convolution layer 0
 conv0: | $(bld_dir)
 	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
 		echo "Cycle time shouldn't exceed 20"; \
@@ -88,6 +88,40 @@ conv0: | $(bld_dir)
 	+access+r \
   +nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/conv0
+
+# Convolution layer 1
+conv1: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv1/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+conv1$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+  +nc64bit \
+	+prog_path=$(root_dir)/$(sim_dir)/conv1
+
+# Max pooling layer 0
+pool0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/pool0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	+incdir+$(root_dir)/$(src_dir)+$(root_dir)/$(src_dir)/AXI+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+pool0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+  +nc64bit \
+	+prog_path=$(root_dir)/$(sim_dir)/pool0
 
 # Post-Synthesis simulation
 syn_all: clean syn0 syn1

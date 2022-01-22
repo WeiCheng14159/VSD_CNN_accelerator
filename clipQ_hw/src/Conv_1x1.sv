@@ -9,9 +9,11 @@ module Conv_1x1(
 	// parm signal
 	sp_ram_intf.compute param_intf,
 	// input conv data
-	sp_ram_intf.compute input_intf,
+	sp_ram_intf.compute input_intf_0,
+	sp_ram_intf.compute input_intf_1,
 	//output conv data
-	sp_ram_intf.compute output_intf,
+	sp_ram_intf.compute output_intf_0,
+	sp_ram_intf.compute output_intf_1,
 	//weight data
 	sp_ram_intf.compute weight_intf,
 	// bias data
@@ -84,18 +86,18 @@ assign bias_intf.W_req 		= `WRITE_DIS;
 assign bias_intf.W_data 	= 32'b0;
 assign bias_intf.oe 		= 1'b1;
 //Input
-assign input_intf.W_req 	= `WRITE_DIS;
-assign input_intf.W_data 	= 16'b0;
-assign input_rdata 			= input_intf.R_data[15:0]; 
-assign input_intf.oe 		= 1'b1;
+assign input_intf_0.W_req 	= `WRITE_DIS;
+assign input_intf_0.W_data 	= 16'b0;
+assign input_rdata 			= input_intf_0.R_data[15:0]; 
+assign input_intf_0.oe 		= 1'b1;
 // Weight
 assign weight_intf.W_req 	= `WRITE_DIS;
 assign weight_intf.W_data 	= 32'b0;
 assign weight_rdata 		= weight_intf.R_data[17:0]; 
 assign weight_intf.oe 		= 1'b1;
 // Output
-assign output_intf.W_data 	= {16'h0, output_wdata};
-assign output_intf.oe 		= 1'b1;
+assign output_intf_0.W_data 	= {16'h0, output_wdata};
+assign output_intf_0.oe 		= 1'b1;
 
 //index
 logic [10:0] index;
@@ -120,9 +122,9 @@ end
 assign FULL = (index == input_2D_size);
 assign In_2D_FULL = (input_2D_cnt == input_2D_size);
 
-assign last_addr = (input_intf.addr == (total_elm - 32'b1));
+assign last_addr = (input_intf_0.addr == (total_elm - 32'b1));
 
-assign sum = output_intf.R_data[15:0] + partial_sum[0];
+assign sum = output_intf_0.R_data[15:0] + partial_sum[0];
 
 
 assign total_elm = num_row * num_row * num_CH;
@@ -187,17 +189,17 @@ always_comb begin
 	param_intf.cs	= 1'b0;
 	bias_intf.cs	= 1'b0;
 	weight_intf.cs	= 1'b0;
-	input_intf.cs	= 1'b0;
-	output_intf.cs	= 1'b0;
+	input_intf_0.cs	= 1'b0;
+	output_intf_0.cs	= 1'b0;
 	finish			= 1'b0;
 	case(STATE)
 		IDLE	: param_intf.cs  = 1'b1;
 		LD_PARM : param_intf.cs  = 1'b1;
 		LD_BIAS : bias_intf.cs	 = 1'b1;
 		LD_WT	: weight_intf.cs = 1'b1;
-		LD_I	: input_intf.cs	 = 1'b1;
+		LD_I	: input_intf_0.cs	 = 1'b1;
 		CAL		:/*--Don't need to change any signal--*/ ;
-		SW_O	: output_intf.cs = 1'b1;
+		SW_O	: output_intf_0.cs = 1'b1;
 		FIN		: finish		 = 1'b1;
 	endcase
 end
@@ -389,13 +391,13 @@ end
 	
 //input address
 always_ff@(posedge clk or negedge rstn) begin
-	if(~rstn) input_intf.addr <= 32'b0;
-	else if(STATE == LD_BIAS) input_intf.addr <= 32'b0;
+	if(~rstn) input_intf_0.addr <= 32'b0;
+	else if(STATE == LD_BIAS) input_intf_0.addr <= 32'b0;
 	else if(STATE == LD_I) begin
-		input_intf.addr <= (state_cnt > (num_input - 4'd2)) ?  input_intf.addr : input_intf.addr + input_2D_size;
+		input_intf_0.addr <= (state_cnt > (num_input - 4'd2)) ?  input_intf_0.addr : input_intf_0.addr + input_2D_size;
 	end
 	else if(STATE == SW_O) begin
-		input_intf.addr <= (state_cnt == 5'd2) ? index + input_size : input_intf.addr;
+		input_intf_0.addr <= (state_cnt == 5'd2) ? index + input_size : input_intf_0.addr;
 	end
 end
 
@@ -439,22 +441,22 @@ end
 //--------------------------------------------------------------//
 
 always_ff@(posedge clk or negedge rstn) begin
-	if(~rstn) output_intf.W_req <= `WRITE_DIS;
-	else if((STATE == SW_O) & (state_cnt == 5'd0)) output_intf.W_req <= `WRITE_ENB;
-	else output_intf.W_req <= `WRITE_DIS;
+	if(~rstn) output_intf_0.W_req <= `WRITE_DIS;
+	else if((STATE == SW_O) & (state_cnt == 5'd0)) output_intf_0.W_req <= `WRITE_ENB;
+	else output_intf_0.W_req <= `WRITE_DIS;
 end
 
 always_ff@(posedge clk or negedge rstn) begin
-	if(~rstn) output_intf.addr <= 32'b0;
+	if(~rstn) output_intf_0.addr <= 32'b0;
 	else if((STATE == SW_O) & (state_cnt == 5'd1)) begin
 		if(In_2D_cnt_DLY & last_addr) begin //SW_O to LD_BIAS
-			output_intf.addr <= output_intf.addr + 32'b1;
+			output_intf_0.addr <= output_intf_0.addr + 32'b1;
 		end
 		else if (In_2D_cnt_DLY) begin //SW_O to LD_WT
-			output_intf.addr <= output_intf.addr - input_2D_size + 32'b1;
+			output_intf_0.addr <= output_intf_0.addr - input_2D_size + 32'b1;
 		end
 		else //normal situation
-			output_intf.addr <= output_intf.addr + 32'b1;
+			output_intf_0.addr <= output_intf_0.addr + 32'b1;
 	end
 end
 
@@ -474,7 +476,7 @@ always_ff@(posedge clk or negedge rstn) begin
 			end
 		end
 		else begin
-			output_wdata <= output_intf.R_data + partial_sum[0];
+			output_wdata <= output_intf_0.R_data + partial_sum[0];
 		end
 	end
 end
