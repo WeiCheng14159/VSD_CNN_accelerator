@@ -35,7 +35,7 @@ $(syn_dir):
 	mkdir -p $(syn_dir)
 
 $(pr_dir):
-	mkdir -p $(pr_dir))
+	mkdir -p $(pr_dir)
 
 # RTL simulation
 rtl_all: clean rtl0 rtl1
@@ -86,7 +86,7 @@ conv0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-  +nc64bit \
+	+nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/conv0
 
 # Convolution layer 1
@@ -103,7 +103,7 @@ conv1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-  +nc64bit \
+	+nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/conv1
 
 # Max pooling layer 0
@@ -159,6 +159,57 @@ syn1: | $(bld_dir)
 	+access+r \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
+
+syn_conv0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+SYN+conv0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/conv0
+
+syn_conv1: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv1/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+SYN+conv1$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/conv1
+
+syn_pool0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/pool0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(syn_dir)/top_syn.sdf \
+	+incdir+$(root_dir)/$(syn_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+SYN+pool0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/pool0
 
 # Post-Layout simulation
 pr_all: clean pr0 pr1
@@ -302,3 +353,5 @@ clean:
 	make -C $(sim_dir)/prog1/ clean; \
 	make -C $(sim_dir)/prog2/ clean; \
 	make -C $(sim_dir)/conv0/ clean; \
+	make -C $(sim_dir)/conv1/ clean; \
+	make -C $(sim_dir)/pool0/ clean; \

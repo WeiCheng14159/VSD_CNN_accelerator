@@ -14,10 +14,10 @@ volatile unsigned int *epu_w8_u_addr        = (int *) 0x82000000;
 extern void dma_move(unsigned int *source, unsigned int *dest, unsigned int quantity);
 
 enum EPU_MODE {
-    IDLE      = 0x0,
-    CONV_1x1  = 0x1,
-    MAX_POOL  = 0x2,
-    CONV_3x3  = 0x3
+    IDLE      = 0x1,
+    CONV_1x1  = 0x2,
+    MAX_POOL  = 0x4,
+    CONV_3x3  = 0x8
 };
 
 // void dma_move(int *source, int *dest, int quantity);
