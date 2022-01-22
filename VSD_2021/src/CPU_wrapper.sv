@@ -22,13 +22,12 @@ module CPU_wrapper (
     logic cwait_0;
     logic cpureq_0;
     logic cpuread_0, cpuwrite_0;
-    logic req_read0, req_write0;
     // Inst cache to M0
     logic [`ADDR_BITS-1:0] caddr_m0;
     logic [`DATA_BITS-1:0] cwdata_m0;
     logic [`TYPE_BITS-1:0] ctype_m0;
     logic cwrite_m0;
-    logic creq_m0;
+    logic cwreq_m0, crreq_m0;
     logic arlenone_m0;
     // M0 to inst cache
     logic [`DATA_BITS-1:0] rdata_m0;
@@ -37,8 +36,7 @@ module CPU_wrapper (
     assign cpuwrite_0  = 1'b0;
     assign cpuweb_0    = 4'hf;
     assign cpuwdata_0  = `DATA_BITS'h0;
-    assign req_read0   = cpureq_0 & cpuread_0;
-    assign req_write0  = cpureq_0 & cpuwrite_0;
+
     assign arlenone_m0 = 1'b0;
 
     logic [`WEB_BITS -1:0] cpuweb_1;
@@ -48,20 +46,16 @@ module CPU_wrapper (
     logic cwait_1;
     logic cpureq_1;
     logic cpuread_1, cpuwrite_1;
-    logic req_read1, req_write1;
     // Inst cache to M1
     logic [`ADDR_BITS-1:0] caddr_m1;
     logic [`DATA_BITS-1:0] cwdata_m1;
     logic [`TYPE_BITS-1:0] ctype_m1;
     logic cwrite_m1;
-    logic creq_m1;
+    logic cwreq_m1, crreq_m1;
     logic arlenone_m1;
     // M1 to inst cache
     logic [`DATA_BITS-1:0] rdata_m1;
     logic wait_m1;
-
-    assign req_read1  = cpureq_1 & cpuread_1;
-    assign req_write1 = cpureq_1 & cpuwrite_1;
 
     logic latch_rst;
     always_ff @(posedge clk or negedge rst) begin
@@ -108,7 +102,11 @@ module CPU_wrapper (
         .core_out   (crdata_0  ),
         .core_wait  (cwait_0   ),
         // Wrapper outputs
-        .I_req      (creq_m0   ),
+        // .I_req      (creq_m0   ),
+
+        .I_wreq     (cwreq_m0  ),
+        .I_rreq     (crreq_m0  ),
+
         .I_addr     (caddr_m0  ),
         .I_write    (cwrite_m0 ),
         .I_in       (cwdata_m0 ),
@@ -130,7 +128,10 @@ module CPU_wrapper (
         .core_out   (crdata_1  ),
         .core_wait  (cwait_1   ),
         // Wrapper outputs
-        .D_req      (creq_m1   ),
+        // .D_req      (creq_m1   ),
+        .D_wreq     (cwreq_m1  ),
+        .D_rreq     (crreq_m1  ),
+
         .D_addr     (caddr_m1  ),
         .D_write    (cwrite_m1 ),
         .D_in       (cwdata_m1 ),
@@ -143,8 +144,11 @@ module CPU_wrapper (
         .rst        (rst        ),
         .m2axi_i    (m02axi_i   ),
         .m2axi_o    (m02axi_o   ),
-        .creq_i     (creq_m0    ),
         .arlenone_i (arlenone_m0),
+        // .creq_i     (creq_m0    ),
+        .cwreq_i    (cwreq_m0    ),
+        .crreq_i    (crreq_m0    ),
+
         .cwrite_i   (cwrite_m0  ),
         .cwtype_i   (ctype_m0   ),
         .cdatain_i  (cwdata_m0  ),
@@ -157,8 +161,11 @@ module CPU_wrapper (
         .rst        (rst        ),
         .m2axi_i    (m12axi_i   ),
         .m2axi_o    (m12axi_o   ),
-        .creq_i     (creq_m1    ),
         .arlenone_i (arlenone_m1),
+        // .creq_i     (creq_m1    ),
+        .cwreq_i     (cwreq_m1    ),
+        .crreq_i     (crreq_m1    ),
+
         .cwrite_i   (cwrite_m1  ),
         .cwtype_i   (ctype_m1   ),
         .cdatain_i  (cwdata_m1  ),
