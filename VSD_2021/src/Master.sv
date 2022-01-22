@@ -80,11 +80,15 @@ module Master(
     end
     
     always_ff @(posedge clk or negedge rst) begin
-        case (cwtype_i[1:0])
-            2'b00   : wstrb_r <= `AXI_STRB_BYTE;
-            2'b01   : wstrb_r <= `AXI_STRB_HWORD;
-            default : wstrb_r <= `AXI_STRB_WORD;
-        endcase
+        if (~rst) 
+            wstrb_r <= `AXI_STRB_BITS'h0;
+        else begin
+            case (cwtype_i[1:0])
+                2'b00   : wstrb_r <= `AXI_STRB_BYTE;
+                2'b01   : wstrb_r <= `AXI_STRB_HWORD;
+                default : wstrb_r <= `AXI_STRB_WORD;
+            endcase
+        end
     end
 
     assign m2axi_o.arid    = `AXI_ID_BITS'h0;
