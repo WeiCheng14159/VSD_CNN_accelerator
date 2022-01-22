@@ -1,5 +1,4 @@
 `include "../../include/CPU_def.svh"
-
 module PLIC (
     input clk, rst,
     input                           ifid_en_i,
@@ -41,8 +40,8 @@ module PLIC (
     end
 
     always_ff @(posedge clk or posedge rst) begin
-        if (rst)            interrupt_r <= `INT_BITS'h0;
-        else if (ifid_en_i) interrupt_r <= `INT_BITS'h0;
+        if (rst)            interrupt_r <= 0;
+        else if (ifid_en_i) interrupt_r <= 0;
         else if (valid)     interrupt_r <= int_filter;
     end
 

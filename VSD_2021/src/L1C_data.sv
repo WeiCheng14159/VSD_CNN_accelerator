@@ -163,9 +163,17 @@ module L1C_data (
             default : web = 4'h0;
         endcase
     end
+    // always_comb begin
+    //     case (blk_off)
+    //         2'h0 : da_write = {12'hfff, web};
+    //         2'h1 : da_write = {8'hff, web, 4'hf};
+    //         2'h2 : da_write = {4'hf, web, 8'hff};
+    //         2'h3 : da_write = {web, 12'hfff};
+    //     endcase
+    // end
     always_ff @(posedge clk or posedge rst) begin
         if (rst)
-            da_write <= 16'hffff;
+            da_write <= `CACHE_WRITE_BITS'hffff;
         else begin
             case (blk_off)
                 2'h0 : da_write <= {12'hfff, web};
