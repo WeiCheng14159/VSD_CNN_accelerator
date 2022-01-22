@@ -79,22 +79,18 @@ module ConvAcc (
   );
 
   // start
-  always_comb begin
-    {start_conv_1x1, start_conv_3x3, start_maxpool} = 3'b0;
-    if (mode == `CONV_1x1_MODE) start_conv_1x1 = start;
-    else if (mode == `CONV_3x3_MODE) start_conv_3x3 = start;
-    else if (mode == `MAX_POOL_MODE) start_maxpool = start;
-    else {start_conv_1x1, start_conv_3x3, start_maxpool} = 3'b0;
-  end
+  assign start_conv_1x1 = mode[`CONV_1x1_MODE] & start;
+  assign start_conv_3x3 = mode[`CONV_3x3_MODE] & start;
+  assign start_maxpool  = mode[`MAX_POOL_MODE] & start;
 
   // finish
   always_comb begin
-    finish = 1'b0;
-    if (mode == `CONV_1x1_MODE) finish = finish_conv_1x1;
-    else if (mode == `CONV_3x3_MODE) finish = finish_conv_3x3;
-    else if (mode == `MAX_POOL_MODE) finish = finish_maxpool;
-    else  // Connect to nothing
-      finish = 1'b0;
+    unique case (1'b1)
+      mode[`CONV_1x1_MODE]: finish = finish_conv_1x1;
+      mode[`CONV_3x3_MODE]: finish = finish_conv_3x3;
+      mode[`MAX_POOL_MODE]: finish = finish_maxpool;
+      mode[`IDLE_MODE]:     finish = 1'b0;
+    endcase
   end
 
   Conv_1x1 i_Conv_1x1 (

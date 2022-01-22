@@ -56,7 +56,7 @@ module EPU_wrapper (
   logic [`DATA_BITS-1:0]
       in_rdata, out_rdata, bias_rdata, weight_rdata, param_rdata;
   logic in_rvalid, out_rvalid, bias_rvalid, weight_rvalid, param_rvalid;
-  logic in_trans, out_trans;
+  logic inout_trans;
   logic conv_start, conv_fin;
   logic [`DATA_BITS-1:0] conv_w8;
   logic [3:0] conv_mode;
@@ -232,13 +232,13 @@ module EPU_wrapper (
   //          8200_0000 ~ 82FF_FFFF [31:16] EPU W8
   always_ff @(posedge clk or posedge rst) begin
     if (rst) begin
-      {in_trans, out_trans, conv_start} <= 3'b0;
-      conv_mode <= 4'h0;
+      {inout_trans, conv_start} <= 2'b0;
+      conv_mode <= 4'h1;
     end else if (conv_fin) begin
-      {in_trans, out_trans, conv_start} <= 3'b0;
-      conv_mode <= 4'h0;
+      {inout_trans, conv_start} <= 2'b0;
+      conv_mode <= 4'h1;
     end else if ((EPUIN.addr[`AXI_ADDR_BITS-1-:8] == 8'h80) & bhns) begin
-      {in_trans, out_trans, conv_start} <= {wdata_r[5], wdata_r[6], wdata_r[0]};
+      {inout_trans, conv_start} <= {wdata_r[5], wdata_r[0]};
       conv_mode <= wdata_r[4:1];
     end
   end
@@ -343,8 +343,7 @@ module EPU_wrapper (
   );
 
   InOut_switcher i_InOut_switcher (
-      .in_trans_i       (in_trans),
-      .out_trans_i      (out_trans),
+      .inout_trans_i    (inout_trans_i),
       .from_in_buff_i   (in_bus2EPU),
       .from_out_buff_i  (out_bus2EPU),
       .to_EPU_in_buff_o (EPU_in_bus),

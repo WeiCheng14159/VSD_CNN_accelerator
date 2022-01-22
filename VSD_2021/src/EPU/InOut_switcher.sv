@@ -1,8 +1,7 @@
 `include "Interface/sp_ram_intf.sv"
 
 module InOut_switcher (
-    input logic in_trans_i,
-    input logic out_trans_i,
+    input logic inout_trans_i,
     sp_ram_intf.compute from_in_buff_i,
     sp_ram_intf.compute from_out_buff_i,
     sp_ram_intf.memory to_EPU_in_buff_o,
@@ -10,7 +9,7 @@ module InOut_switcher (
 );
 
   always_comb begin
-    if (in_trans_i & out_trans_i) begin
+    if (inout_trans_i) begin
       // input buffer <-> EPU output
       to_EPU_in_buff_o.R_data  = from_out_buff_i.R_data;
       from_out_buff_i.cs       = to_EPU_in_buff_o.cs;
@@ -25,7 +24,7 @@ module InOut_switcher (
       from_in_buff_i.addr      = to_EPU_out_buff_o.addr;
       from_in_buff_i.W_req     = to_EPU_out_buff_o.W_req;
       from_in_buff_i.W_data    = to_EPU_out_buff_o.W_data;
-    end else  /*if (!in_trans_i & !out_trans_i)*/ begin
+    end else begin
       // input buffer <-> EPU input
       to_EPU_in_buff_o.R_data  = from_in_buff_i.R_data;
       from_in_buff_i.cs        = to_EPU_in_buff_o.cs;
