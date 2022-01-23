@@ -53,7 +53,7 @@ rtl0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-  +nc64bit \
+	+nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
 rtl1: | $(bld_dir)
@@ -69,7 +69,7 @@ rtl1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-  +nc64bit \
+	+nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
 # Convolution layer 0
@@ -120,7 +120,7 @@ pool0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
-  +nc64bit \
+	+nc64bit \
 	+prog_path=$(root_dir)/$(sim_dir)/pool0
 
 # Post-Synthesis simulation
@@ -140,6 +140,7 @@ syn0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
@@ -157,6 +158,7 @@ syn1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
 
@@ -174,6 +176,7 @@ syn_conv0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/conv0
 
@@ -191,6 +194,7 @@ syn_conv1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/conv1
 
@@ -208,6 +212,7 @@ syn_pool0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/pool0
 
@@ -228,6 +233,7 @@ pr0: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog0
 
@@ -245,8 +251,63 @@ pr1: | $(bld_dir)
 	-define CYCLE=$(CYCLE) \
 	-define MAX=$(MAX) \
 	+access+r \
+	+nc64bit \
 	+ncmaxdelays \
 	+prog_path=$(root_dir)/$(sim_dir)/prog1
+
+pr_conv0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(pr_dir)/top_pr.sdf \
+	+incdir+$(root_dir)/$(pr_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+PR+conv0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+nc64bit \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/conv0
+
+pr_conv1: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/conv1/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(pr_dir)/top_pr.sdf \
+	+incdir+$(root_dir)/$(pr_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+PR+conv1$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+nc64bit \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/conv1
+
+pr_pool0: | $(bld_dir)
+	@if [ $$(echo $(CYCLE) '>' 20.0 | bc -l) -eq 1 ]; then \
+		echo "Cycle time shouldn't exceed 20"; \
+		exit 1; \
+	fi; \
+	make -C $(sim_dir)/pool0/; \
+	cd $(bld_dir); \
+	irun $(root_dir)/$(sim_dir)/top_tb.sv \
+	-sdf_file $(root_dir)/$(pr_dir)/top_pr.sdf \
+	+incdir+$(root_dir)/$(pr_dir)+$(root_dir)/$(inc_dir)+$(root_dir)/$(sim_dir) \
+	+define+PR+pool0$(FSDB_DEF) \
+	-define CYCLE=$(CYCLE) \
+	-define MAX=$(MAX) \
+	+access+r \
+	+nc64bit \
+	+ncmaxdelays \
+	+prog_path=$(root_dir)/$(sim_dir)/pool0
 
 # Utilities
 nWave: | $(bld_dir)
