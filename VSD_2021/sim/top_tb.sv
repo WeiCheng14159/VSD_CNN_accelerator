@@ -148,6 +148,8 @@ module top_tb;
     gf = $fopen({prog_path, "/Out8.hex"}, "r");
 `elsif pool0
     gf = $fopen({prog_path, "/Out8.hex"}, "r");
+`elsif conv_all
+    gf = $fopen({prog_path, "/Out8.hex"}, "r");
 `else
     gf = $fopen({prog_path, "/golden.hex"}, "r");
 `endif
