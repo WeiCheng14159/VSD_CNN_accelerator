@@ -4,50 +4,50 @@
 // Combine six 64kB dual port SRAM into 384kB SRAM
 
 module InOut_dp_SRAM_384k (
-    input logic         clk,
-    sp_ram_intf.memory mem0,
-    sp_ram_intf.memory mem1
+    input logic              clk,
+          sp_ram_intf.memory mem0,
+          sp_ram_intf.memory mem1
 );
 
   // Port A
-  logic         CKA;
-  logic         CSA;
-  logic         OEA;
-  logic         WEAN;
-  logic  [17:0] AA;
-  logic  [15:0] DIA;
-  logic  [15:0] DOA;
+  logic        CKA;
+  logic        CSA;
+  logic        OEA;
+  logic        WEAN;
+  logic [17:0] AA;
+  logic [15:0] DIA;
+  logic [15:0] DOA;
   logic [17:0] latched_AA;
-  logic [15:0] _DOA [0:5];
+  logic [15:0] _DOA       [0:5];
   // Port B
-  logic         CKB;
-  logic         CSB;
-  logic         OEB;
-  logic         WEBN;
-  logic  [17:0] AB;
-  logic  [15:0] DIB;
-  logic  [15:0] DOB;
+  logic        CKB;
+  logic        CSB;
+  logic        OEB;
+  logic        WEBN;
+  logic [17:0] AB;
+  logic [15:0] DIB;
+  logic [15:0] DOB;
   logic [17:0] latched_AB;
-  logic [15:0] _DOB [0:5];
+  logic [15:0] _DOB       [0:5];
 
   // Port A
   assign CKA = clk;
   assign CSA = mem0.cs;
   assign OEA = mem0.oe;
-  assign AA  = mem0.addr[17:0];
+  assign AA = mem0.addr[17:0];
   assign DIA = mem0.W_data[15:0];
   assign WEAN = mem0.W_req;
-  assign mem0.R_data = {{16{DOA[15]}}, DOA}; 
+  assign mem0.R_data = {{16{DOA[15]}}, DOA};
   always_ff @(posedge CKA) latched_AA <= AA;
 
   // Port B
   assign CKB = clk;
   assign CSB = mem1.cs;
   assign OEB = mem1.oe;
-  assign AB  = mem1.addr[17:0];
+  assign AB = mem1.addr[17:0];
   assign DIB = mem1.W_data[15:0];
   assign WEBN = mem1.W_req;
-  assign mem1.R_data = {{16{DOB[15]}}, DOB}; 
+  assign mem1.R_data = {{16{DOB[15]}}, DOB};
   always_ff @(posedge CKB) latched_AB <= AB;
 
   always_comb begin
@@ -81,12 +81,12 @@ module InOut_dp_SRAM_384k (
   genvar g;
   generate
     for (g = 0; g < 6; g = g + 1) begin : SRAM_blk
-      logic       _CSA;
-      logic       _OEA;
-      logic       _WEAN;
-      logic       _CSB;
-      logic       _OEB;
-      logic       _WEBN;
+      logic _CSA;
+      logic _OEA;
+      logic _WEAN;
+      logic _CSB;
+      logic _OEB;
+      logic _WEBN;
 
       assign _CSA  = AA[17:15] == g[2:0] ? CSA : 1'b0;
       assign _OEA  = latched_AA[17:15] == g[2:0] ? OEA : 1'b0;
@@ -96,20 +96,20 @@ module InOut_dp_SRAM_384k (
       assign _WEBN = AB[17:15] == g[2:0] ? WEBN : 1'b1;
 
       SRAM_dp_16b_32768w_64k i_SRAM_16b_32768w_64k (
-          .CKA  (CKA),
-          .CSA  (_CSA),
-          .OEA  (_OEA),
-          .WEAN (_WEAN),
-          .AA   (AA[14:0]),
-          .DIA  (DIA),
-          .DOA  (_DOA[g]),
-          .CKB  (CKB),
-          .CSB  (_CSB),
-          .OEB  (_OEB),
-          .WEBN (_WEBN),
-          .AB   (AB[14:0]),
-          .DIB  (DIB),
-          .DOB  (_DOB[g])
+          .CKA (CKA),
+          .CSA (_CSA),
+          .OEA (_OEA),
+          .WEAN(_WEAN),
+          .AA  (AA[14:0]),
+          .DIA (DIA),
+          .DOA (_DOA[g]),
+          .CKB (CKB),
+          .CSB (_CSB),
+          .OEB (_OEB),
+          .WEBN(_WEBN),
+          .AB  (AB[14:0]),
+          .DIB (DIB),
+          .DOB (_DOB[g])
       );
     end : SRAM_blk
   endgenerate

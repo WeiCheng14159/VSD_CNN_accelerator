@@ -14,9 +14,9 @@
 `define READ_ENB (1'b1)
 `define READ_DIS (1'b0)
 
-`define CONV_1x1_MODE 4'h1
-`define MAX_POOL_MODE 4'h2
-`define CONV_3x3_MODE 4'h3
-`define IDLE_MODE     4'h0
+`define IDLE_MODE 0
+`define CONV_1x1_MODE 1
+`define MAX_POOL_MODE 2
+`define CONV_3x3_MODE 3
 
 // `endif
