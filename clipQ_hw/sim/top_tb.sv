@@ -1,5 +1,5 @@
 `timescale 1ns / 1ns
-`define CYCLE 15.0 // Cycle time
+`define CYCLE 11.0 // Cycle time
 `define MAX 300000000 // Max cycle number
 
 `ifdef SYN
