@@ -320,9 +320,11 @@ module Conv_3x3 (
       if (counter == 4'h3) begin
         if (cha_counter == (num_channel - 32'b1))
           weight_intf.addr <= weight_intf.addr + 32'h1;
-        else weight_intf.addr <= weight_intf.addr - 32'h8;
-      end else if (counter != 4'h4)
-        weight_intf.addr <= weight_intf.addr + 32'h3;
+        else 
+          weight_intf.addr <= weight_intf.addr - (3 * num_channel) + 32'b1;
+      end 
+      else if (counter != 4'h4)
+        weight_intf.addr <= weight_intf.addr + num_channel;
     end
   end
 
