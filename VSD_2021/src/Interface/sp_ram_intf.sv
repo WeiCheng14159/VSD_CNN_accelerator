@@ -1,10 +1,10 @@
 `ifndef SP_RAM_INTF_SV
-`define SP_RAM_INTF_SV
+`define SP_RAM_INTF_SV 
 `include "ConvAcc.svh"
 
 interface sp_ram_intf;
-  logic cs;
-  logic oe;
+  logic                       cs;
+  logic                       oe;
   logic [`ADDR_BUS_WIDTH-1:0] addr;
   logic [`DATA_BUS_WIDTH-1:0] R_data;
   logic                       W_req;
