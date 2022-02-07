@@ -86,6 +86,9 @@ We are able to obtain ~82% accuracy with this model on CIFAR-10 dataset while th
 ![Alt text](./figure/mask_NN_arch.png?raw=true)
 
 We then apply CLIP-Q quantization and pruning algorithm to further compress this model so that it fits in our NN accelerator. Eventually we are able to obtain a ~82% accuracy on our custom mask wearing dataset.
+
+## Slides
+More details on our presentation [slides](slides/presentation.pptx) for more details.
 ## Reference
 - [1] Lin, M., Chen, Q., & Yan, S. (2013). Network in network. arXiv preprint arXiv:1312.4400.
 - [2] Tung, F., & Mori, G. (2018). Clip-q: Deep network compression learning by in-parallel pruning-quantization. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 7873-7882).
