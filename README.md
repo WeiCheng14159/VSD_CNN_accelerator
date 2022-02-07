@@ -38,6 +38,23 @@ Our mask detection CNN accelerator has the following HW architecture:
 ### ROM
 - 16 KB off-chip memory 
 
+## ASIC spec
+| | Single clock domain, Speed = 100 MHz, U18 process | |
+| -           | -             | -               |
+| CPU         | CPU+I$+D$     | ~1mm^2          |
+| RAM         | IM (32KB)     | ~2.6 mm^2       |
+|             | DM (32KB)     | ~2.6 mm^2       |
+| EPU Buffers | Bias buffer   | ~0.3 mm^2       |
+|             | Weight Buffer | ~7.8 mm^2       |
+|             | Input Buffer  | ~16 mm^2        | 
+|             | Output Buffer | ~16 mm^2        |
+| EPU         |               | ~0.6 mm^2       |
+|             || Total area (SYN) 47.6 mm^2     |
+|             || Total area (APR) 67.9 mm^2     |
+
+  ![Alt text](./figure/APR_layout.png?raw=true)
+
+###
 ## NN quantization & compression
 - We use a NIN (Network In Network) model [1] and apply CLIP-Q [2] algorithm to quantize and compress the network.
 
