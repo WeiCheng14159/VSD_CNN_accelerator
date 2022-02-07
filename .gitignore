@@ -21,6 +21,7 @@ icc/run/
 jgproject/
 syn/
 build/
+nWaveLog/
 
 # clip-Q directory to ignore
 H_data/*.hex
