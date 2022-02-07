@@ -89,6 +89,9 @@ We then apply CLIP-Q quantization and pruning algorithm to further compress this
 
 ## Slides
 More details on our presentation [slides](slides/presentation.pptx) for more details.
+
+## Contribution
+Special thanks to [@Wder4](https://github.com/Wder4) [@NCKUMaxSnake](https://github.com/NCKUMaxSnake) [@sam2468sam](https://github.com/sam2468sam) [@alan-chen1412](https://github.com/alan-chen1412) [@hsiehong](https://github.com/hsiehong) [@GuFangYi](https://github.com/GuFangYi) [@WeiCheng14159](https://github.com/WeiCheng14159) for their contribution.
 ## Reference
 - [1] Lin, M., Chen, Q., & Yan, S. (2013). Network in network. arXiv preprint arXiv:1312.4400.
 - [2] Tung, F., & Mori, G. (2018). Clip-q: Deep network compression learning by in-parallel pruning-quantization. In Proceedings of the IEEE conference on computer vision and pattern recognition (pp. 7873-7882).
