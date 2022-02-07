@@ -1,0 +1,13 @@
+#@ # 
+#@ # Running lc_shell Version Q-2019.12 for linux64 -- Dec 02, 2019
+#@ # Date:   Mon Jan 10 22:28:22 2022
+#@ # Run by: wei@caidcpuserver1
+#@ 
+
+read_lib SUMA180_32768X16X1BM8_BC.lib
+write_lib SUMA180_32768X16X1BM8_BC -format db -output SUMA180_32768X16X1BM8_BC.db
+read_lib SUMA180_32768X16X1BM8_TC.lib
+write_lib SUMA180_32768X16X1BM8_TC -format db -output SUMA180_32768X16X1BM8_TC.db
+read_lib SUMA180_32768X16X1BM8_WC.lib
+write_lib SUMA180_32768X16X1BM8_WC -format db -output SUMA180_32768X16X1BM8_WC.db
+exit
